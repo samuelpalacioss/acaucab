@@ -549,25 +549,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
       <div className="space-y-8">
         <div>
           <h2 className="text-xl font-semibold mb-6">Información de Contacto</h2>
-          <div className="space-y-6">
-            {renderTelefonosSection()}
-
-            <div className="max-w-[350px]">
-              <FormField
-                control={control}
-                name="correoElectronico"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Correo Electrónico</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="correo@ejemplo.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          <div className="space-y-6">{renderTelefonosSection()}</div>
         </div>
       </div>
     );
@@ -581,20 +563,6 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
           {renderTelefonosSection()}
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <FormField
-              control={control}
-              name="correoElectronico"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Correo Electrónico</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="empresa@ejemplo.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={control}
               name="paginaWeb"
