@@ -16,6 +16,7 @@ import { ContactoForm } from "@/components/steps/contacto-form"
 import { MetodosPagoForm } from "@/components/steps/metodos-pago-form"
 import { ResumenForm } from "@/components/steps/resumen-form"
 import { StepIndicator } from "@/components/step-indicator"
+import { DireccionesForm } from "@/components/steps/direcciones-form"
 
 // Esquema de validación para persona natural
 const personaNaturalSchema = z.object({
@@ -26,7 +27,12 @@ const personaNaturalSchema = z.object({
   apellidos: z.string().min(1, "Apellidos son requeridos"),
   telefonos: z.string().min(1, "Al menos un teléfono es requerido"),
   correoElectronico: z.string().email("Correo electrónico inválido"),
-  direccionHabitacion: z.string().min(1, "Dirección de habitación es requerida"),
+  direccionHabitacion: z.object({
+    estado: z.string().min(1, "Estado es requerido"),
+    municipio: z.string().min(1, "Municipio es requerido"),
+    parroquia: z.string().min(1, "Parroquia es requerida"),
+    direccion: z.string().min(1, "Dirección detallada es requerida"),
+  }),
   metodosPago: z.array(z.string()).min(1, "Seleccione al menos un método de pago"),
 })
 
@@ -42,8 +48,18 @@ const personaJuridicaSchema = z.object({
   capitalDisponible: z.string().min(1, "Capital disponible es requerido"),
   personasContacto: z.string().min(1, "Personas de contacto son requeridas"),
   metodosPago: z.array(z.string()).min(1, "Seleccione al menos un método de pago"),
-  direccionFiscal: z.string().min(1, "Dirección fiscal es requerida"),
-  direccionFisica: z.string().min(1, "Dirección física es requerida"),
+  direccionFiscal: z.object({
+    estado: z.string().min(1, "Estado es requerido"),
+    municipio: z.string().min(1, "Municipio es requerido"),
+    parroquia: z.string().min(1, "Parroquia es requerida"),
+    direccion: z.string().min(1, "Dirección detallada es requerida"),
+  }),
+  direccionFisica: z.object({
+    estado: z.string().min(1, "Estado es requerido"),
+    municipio: z.string().min(1, "Municipio es requerido"),
+    parroquia: z.string().min(1, "Parroquia es requerida"),
+    direccion: z.string().min(1, "Dirección detallada es requerida"),
+  }),
 })
 
 // Esquema combinado
@@ -51,13 +67,55 @@ const formSchema = z.discriminatedUnion("tipoPersona", [personaNaturalSchema, pe
 
 type FormValues = z.infer<typeof formSchema>
 
+type AddressFields = {
+  estado: string
+  municipio: string
+  parroquia: string
+  direccion: string
+}
+
+type FormValuesWithAddress = {
+  tipoPersona: "natural" | "juridica"
+  rif: string
+  telefonos: string
+  correoElectronico: string
+  metodosPago: string[]
+  cedula?: string
+  nombres?: string
+  apellidos?: string
+  direccionHabitacion?: {
+    estado: string
+    municipio: string
+    parroquia: string
+    direccion: string
+  }
+  denominacionComercial?: string
+  razonSocial?: string
+  capitalDisponible?: string
+  paginaWeb?: string
+  personasContacto?: string
+  direccionFiscal?: {
+    estado: string
+    municipio: string
+    parroquia: string
+    direccion: string
+  }
+  direccionFisica?: {
+    estado: string
+    municipio: string
+    parroquia: string
+    direccion: string
+  }
+}
+
 const STEPS = ["Tipo de Persona", "Datos Básicos", "Información de Contacto", "Métodos de Pago", "Resumen"]
 
 export function RegistroMultistep() {
   const [step, setStep] = useState(0)
+  const [contactSubstep, setContactSubstep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const methods = useForm<FormValues>({
+  const methods = useForm<FormValuesWithAddress>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       tipoPersona: "natural",
@@ -69,8 +127,26 @@ export function RegistroMultistep() {
   const tipoPersona = methods.watch("tipoPersona")
 
   const nextStep = async () => {
-    const fields = getFieldsForStep(step)
+    if (step === 2 && contactSubstep === 0) {
+      const fields = ["telefonos", "correoElectronico", "paginaWeb", "personasContacto"]
+      const isValid = await methods.trigger(fields as any)
+      if (isValid) {
+        setContactSubstep(1)
+      }
+      return
+    }
 
+    if (step === 2 && contactSubstep === 1) {
+      const fields = tipoPersona === "natural" ? ["direccionHabitacion"] : ["direccionFiscal", "direccionFisica"]
+      const isValid = await methods.trigger(fields as any)
+      if (isValid) {
+        setContactSubstep(0)
+        setStep((prev) => Math.min(prev + 1, STEPS.length - 1))
+      }
+      return
+    }
+
+    const fields = getFieldsForStep(step)
     const isValid = await methods.trigger(fields as any)
     if (isValid) {
       setStep((prev) => Math.min(prev + 1, STEPS.length - 1))
@@ -78,10 +154,19 @@ export function RegistroMultistep() {
   }
 
   const prevStep = () => {
+    if (step === 3) {
+      setStep(2)
+      setContactSubstep(1)
+      return
+    }
+    if (step === 2 && contactSubstep === 1) {
+      setContactSubstep(0)
+      return
+    }
     setStep((prev) => Math.max(prev - 1, 0))
   }
 
-  const getFieldsForStep = (currentStep: number): (keyof FormValues)[] => {
+  const getFieldsForStep = (currentStep: number): Array<keyof FormValuesWithAddress> => {
     switch (currentStep) {
       case 0:
         return ["tipoPersona"]
@@ -90,9 +175,11 @@ export function RegistroMultistep() {
           ? ["rif", "cedula", "nombres", "apellidos"]
           : ["rif", "denominacionComercial", "razonSocial", "capitalDisponible"]
       case 2:
-        return tipoPersona === "natural"
-          ? ["telefonos", "correoElectronico", "direccionHabitacion"]
-          : ["telefonos", "correoElectronico", "paginaWeb", "personasContacto", "direccionFiscal", "direccionFisica"]
+        return contactSubstep === 0
+          ? ["telefonos", "correoElectronico", "paginaWeb", "personasContacto"]
+          : tipoPersona === "natural"
+          ? ["direccionHabitacion"]
+          : ["direccionFiscal", "direccionFisica"]
       case 3:
         return ["metodosPago"]
       default:
@@ -100,7 +187,7 @@ export function RegistroMultistep() {
     }
   }
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: FormValuesWithAddress) => {
     setIsSubmitting(true)
 
     try {
@@ -126,13 +213,19 @@ export function RegistroMultistep() {
   }
 
   const renderStepContent = () => {
+    if (step === 2) {
+      return contactSubstep === 0 ? (
+        <ContactoForm tipoPersona={tipoPersona} />
+      ) : (
+        <DireccionesForm tipoPersona={tipoPersona} />
+      )
+    }
+
     switch (step) {
       case 0:
         return <TipoPersonaForm />
       case 1:
         return <DatosBasicosForm tipoPersona={tipoPersona} />
-      case 2:
-        return <ContactoForm tipoPersona={tipoPersona} />
       case 3:
         return <MetodosPagoForm />
       case 4:

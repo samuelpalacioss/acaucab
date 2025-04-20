@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PlusCircle, X, PencilIcon, UserIcon, PhoneIcon, MailIcon, IdCardIcon } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Label } from "@/components/ui/label"
+import { AddressSelector } from "@/components/address-selector"
 
 interface ContactoFormProps {
   tipoPersona: "natural" | "juridica"
@@ -60,11 +62,54 @@ interface PersonaContacto {
 }
 
 export function ContactoForm({ tipoPersona }: ContactoFormProps) {
-  const { control, setValue } = useFormContext()
-  const [telefonos, setTelefonos] = useState<Telefono[]>([
-    { id: "1", prefijo: "0424", numero: "", denominacion: "movil" },
-  ])
-  const [personasContacto, setPersonasContacto] = useState<PersonaContacto[]>([])
+  const { control, setValue, register, watch } = useFormContext()
+  const [telefonos, setTelefonos] = useState<Telefono[]>(() => {
+    const telefonosString = watch("telefonos") || ""
+    if (!telefonosString) return [{ id: "1", prefijo: "0424", numero: "", denominacion: "movil" }]
+    
+    // Parse the existing telefonos string back into the array format
+    return telefonosString.split(", ").map((tel: string, index: number) => {
+      const match = tel.match(/(\d+) (.+) \((.+)\)/)
+      if (match) {
+        const [_, prefijo, numero, denominacion] = match
+        return {
+          id: index.toString(),
+          prefijo,
+          numero,
+          denominacion: denominaciones.find(d => d.label === denominacion)?.value || "movil"
+        }
+      }
+      return { id: index.toString(), prefijo: "0424", numero: "", denominacion: "movil" }
+    })
+  })
+
+  const [personasContacto, setPersonasContacto] = useState<PersonaContacto[]>(() => {
+    const personasString = watch("personasContacto") || ""
+    if (!personasString) return []
+    
+    // Parse the existing personas string back into the array format
+    return personasString.split("\n").map((persona: string, index: number) => {
+      const match = persona.match(/(.+) \((.+)\) - (\d+) (.+) - (.+)/)
+      if (match) {
+        const [_, nombreCompleto, cedula, prefijo, numero, email] = match
+        return {
+          id: index.toString(),
+          nombreCompleto,
+          cedula,
+          telefono: { prefijo, numero },
+          email
+        }
+      }
+      return {
+        id: index.toString(),
+        nombreCompleto: "",
+        cedula: "",
+        telefono: { prefijo: "0424", numero: "" },
+        email: ""
+      }
+    })
+  })
+
   const [mostrarFormContacto, setMostrarFormContacto] = useState(false)
   const [personaEnEdicion, setPersonaEnEdicion] = useState<PersonaContacto>({
     id: "",
@@ -452,20 +497,6 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
                 )}
               />
             </div>
-
-            <FormField
-              control={control}
-              name="direccionHabitacion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dirección de Habitación</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Dirección completa de habitación" className="min-h-[100px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
         </div>
       </div>
@@ -508,218 +539,11 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
               )}
             />
           </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <FormField
-              control={control}
-              name="direccionFiscal"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dirección Fiscal</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Dirección fiscal completa" className="min-h-[80px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="direccionFisica"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dirección Física Principal</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Dirección física principal" className="min-h-[80px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
         </div>
       </div>
 
       <div className="border-t pt-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Personas de Contacto</h2>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setMostrarFormContacto(true)}
-            disabled={mostrarFormContacto}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Agregar persona de contacto
-          </Button>
-        </div>
-
-        {mostrarFormContacto && (
-          <div className="border rounded-lg p-4 space-y-4 mb-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <FormLabel>Nombre Completo</FormLabel>
-                <Input
-                  value={personaEnEdicion.nombreCompleto}
-                  onChange={(e) =>
-                    setPersonaEnEdicion({ ...personaEnEdicion, nombreCompleto: e.target.value })
-                  }
-                  placeholder="Nombre y Apellido"
-                />
-              </div>
-              <div>
-                <FormLabel>Cédula</FormLabel>
-                <Input
-                  value={personaEnEdicion.cedula}
-                  onChange={(e) =>
-                    setPersonaEnEdicion({ ...personaEnEdicion, cedula: e.target.value })
-                  }
-                  placeholder="V-12345678"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[80px_255px_1fr] items-end gap-4">
-              <div>
-                <FormLabel>Teléfono</FormLabel>
-                <Select
-                  value={personaEnEdicion.telefono.prefijo}
-                  onValueChange={(value) =>
-                    setPersonaEnEdicion({
-                      ...personaEnEdicion,
-                      telefono: { ...personaEnEdicion.telefono, prefijo: value },
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Prefijo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {prefijos.map((prefijo) => (
-                      <SelectItem key={prefijo.value} value={prefijo.value}>
-                        {prefijo.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Input
-                  value={personaEnEdicion.telefono.numero}
-                  onChange={(e) =>
-                    setPersonaEnEdicion({
-                      ...personaEnEdicion,
-                      telefono: { ...personaEnEdicion.telefono, numero: e.target.value },
-                    })
-                  }
-                  placeholder="Número"
-                />
-              </div>
-              <div>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  type="email"
-                  value={personaEnEdicion.email}
-                  onChange={(e) =>
-                    setPersonaEnEdicion({ ...personaEnEdicion, email: e.target.value })
-                  }
-                  placeholder="correo@ejemplo.com"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setMostrarFormContacto(false)
-                  setPersonaEnEdicion({
-                    id: "",
-                    nombreCompleto: "",
-                    cedula: "",
-                    telefono: {
-                      prefijo: "0424",
-                      numero: "",
-                    },
-                    email: "",
-                  })
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button type="button" onClick={guardarPersonaContacto}>
-                {personaEnEdicion.id ? "Actualizar" : "Agregar"}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {personasContacto.length > 0 && (
-          <div className="space-y-2">
-            {personasContacto.map((persona) => (
-              <div
-                key={persona.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
-              >
-                <div className="flex-1 grid grid-cols-2 gap-y-2 gap-x-8">
-                  <div className="flex items-center gap-2 text-sm">
-                    <UserIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="font-medium">{persona.nombreCompleto}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <IdCardIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{persona.cedula}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <PhoneIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{persona.telefono.prefijo} {persona.telefono.numero}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm truncate">
-                    <MailIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground truncate">{persona.email}</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 ml-4">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => editarPersonaContacto(persona)}
-                    className="hover:bg-accent"
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => eliminarPersonaContacto(persona.id)}
-                    className="hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Campo oculto para mantener la validación */}
-        <FormField
-          control={control}
-          name="personasContacto"
-          render={({ field }) => (
-            <FormItem className="hidden">
-              <FormControl>
-                <Input type="text" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {renderPersonasContactoSection()}
       </div>
     </div>
   )
