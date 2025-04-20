@@ -18,6 +18,14 @@ import { ResumenForm } from "@/components/steps/resumen-form"
 import { StepIndicator } from "@/components/step-indicator"
 import { DireccionesForm } from "@/components/steps/direcciones-form"
 
+// Common payment fields for both schemas
+const paymentFields = {
+  numeroTarjeta: z.string().min(16, "Número de tarjeta es requerido y debe tener 16 dígitos"),
+  nombreTitular: z.string().min(1, "Nombre del titular es requerido"),
+  fechaExpiracion: z.string().min(4, "Fecha de expiración es requerida"),
+  codigoSeguridad: z.string().min(3, "Código de seguridad es requerido"),
+}
+
 // Esquema de validación para persona natural
 const personaNaturalSchema = z.object({
   tipoPersona: z.literal("natural"),
@@ -33,15 +41,7 @@ const personaNaturalSchema = z.object({
     parroquia: z.string().min(1, "Parroquia es requerida"),
     direccion: z.string().min(1, "Dirección detallada es requerida"),
   }),
-  tipoTarjeta: z.string().min(1, "Tipo de tarjeta es requerido"),
-  banco: z.string().min(1, "Banco emisor es requerido"),
-  numeroTarjeta: z.string().min(1, "Número de tarjeta es requerido"),
-  nombreTitular: z.string().min(1, "Nombre del titular es requerido"),
-  fechaExpiracion: z.string().min(1, "Fecha de expiración es requerida"),
-  codigoSeguridad: z.string().min(1, "Código de seguridad es requerido"),
-  nacionalidad: z.string().min(1, "Nacionalidad es requerida"),
-  cedulaTitular: z.string().min(1, "Cédula del titular es requerida"),
-  metodosPago: z.array(z.string()).min(1, "Seleccione al menos un método de pago"),
+  ...paymentFields
 })
 
 // Esquema de validación para persona jurídica
@@ -67,15 +67,7 @@ const personaJuridicaSchema = z.object({
     parroquia: z.string().min(1, "Parroquia es requerida"),
     direccion: z.string().min(1, "Dirección detallada es requerida"),
   }),
-  tipoTarjeta: z.string().min(1, "Tipo de tarjeta es requerido"),
-  banco: z.string().min(1, "Banco emisor es requerido"),
-  numeroTarjeta: z.string().min(1, "Número de tarjeta es requerido"),
-  nombreTitular: z.string().min(1, "Nombre del titular es requerido"),
-  fechaExpiracion: z.string().min(1, "Fecha de expiración es requerida"),
-  codigoSeguridad: z.string().min(1, "Código de seguridad es requerido"),
-  nacionalidad: z.string().min(1, "Nacionalidad es requerida"),
-  cedulaTitular: z.string().min(1, "Cédula del titular es requerida"),
-  metodosPago: z.array(z.string()).min(1, "Seleccione al menos un método de pago"),
+  ...paymentFields
 })
 
 // Esquema combinado
@@ -96,6 +88,10 @@ type FormValuesWithAddress = {
   telefonos: string
   correoElectronico: string
   metodosPago: string[]
+  numeroTarjeta?: string
+  nombreTitular?: string
+  fechaExpiracion?: string
+  codigoSeguridad?: string
   cedula?: string
   nombres?: string
   apellidos?: string
@@ -197,6 +193,8 @@ export function RegistroMultistep() {
           ? ["direccionHabitacion"]
           : ["direccionFiscal", "direccionFisica"]
       case 3:
+        return ["numeroTarjeta", "nombreTitular", "fechaExpiracion", "codigoSeguridad"]
+      case 4:
         return ["metodosPago"]
       default:
         return []
