@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ShoppingCart } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -12,9 +13,16 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button asChild className="px-8 py-6 text-lg">
             <Link href="/registro">Ir a Registro</Link>
+          </Button>
+
+          <Button asChild className="px-8 py-6 text-lg bg-indigo-600 hover:bg-indigo-700">
+            <Link href="/carrito" className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              <span>Ver Carrito</span>
+            </Link>
           </Button>
         </div>
       </div>
