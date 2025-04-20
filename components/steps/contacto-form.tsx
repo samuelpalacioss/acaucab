@@ -1,18 +1,25 @@
-"use client"
+"use client";
 
-import { useFormContext } from "react-hook-form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, X, PencilIcon, UserIcon, PhoneIcon, MailIcon, IdCardIcon } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Label } from "@/components/ui/label"
-import { AddressSelector } from "@/components/address-selector"
+import { useFormContext } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PlusCircle, X, PencilIcon, UserIcon, PhoneIcon, MailIcon, IdCardIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Label } from "@/components/ui/label";
+import { AddressSelector } from "@/components/address-selector";
+import { CedulaInput } from "@/components/ui/cedula-input";
 
 interface ContactoFormProps {
-  tipoPersona: "natural" | "juridica"
+  tipoPersona: "natural" | "juridica";
 }
 
 // Prefijos telefónicos comunes en Venezuela
@@ -23,7 +30,7 @@ const prefijos = [
   { value: "0416", label: "0416" },
   { value: "0426", label: "0426" },
   { value: "0212", label: "0212" },
-]
+];
 
 // Denominaciones para los teléfonos
 const denominaciones = [
@@ -31,7 +38,7 @@ const denominaciones = [
   { value: "casa", label: "Casa" },
   { value: "trabajo", label: "Trabajo" },
   { value: "otro", label: "Otro" },
-]
+];
 
 const roles = [
   { value: "gerente", label: "Gerente" },
@@ -41,76 +48,76 @@ const roles = [
   { value: "analista", label: "Analista" },
   { value: "asistente", label: "Asistente" },
   { value: "otro", label: "Otro" },
-]
+];
 
 interface Telefono {
-  id: string
-  prefijo: string
-  numero: string
-  denominacion: string
+  id: string;
+  prefijo: string;
+  numero: string;
+  denominacion: string;
 }
 
 interface PersonaContacto {
-  id: string
-  nombreCompleto: string
-  cedula: string
+  id: string;
+  nombreCompleto: string;
+  cedula: string;
   telefono: {
-    prefijo: string
-    numero: string
-  }
-  email: string
+    prefijo: string;
+    numero: string;
+  };
+  email: string;
 }
 
 export function ContactoForm({ tipoPersona }: ContactoFormProps) {
-  const { control, setValue, register, watch } = useFormContext()
+  const { control, setValue, register, watch } = useFormContext();
   const [telefonos, setTelefonos] = useState<Telefono[]>(() => {
-    const telefonosString = watch("telefonos") || ""
-    if (!telefonosString) return [{ id: "1", prefijo: "0424", numero: "", denominacion: "movil" }]
-    
+    const telefonosString = watch("telefonos") || "";
+    if (!telefonosString) return [{ id: "1", prefijo: "0424", numero: "", denominacion: "movil" }];
+
     // Parse the existing telefonos string back into the array format
     return telefonosString.split(", ").map((tel: string, index: number) => {
-      const match = tel.match(/(\d+) (.+) \((.+)\)/)
+      const match = tel.match(/(\d+) (.+) \((.+)\)/);
       if (match) {
-        const [_, prefijo, numero, denominacion] = match
+        const [_, prefijo, numero, denominacion] = match;
         return {
           id: index.toString(),
           prefijo,
           numero,
-          denominacion: denominaciones.find(d => d.label === denominacion)?.value || "movil"
-        }
+          denominacion: denominaciones.find((d) => d.label === denominacion)?.value || "movil",
+        };
       }
-      return { id: index.toString(), prefijo: "0424", numero: "", denominacion: "movil" }
-    })
-  })
+      return { id: index.toString(), prefijo: "0424", numero: "", denominacion: "movil" };
+    });
+  });
 
   const [personasContacto, setPersonasContacto] = useState<PersonaContacto[]>(() => {
-    const personasString = watch("personasContacto") || ""
-    if (!personasString) return []
-    
+    const personasString = watch("personasContacto") || "";
+    if (!personasString) return [];
+
     // Parse the existing personas string back into the array format
     return personasString.split("\n").map((persona: string, index: number) => {
-      const match = persona.match(/(.+) \((.+)\) - (\d+) (.+) - (.+)/)
+      const match = persona.match(/(.+) \((.+)\) - (\d+) (.+) - (.+)/);
       if (match) {
-        const [_, nombreCompleto, cedula, prefijo, numero, email] = match
+        const [_, nombreCompleto, cedula, prefijo, numero, email] = match;
         return {
           id: index.toString(),
           nombreCompleto,
           cedula,
           telefono: { prefijo, numero },
-          email
-        }
+          email,
+        };
       }
       return {
         id: index.toString(),
         nombreCompleto: "",
         cedula: "",
         telefono: { prefijo: "0424", numero: "" },
-        email: ""
-      }
-    })
-  })
+        email: "",
+      };
+    });
+  });
 
-  const [mostrarFormContacto, setMostrarFormContacto] = useState(false)
+  const [mostrarFormContacto, setMostrarFormContacto] = useState(false);
   const [personaEnEdicion, setPersonaEnEdicion] = useState<PersonaContacto>({
     id: "",
     nombreCompleto: "",
@@ -120,7 +127,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
       numero: "",
     },
     email: "",
-  })
+  });
 
   // Función para agregar un nuevo teléfono
   const agregarTelefono = () => {
@@ -129,34 +136,42 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
       prefijo: "0424",
       numero: "",
       denominacion: "movil",
-    }
-    setTelefonos([...telefonos, nuevoTelefono])
-  }
+    };
+    setTelefonos([...telefonos, nuevoTelefono]);
+  };
 
   // Función para eliminar un teléfono
   const eliminarTelefono = (id: string) => {
-    if (telefonos.length <= 1) return // Mantener al menos un teléfono
-    setTelefonos(telefonos.filter((tel) => tel.id !== id))
-  }
+    if (telefonos.length <= 1) return; // Mantener al menos un teléfono
+    setTelefonos(telefonos.filter((tel) => tel.id !== id));
+  };
 
   // Actualizar el campo telefonos en el formulario cuando cambian los teléfonos
   useEffect(() => {
     const telefonosString = telefonos
-      .map((tel) => `${tel.prefijo} ${tel.numero} (${denominaciones.find((d) => d.value === tel.denominacion)?.label})`)
-      .join(", ")
-    setValue("telefonos", telefonosString)
-  }, [telefonos, setValue])
+      .map(
+        (tel) =>
+          `${tel.prefijo} ${tel.numero} (${
+            denominaciones.find((d) => d.value === tel.denominacion)?.label
+          })`
+      )
+      .join(", ");
+    setValue("telefonos", telefonosString);
+  }, [telefonos, setValue]);
 
   // Función para agregar/actualizar una persona de contacto
   const guardarPersonaContacto = () => {
     if (personaEnEdicion.id) {
       setPersonasContacto(
-        personasContacto.map((p) => (p.id === personaEnEdicion.id ? personaEnEdicion : p)),
-      )
+        personasContacto.map((p) => (p.id === personaEnEdicion.id ? personaEnEdicion : p))
+      );
     } else {
-      setPersonasContacto([...personasContacto, { ...personaEnEdicion, id: Date.now().toString() }])
+      setPersonasContacto([
+        ...personasContacto,
+        { ...personaEnEdicion, id: Date.now().toString() },
+      ]);
     }
-    setMostrarFormContacto(false)
+    setMostrarFormContacto(false);
     setPersonaEnEdicion({
       id: "",
       nombreCompleto: "",
@@ -166,27 +181,30 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
         numero: "",
       },
       email: "",
-    })
-  }
+    });
+  };
 
   // Función para eliminar una persona de contacto
   const eliminarPersonaContacto = (id: string) => {
-    setPersonasContacto(personasContacto.filter((persona) => persona.id !== id))
-  }
+    setPersonasContacto(personasContacto.filter((persona) => persona.id !== id));
+  };
 
   // Función para editar una persona de contacto
   const editarPersonaContacto = (persona: PersonaContacto) => {
-    setPersonaEnEdicion(persona)
-    setMostrarFormContacto(true)
-  }
+    setPersonaEnEdicion(persona);
+    setMostrarFormContacto(true);
+  };
 
   // Actualizar el campo personasContacto en el formulario
   useEffect(() => {
     const personasString = personasContacto
-      .map((persona) => `${persona.nombreCompleto} (${persona.cedula}) - ${persona.telefono.prefijo} ${persona.telefono.numero} - ${persona.email}`)
-      .join("\n")
-    setValue("personasContacto", personasString)
-  }, [personasContacto, setValue])
+      .map(
+        (persona) =>
+          `${persona.nombreCompleto} (${persona.cedula}) - ${persona.telefono.prefijo} ${persona.telefono.numero} - ${persona.email}`
+      )
+      .join("\n");
+    setValue("personasContacto", personasString);
+  }, [personasContacto, setValue]);
 
   const renderTelefonosSection = () => (
     <div className="space-y-4">
@@ -199,14 +217,19 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
                 <Select
                   defaultValue={telefono.prefijo}
                   onValueChange={(value: string) => {
-                    setTelefonos(telefonos.map((tel) => {
-                      if (tel.id === telefono.id) {
-                        // If changing from 0212 to another prefix and denominacion is "casa", change it to "movil"
-                        const newDenominacion = value !== "0212" && tel.denominacion === "casa" ? "movil" : tel.denominacion;
-                        return { ...tel, prefijo: value, denominacion: newDenominacion };
-                      }
-                      return tel;
-                    }))
+                    setTelefonos(
+                      telefonos.map((tel) => {
+                        if (tel.id === telefono.id) {
+                          // If changing from 0212 to another prefix and denominacion is "casa", change it to "movil"
+                          const newDenominacion =
+                            value !== "0212" && tel.denominacion === "casa"
+                              ? "movil"
+                              : tel.denominacion;
+                          return { ...tel, prefijo: value, denominacion: newDenominacion };
+                        }
+                        return tel;
+                      })
+                    );
                   }}
                 >
                   <SelectTrigger>
@@ -228,8 +251,10 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
                   value={telefono.numero}
                   onChange={(e) => {
                     setTelefonos(
-                      telefonos.map((tel) => (tel.id === telefono.id ? { ...tel, numero: e.target.value } : tel)),
-                    )
+                      telefonos.map((tel) =>
+                        tel.id === telefono.id ? { ...tel, numero: e.target.value } : tel
+                      )
+                    );
                   }}
                 />
               </div>
@@ -237,7 +262,11 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
               <Select
                 defaultValue={telefono.denominacion}
                 onValueChange={(value: string) => {
-                  setTelefonos(telefonos.map((tel) => (tel.id === telefono.id ? { ...tel, denominacion: value } : tel)))
+                  setTelefonos(
+                    telefonos.map((tel) =>
+                      tel.id === telefono.id ? { ...tel, denominacion: value } : tel
+                    )
+                  );
                 }}
               >
                 <SelectTrigger className="w-[120px]">
@@ -245,8 +274,8 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {denominaciones.map((denominacion) => (
-                    <SelectItem 
-                      key={denominacion.value} 
+                    <SelectItem
+                      key={denominacion.value}
                       value={denominacion.value}
                       disabled={denominacion.value === "casa" && telefono.prefijo !== "0212"}
                     >
@@ -268,7 +297,13 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
             </div>
           ))}
 
-          <Button type="button" variant="outline" size="sm" className="mt-2" onClick={agregarTelefono}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={agregarTelefono}
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Agregar otro teléfono
           </Button>
@@ -289,16 +324,16 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
         )}
       />
     </div>
-  )
+  );
 
   const renderPersonasContactoSection = () => (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <FormLabel>Personas de Contacto</FormLabel>
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm" 
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setMostrarFormContacto(true)}
           disabled={mostrarFormContacto}
         >
@@ -322,13 +357,46 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
             </div>
             <div>
               <FormLabel>Cédula</FormLabel>
-              <Input
-                value={personaEnEdicion.cedula}
-                onChange={(e) =>
-                  setPersonaEnEdicion({ ...personaEnEdicion, cedula: e.target.value })
-                }
-                placeholder="V-12345678"
-              />
+              <div className="flex gap-2">
+                <FormField
+                  control={control}
+                  name="nacionalidadContacto"
+                  render={({ field }) => (
+                    <FormItem className="w-[80px]">
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setPersonaEnEdicion({
+                            ...personaEnEdicion,
+                            cedula: `${value}-${personaEnEdicion.cedula.split("-")[1] || ""}`,
+                          });
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="V" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="V">V</SelectItem>
+                          <SelectItem value="E">E</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <Input
+                  value={personaEnEdicion.cedula.split("-")[1] || ""}
+                  onChange={(e) =>
+                    setPersonaEnEdicion({
+                      ...personaEnEdicion,
+                      cedula: `${watch("nacionalidadContacto") || "V"}-${e.target.value}`,
+                    })
+                  }
+                  placeholder="12345678"
+                />
+              </div>
             </div>
           </div>
 
@@ -386,7 +454,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
               type="button"
               variant="outline"
               onClick={() => {
-                setMostrarFormContacto(false)
+                setMostrarFormContacto(false);
                 setPersonaEnEdicion({
                   id: "",
                   nombreCompleto: "",
@@ -396,7 +464,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
                     numero: "",
                   },
                   email: "",
-                })
+                });
               }}
             >
               Cancelar
@@ -426,7 +494,9 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <PhoneIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">{persona.telefono.prefijo} {persona.telefono.numero}</span>
+                  <span className="text-muted-foreground">
+                    {persona.telefono.prefijo} {persona.telefono.numero}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm truncate">
                   <MailIcon className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -472,7 +542,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
         )}
       />
     </div>
-  )
+  );
 
   if (tipoPersona === "natural") {
     return (
@@ -500,7 +570,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -542,9 +612,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
         </div>
       </div>
 
-      <div className="border-t pt-8">
-        {renderPersonasContactoSection()}
-      </div>
+      <div className="border-t pt-8">{renderPersonasContactoSection()}</div>
     </div>
-  )
+  );
 }
