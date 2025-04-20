@@ -111,7 +111,13 @@ export function ResumenForm() {
 
             <div>
               <p className="text-sm font-medium text-muted-foreground">Personas de Contacto</p>
-              <p>{formValues.personasContacto}</p>
+              <div className="space-y-4 mt-2">
+                {formValues.personasContacto?.split('\n').map((persona: string, index: number) => (
+                  <div key={index}>
+                    <p className="break-words whitespace-normal">{persona.trim()}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -132,8 +138,10 @@ export function ResumenForm() {
         <div>
           <p className="text-sm font-medium text-muted-foreground">Información de Tarjeta</p>
           <div className="mt-2 space-y-2">
-            <p>Nombre del Titular: {formValues.nombreTitular}</p>
-            <p>Número de Tarjeta: {formValues.numeroTarjeta ? `•••• •••• •••• ${formValues.numeroTarjeta.slice(-4)}` : ''}</p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <p>Nombre del Titular: {formValues.nombreTitular}</p>
+              <p>Número de Tarjeta: {formValues.numeroTarjeta ? `•••• •••• •••• ${formValues.numeroTarjeta.slice(-4)}` : ''}</p>
+            </div>
             <p>Fecha de Expiración: {formValues.fechaExpiracion}</p>
           </div>
         </div>

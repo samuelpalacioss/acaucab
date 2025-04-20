@@ -13,42 +13,44 @@ export function MetodosPagoForm() {
       <div>
         <h2 className="text-xl font-semibold mb-6">Información de Tarjeta</h2>
         <div className="space-y-6 max-w-2xl">
-          <FormField
-            control={control}
-            name="nombreTitular"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre del Titular</FormLabel>
-                <FormControl>
-                  <Input placeholder="Como aparece en la tarjeta" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="nombreTitular"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre del Titular</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Como aparece en la tarjeta" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={control}
-            name="numeroTarjeta"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de Tarjeta</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="0000 0000 0000 0000"
-                    maxLength={19}
-                    {...field}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "")
-                      const formatted = value.replace(/(\d{4})/g, "$1 ").trim()
-                      field.onChange(formatted)
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={control}
+              name="numeroTarjeta"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Número de Tarjeta</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="0000 0000 0000 0000"
+                      maxLength={19}
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "")
+                        const formatted = value.replace(/(\d{4})/g, "$1 ").trim()
+                        field.onChange(formatted)
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
