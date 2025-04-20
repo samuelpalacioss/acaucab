@@ -33,6 +33,14 @@ const personaNaturalSchema = z.object({
     parroquia: z.string().min(1, "Parroquia es requerida"),
     direccion: z.string().min(1, "Dirección detallada es requerida"),
   }),
+  tipoTarjeta: z.string().min(1, "Tipo de tarjeta es requerido"),
+  banco: z.string().min(1, "Banco emisor es requerido"),
+  numeroTarjeta: z.string().min(1, "Número de tarjeta es requerido"),
+  nombreTitular: z.string().min(1, "Nombre del titular es requerido"),
+  fechaExpiracion: z.string().min(1, "Fecha de expiración es requerida"),
+  codigoSeguridad: z.string().min(1, "Código de seguridad es requerido"),
+  nacionalidad: z.string().min(1, "Nacionalidad es requerida"),
+  cedulaTitular: z.string().min(1, "Cédula del titular es requerida"),
   metodosPago: z.array(z.string()).min(1, "Seleccione al menos un método de pago"),
 })
 
@@ -47,7 +55,6 @@ const personaJuridicaSchema = z.object({
   paginaWeb: z.string().optional(),
   capitalDisponible: z.string().min(1, "Capital disponible es requerido"),
   personasContacto: z.string().min(1, "Personas de contacto son requeridas"),
-  metodosPago: z.array(z.string()).min(1, "Seleccione al menos un método de pago"),
   direccionFiscal: z.object({
     estado: z.string().min(1, "Estado es requerido"),
     municipio: z.string().min(1, "Municipio es requerido"),
@@ -60,6 +67,15 @@ const personaJuridicaSchema = z.object({
     parroquia: z.string().min(1, "Parroquia es requerida"),
     direccion: z.string().min(1, "Dirección detallada es requerida"),
   }),
+  tipoTarjeta: z.string().min(1, "Tipo de tarjeta es requerido"),
+  banco: z.string().min(1, "Banco emisor es requerido"),
+  numeroTarjeta: z.string().min(1, "Número de tarjeta es requerido"),
+  nombreTitular: z.string().min(1, "Nombre del titular es requerido"),
+  fechaExpiracion: z.string().min(1, "Fecha de expiración es requerida"),
+  codigoSeguridad: z.string().min(1, "Código de seguridad es requerido"),
+  nacionalidad: z.string().min(1, "Nacionalidad es requerida"),
+  cedulaTitular: z.string().min(1, "Cédula del titular es requerida"),
+  metodosPago: z.array(z.string()).min(1, "Seleccione al menos un método de pago"),
 })
 
 // Esquema combinado
