@@ -8,9 +8,6 @@ const metodosPago = [
   { id: "transferencia", label: "Transferencia Bancaria" },
   { id: "efectivo", label: "Efectivo" },
   { id: "tarjeta", label: "Tarjeta de Crédito/Débito" },
-  { id: "paypal", label: "PayPal" },
-  { id: "zelle", label: "Zelle" },
-  { id: "cripto", label: "Criptomonedas" },
 ]
 
 export function MetodosPagoForm() {

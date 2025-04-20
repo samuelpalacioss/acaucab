@@ -127,7 +127,8 @@ export function DatosBasicosForm({ tipoPersona }: DatosBasicosFormProps) {
         />
       </div>
 
-      <FormField
+     <div className="max-w-[350px]">
+     <FormField
         control={control}
         name="capitalDisponible"
         render={({ field }) => (
@@ -140,6 +141,7 @@ export function DatosBasicosForm({ tipoPersona }: DatosBasicosFormProps) {
           </FormItem>
         )}
       />
+     </div>
     </div>
   )
 }

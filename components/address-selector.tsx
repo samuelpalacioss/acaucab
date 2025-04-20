@@ -98,11 +98,14 @@ export function AddressSelector({ name, label, initialValues }: AddressSelectorP
   const [selectedMunicipio, setSelectedMunicipio] = useState(initialValues?.municipio || "")
   const [selectedParroquia, setSelectedParroquia] = useState(initialValues?.parroquia || "")
 
-  const estados = Array.from(new Set(addressData.map(item => item.estado)))
-  const municipios = addressData.filter(item => item.estado === selectedEstado)
+  const estados = Array.from(new Set(addressData.map(item => item.estado))).sort()
+  const municipios = addressData
+    .filter(item => item.estado === selectedEstado)
+    .map(item => item.municipio)
+    .sort()
   const parroquias = addressData.find(item => 
     item.estado === selectedEstado && item.municipio === selectedMunicipio
-  )?.parroquias || []
+  )?.parroquias.sort() || []
 
   useEffect(() => {
     if (selectedEstado && selectedEstado !== initialValues?.estado) {
@@ -157,8 +160,8 @@ export function AddressSelector({ name, label, initialValues }: AddressSelectorP
             </SelectTrigger>
             <SelectContent>
               {municipios.map((item) => (
-                <SelectItem key={item.municipio} value={item.municipio}>
-                  {item.municipio}
+                <SelectItem key={item} value={item}>
+                  {item}
                 </SelectItem>
               ))}
             </SelectContent>
