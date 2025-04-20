@@ -16,6 +16,7 @@ import { DireccionesForm } from "@/components/steps/direcciones-form";
 import { MetodosPagoForm } from "@/components/steps/metodos-pago-form";
 import { ResumenForm } from "@/components/steps/resumen-form";
 import { StepIndicator } from "@/components/step-indicator";
+import { PaymentMethodsBanner } from "./payment-methods-banner";
 
 // Common payment fields schema
 const paymentFields = {
@@ -149,7 +150,12 @@ export function RegistroPersonaJuridica() {
       case 2:
         return <DireccionesForm tipoPersona="juridica" />;
       case 3:
-        return <MetodosPagoForm />;
+        return (
+          <>
+            <MetodosPagoForm />
+            <PaymentMethodsBanner className="mt-4" />
+          </>
+        );
       case 4:
         return <ResumenForm />;
       default:

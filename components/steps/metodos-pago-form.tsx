@@ -1,18 +1,22 @@
-"use client"
+"use client";
 
-import { useFormContext } from "react-hook-form"
-import { Input } from "@/components/ui/input"
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
-import Image from "next/image"
+import { useFormContext } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { PaymentMethodsBanner } from "@/components/payment-methods-banner";
 
-export function MetodosPagoForm() {
-  const { control } = useFormContext()
+interface MetodosPagoFormProps {
+  maxWidth?: string;
+}
+
+export function MetodosPagoForm({ maxWidth = "max-w-2xl" }: MetodosPagoFormProps) {
+  const { control } = useFormContext();
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold mb-6">Información de Tarjeta</h2>
-        <div className="space-y-6 max-w-2xl">
+        <div className={`space-y-6 ${maxWidth}`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={control}
@@ -40,9 +44,9 @@ export function MetodosPagoForm() {
                       maxLength={19}
                       {...field}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "")
-                        const formatted = value.replace(/(\d{4})/g, "$1 ").trim()
-                        field.onChange(formatted)
+                        const value = e.target.value.replace(/\D/g, "");
+                        const formatted = value.replace(/(\d{4})/g, "$1 ").trim();
+                        field.onChange(formatted);
                       }}
                     />
                   </FormControl>
@@ -65,12 +69,12 @@ export function MetodosPagoForm() {
                       maxLength={5}
                       {...field}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "")
-                        let formatted = value
+                        const value = e.target.value.replace(/\D/g, "");
+                        let formatted = value;
                         if (value.length > 2) {
-                          formatted = value.slice(0, 2) + "/" + value.slice(2, 4)
+                          formatted = value.slice(0, 2) + "/" + value.slice(2, 4);
                         }
-                        field.onChange(formatted)
+                        field.onChange(formatted);
                       }}
                     />
                   </FormControl>
@@ -91,8 +95,8 @@ export function MetodosPagoForm() {
                       maxLength={4}
                       {...field}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "")
-                        field.onChange(value)
+                        const value = e.target.value.replace(/\D/g, "");
+                        field.onChange(value);
                       }}
                     />
                   </FormControl>
@@ -101,27 +105,8 @@ export function MetodosPagoForm() {
               )}
             />
           </div>
-
-          <div className="flex items-center gap-4 mt-4">
-            <Image
-              src="/visa-logo.svg"
-              alt="Visa"
-              width={60}
-              height={20}
-              className="object-contain"
-              priority
-            />
-            <Image
-              src="/mastercard-logo.svg"
-              alt="Mastercard"
-              width={45}
-              height={28}
-              className="object-contain"
-              priority
-            />
-          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
