@@ -68,19 +68,7 @@ export function DatosBasicosForm({ tipoPersona }: DatosBasicosFormProps) {
         <h2 className="text-xl font-semibold">Datos Básicos - Persona Natural</h2>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            control={control}
-            name="rif"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>RIF</FormLabel>
-                <FormControl>
-                  <Input placeholder="V-12345678-9" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <RifInput control={control} name="rif" />
 
           <CedulaInput control={control} name="cedula" />
         </div>

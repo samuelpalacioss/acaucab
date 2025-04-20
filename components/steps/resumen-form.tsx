@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useFormContext } from "react-hook-form"
-import { Separator } from "@/components/ui/separator"
+import { useFormContext } from "react-hook-form";
+import { Separator } from "@/components/ui/separator";
 
 const metodosPagoMap: Record<string, string> = {
   transferencia: "Transferencia Bancaria",
@@ -10,31 +10,35 @@ const metodosPagoMap: Record<string, string> = {
   paypal: "PayPal",
   zelle: "Zelle",
   cripto: "Criptomonedas",
-}
+};
 
 export function ResumenForm() {
-  const { getValues } = useFormContext()
-  const formValues = getValues()
-  const tipoPersona = formValues.tipoPersona
+  const { getValues } = useFormContext();
+  const formValues = getValues();
+  const tipoPersona = formValues.tipoPersona;
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Resumen de Registro</h2>
-      <p className="text-sm text-muted-foreground">Por favor revise la información antes de completar el registro</p>
+      <p className="text-sm text-muted-foreground">
+        Por favor revise la información antes de completar el registro
+      </p>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">{tipoPersona === "natural" ? "Persona Natural" : "Persona Jurídica"}</h3>
-        
+        <h3 className="text-lg font-medium">
+          {tipoPersona === "natural" ? "Persona Natural" : "Persona Jurídica"}
+        </h3>
+
         {tipoPersona === "natural" ? (
           <>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">RIF</p>
-                <p>{formValues.rif}</p>
+                <p>{`${formValues.tipoRif}-${formValues.rif}`}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Cédula</p>
-                <p>{formValues.cedula}</p>
+                <p>{`${formValues.nacionalidad}-${formValues.cedula}`}</p>
               </div>
             </div>
 
@@ -70,7 +74,7 @@ export function ResumenForm() {
           <>
             <div>
               <p className="text-sm font-medium text-muted-foreground">RIF</p>
-              <p>{formValues.rif}</p>
+              <p>{`${formValues.tipoRif}-${formValues.rif}`}</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -112,7 +116,7 @@ export function ResumenForm() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Personas de Contacto</p>
               <div className="space-y-4 mt-2">
-                {formValues.personasContacto?.split('\n').map((persona: string, index: number) => (
+                {formValues.personasContacto?.split("\n").map((persona: string, index: number) => (
                   <div key={index}>
                     <p className="break-words whitespace-normal">{persona.trim()}</p>
                   </div>
@@ -140,12 +144,17 @@ export function ResumenForm() {
           <div className="mt-2 space-y-2">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <p>Nombre del Titular: {formValues.nombreTitular}</p>
-              <p>Número de Tarjeta: {formValues.numeroTarjeta ? `•••• •••• •••• ${formValues.numeroTarjeta.slice(-4)}` : ''}</p>
+              <p>
+                Número de Tarjeta:{" "}
+                {formValues.numeroTarjeta
+                  ? `•••• •••• •••• ${formValues.numeroTarjeta.slice(-4)}`
+                  : ""}
+              </p>
             </div>
             <p>Fecha de Expiración: {formValues.fechaExpiracion}</p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
