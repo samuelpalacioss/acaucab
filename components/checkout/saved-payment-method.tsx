@@ -57,17 +57,22 @@ const savedCards = [
 ];
 
 export default function SavedPaymentMethod({
-  cardType,
-  lastFourDigits,
-  cardholderName,
-  expiryDate,
+  cardType: initialCardType,
+  lastFourDigits: initialLastFourDigits,
+  cardholderName: initialCardholderName,
+  expiryDate: initialExpiryDate,
   isDefault = true,
 }: SavedPaymentMethodProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNewCardForm, setShowNewCardForm] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState("1");
+  const [selectedCard, setSelectedCard] = useState({
+    cardType: initialCardType,
+    lastFourDigits: initialLastFourDigits,
+    cardholderName: initialCardholderName,
+    expiryDate: initialExpiryDate,
+  });
 
-  // Función para mostrar el tipo de tarjeta como texto
   const getCardTypeText = (type: "visa" | "mastercard" | "amex") => {
     switch (type) {
       case "visa":
@@ -81,18 +86,34 @@ export default function SavedPaymentMethod({
     }
   };
 
+  const handleConfirm = () => {
+    const newSelectedCard = savedCards.find((card) => card.id === selectedCardId);
+    if (newSelectedCard) {
+      setSelectedCard({
+        cardType: newSelectedCard.cardType,
+        lastFourDigits: newSelectedCard.lastFourDigits,
+        cardholderName: newSelectedCard.cardholderName,
+        expiryDate: newSelectedCard.expiryDate,
+      });
+    }
+    setIsExpanded(false);
+  };
+
   return (
     <div className="space-y-4">
-      {!isExpanded ? (
-        <div className="flex items-center justify-between py-2">
-          <h2 className="text-lg font-semibold">
-            Pagando con {getCardTypeText(cardType)} terminada en {lastFourDigits}{" "}
-          </h2>
-          <Button variant="outline" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
+      <div className="flex items-center justify-between py-2">
+        <h2 className="text-lg font-semibold">
+          Pagando con {getCardTypeText(selectedCard.cardType)} terminada en{" "}
+          {selectedCard.lastFourDigits}{" "}
+        </h2>
+        {!isExpanded && (
+          <Button variant="outline" size="sm" onClick={() => setIsExpanded(true)}>
             Cambiar
           </Button>
-        </div>
-      ) : (
+        )}
+      </div>
+
+      {isExpanded && (
         <div className="space-y-2">
           <div className="px-4">
             <div className="grid grid-cols-[48px_1fr_200px_100px] text-sm text-muted-foreground mb-2">
@@ -132,7 +153,7 @@ export default function SavedPaymentMethod({
             ))}
           </RadioGroup>
 
-          <div className="mt-6 flex justify-center">
+          <div className="px-4 mt-4 space-y-4">
             <Button
               variant="outline"
               size="sm"
@@ -142,6 +163,15 @@ export default function SavedPaymentMethod({
               <Plus className="h-4 w-4" />
               Agregar una nueva tarjeta
             </Button>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsExpanded(false)}>
+                Cancelar
+              </Button>
+              <Button size="sm" onClick={handleConfirm}>
+                Confirmar
+              </Button>
+            </div>
           </div>
         </div>
       )}
