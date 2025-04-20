@@ -1,8 +1,8 @@
-import { CheckIcon } from "lucide-react"
+import { CheckIcon } from "lucide-react";
 
 interface StepIndicatorProps {
-  steps: string[]
-  currentStep: number
+  steps: string[];
+  currentStep: number;
 }
 
 export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
@@ -11,8 +11,8 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
       <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-muted"></div>
       <ol className="relative z-10 flex w-full justify-between">
         {steps.map((step, index) => {
-          const isCompleted = index < currentStep
-          const isCurrent = index === currentStep
+          const isCompleted = index < currentStep;
+          const isCurrent = index === currentStep;
 
           return (
             <li key={index} className="flex flex-col items-center">
@@ -21,8 +21,8 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
                   isCompleted
                     ? "border-primary bg-primary text-primary-foreground"
                     : isCurrent
-                      ? "border-primary bg-background text-primary"
-                      : "border-muted bg-background"
+                    ? "border-primary bg-background text-primary"
+                    : "border-muted bg-background"
                 }`}
               >
                 {isCompleted ? (
@@ -33,9 +33,9 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
               </div>
               <span className="mt-2 hidden text-xs sm:block">{step}</span>
             </li>
-          )
+          );
         })}
       </ol>
     </div>
-  )
+  );
 }

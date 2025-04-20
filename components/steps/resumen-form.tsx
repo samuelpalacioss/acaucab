@@ -34,11 +34,11 @@ export function ResumenForm() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">RIF</p>
-                <p>{`${formValues.tipoRif}-${formValues.rif}`}</p>
+                <p>{`${formValues.tipoRif || "J"}-${formValues.rif}`}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Cédula</p>
-                <p>{`${formValues.nacionalidad}-${formValues.cedula}`}</p>
+                <p>{`${formValues.nacionalidad || "V"}-${formValues.cedula}`}</p>
               </div>
             </div>
 
@@ -57,7 +57,9 @@ export function ResumenForm() {
 
             <div>
               <p className="text-sm font-medium text-muted-foreground">Teléfonos</p>
-              <p>{formValues.telefonos}</p>
+              <p>
+                {formValues[tipoPersona === "natural" ? "telefonosNatural" : "telefonosJuridica"]}
+              </p>
             </div>
 
             <div>
@@ -74,7 +76,7 @@ export function ResumenForm() {
           <>
             <div>
               <p className="text-sm font-medium text-muted-foreground">RIF</p>
-              <p>{`${formValues.tipoRif}-${formValues.rif}`}</p>
+              <p>{`${formValues.tipoRif || "J"}-${formValues.rif}`}</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -98,7 +100,9 @@ export function ResumenForm() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Teléfonos</p>
-                <p>{formValues.telefonos}</p>
+                <p>
+                  {formValues[tipoPersona === "natural" ? "telefonosNatural" : "telefonosJuridica"]}
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Correo Electrónico</p>

@@ -33,7 +33,7 @@ const personaNaturalSchema = z.object({
   cedula: z.string().min(1, "Cédula es requerida"),
   nombres: z.string().min(1, "Nombres son requeridos"),
   apellidos: z.string().min(1, "Apellidos son requeridos"),
-  telefonos: z.string().min(1, "Al menos un teléfono es requerido"),
+  telefonosNatural: z.string().min(1, "Al menos un teléfono es requerido"),
   correoElectronico: z.string().email("Correo electrónico inválido"),
   direccionHabitacion: z.object({
     estado: z.string().min(1, "Estado es requerido"),
@@ -50,7 +50,7 @@ const personaJuridicaSchema = z.object({
   rif: z.string().min(1, "RIF es requerido"),
   denominacionComercial: z.string().min(1, "Denominación comercial es requerida"),
   razonSocial: z.string().min(1, "Razón social es requerida"),
-  telefonos: z.string().min(1, "Al menos un teléfono es requerido"),
+  telefonosJuridica: z.string().min(1, "Al menos un teléfono es requerido"),
   correoElectronico: z.string().email("Correo electrónico inválido"),
   paginaWeb: z.string().optional(),
   capitalDisponible: z.string().min(1, "Capital disponible es requerido"),
@@ -88,7 +88,8 @@ type AddressFields = {
 type FormValuesWithAddress = {
   tipoPersona: "natural" | "juridica";
   rif: string;
-  telefonos: string;
+  telefonosNatural?: string;
+  telefonosJuridica?: string;
   correoElectronico: string;
   metodosPago: string[];
   numeroTarjeta?: string;
@@ -168,7 +169,7 @@ export function RegistroMultistep() {
 
   const nextStep = async () => {
     if (step === 2 && tipoPersona === "natural") {
-      const fields = ["telefonos", "correoElectronico", "direccionHabitacion"];
+      const fields = ["telefonosNatural", "correoElectronico", "direccionHabitacion"];
       const isValid = await methods.trigger(fields as any);
       if (isValid) {
         setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
@@ -177,7 +178,7 @@ export function RegistroMultistep() {
     }
 
     if (step === 2 && contactSubstep === 0) {
-      const fields = ["telefonos", "correoElectronico", "paginaWeb", "personasContacto"];
+      const fields = ["telefonosJuridica", "correoElectronico", "paginaWeb", "personasContacto"];
       const isValid = await methods.trigger(fields as any);
       if (isValid) {
         setContactSubstep(1);
@@ -225,10 +226,10 @@ export function RegistroMultistep() {
           : ["rif", "denominacionComercial", "razonSocial", "capitalDisponible"];
       case 2:
         if (tipoPersona === "natural") {
-          return ["telefonos", "correoElectronico", "direccionHabitacion"];
+          return ["telefonosNatural", "correoElectronico", "direccionHabitacion"];
         }
         return contactSubstep === 0
-          ? ["telefonos", "correoElectronico", "paginaWeb", "personasContacto"]
+          ? ["telefonosJuridica", "correoElectronico", "paginaWeb", "personasContacto"]
           : ["direccionFiscal", "direccionFisica"];
       case 3:
         return ["numeroTarjeta", "nombreTitular", "fechaExpiracion", "codigoSeguridad"];

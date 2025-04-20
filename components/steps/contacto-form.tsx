@@ -71,7 +71,8 @@ interface PersonaContacto {
 export function ContactoForm({ tipoPersona }: ContactoFormProps) {
   const { control, setValue, register, watch } = useFormContext();
   const [telefonos, setTelefonos] = useState<Telefono[]>(() => {
-    const telefonosString = watch("telefonos") || "";
+    const telefonosString =
+      watch(tipoPersona === "natural" ? "telefonosNatural" : "telefonosJuridica") || "";
     if (!telefonosString) return [{ id: "1", prefijo: "0424", numero: "", denominacion: "movil" }];
 
     // Parse the existing telefonos string back into the array format
@@ -156,8 +157,8 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
           })`
       )
       .join(", ");
-    setValue("telefonos", telefonosString);
-  }, [telefonos, setValue]);
+    setValue(tipoPersona === "natural" ? "telefonosNatural" : "telefonosJuridica", telefonosString);
+  }, [telefonos, setValue, tipoPersona]);
 
   // Función para agregar/actualizar una persona de contacto
   const guardarPersonaContacto = () => {
@@ -313,7 +314,7 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
       {/* Campo oculto para mantener la validación */}
       <FormField
         control={control}
-        name="telefonos"
+        name={tipoPersona === "natural" ? "telefonosNatural" : "telefonosJuridica"}
         render={({ field }) => (
           <FormItem className="hidden">
             <FormControl>
