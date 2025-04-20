@@ -1,14 +1,20 @@
-import { useState, useEffect } from "react"
-import { useFormContext } from "react-hook-form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react";
+import { useFormContext } from "react-hook-form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const addressData = [
   {
-    "estado": "Distrito Capital",
-    "municipio": "Libertador",
-    "parroquias": [
+    estado: "Distrito Capital",
+    municipio: "Libertador",
+    parroquias: [
       "El Valle",
       "Caricuao",
       "Catedral",
@@ -26,99 +32,119 @@ const addressData = [
       "Candelaria",
       "San Agustín",
       "El Recreo",
-      "San Pedro"
-    ]
+      "San Pedro",
+    ],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Baruta",
-    "parroquias": ["Baruta"]
+    estado: "Miranda",
+    municipio: "Baruta",
+    parroquias: ["Baruta"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Brión",
-    "parroquias": ["Higuerote"]
+    estado: "Miranda",
+    municipio: "Brión",
+    parroquias: ["Higuerote"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Carrizal",
-    "parroquias": ["Carrizal"]
+    estado: "Miranda",
+    municipio: "Carrizal",
+    parroquias: ["Carrizal"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Chacao",
-    "parroquias": ["Chacao"]
+    estado: "Miranda",
+    municipio: "Chacao",
+    parroquias: ["Chacao"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "El Hatillo",
-    "parroquias": ["El Hatillo"]
+    estado: "Miranda",
+    municipio: "El Hatillo",
+    parroquias: ["El Hatillo"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Guaicaipuro",
-    "parroquias": ["Los Teques", "El Jarillo"]
+    estado: "Miranda",
+    municipio: "Guaicaipuro",
+    parroquias: ["Los Teques", "El Jarillo"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Los Salias",
-    "parroquias": ["San Antonio de los Altos"]
+    estado: "Miranda",
+    municipio: "Los Salias",
+    parroquias: ["San Antonio de los Altos"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Sucre",
-    "parroquias": ["Petare"]
+    estado: "Miranda",
+    municipio: "Sucre",
+    parroquias: ["Petare"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Plaza",
-    "parroquias": ["Guarenas"]
+    estado: "Miranda",
+    municipio: "Plaza",
+    parroquias: ["Guarenas"],
   },
   {
-    "estado": "Miranda",
-    "municipio": "Zamora",
-    "parroquias": ["Guatire"]
-  }
-]
+    estado: "Miranda",
+    municipio: "Zamora",
+    parroquias: ["Guatire"],
+  },
+];
 
 interface AddressSelectorProps {
-  name: string
-  label: string
+  name: string;
+  label: string;
   initialValues?: {
-    estado: string
-    municipio: string
-    parroquia: string
-    direccion: string
-  }
+    estado: string;
+    municipio: string;
+    parroquia: string;
+    direccion: string;
+  };
 }
 
 export function AddressSelector({ name, label, initialValues }: AddressSelectorProps) {
-  const { register, setValue, watch } = useFormContext()
-  const [selectedEstado, setSelectedEstado] = useState(initialValues?.estado || "")
-  const [selectedMunicipio, setSelectedMunicipio] = useState(initialValues?.municipio || "")
-  const [selectedParroquia, setSelectedParroquia] = useState(initialValues?.parroquia || "")
+  const { register, setValue, watch } = useFormContext();
 
-  const estados = Array.from(new Set(addressData.map(item => item.estado))).sort()
+  // Register all fields with React Hook Form
+  const estadoField = register(`${name}.estado`);
+  const municipioField = register(`${name}.municipio`);
+  const parroquiaField = register(`${name}.parroquia`);
+  const direccionField = register(`${name}.direccion`);
+
+  // Watch form values
+  const estado = watch(`${name}.estado`) || initialValues?.estado || "";
+  const municipio = watch(`${name}.municipio`) || initialValues?.municipio || "";
+  const parroquia = watch(`${name}.parroquia`) || initialValues?.parroquia || "";
+  const direccion = watch(`${name}.direccion`) || initialValues?.direccion || "";
+
+  const estados = Array.from(new Set(addressData.map((item) => item.estado))).sort();
   const municipios = addressData
-    .filter(item => item.estado === selectedEstado)
-    .map(item => item.municipio)
-    .sort()
-  const parroquias = addressData.find(item => 
-    item.estado === selectedEstado && item.municipio === selectedMunicipio
-  )?.parroquias.sort() || []
+    .filter((item) => item.estado === estado)
+    .map((item) => item.municipio)
+    .sort();
+  const parroquias =
+    addressData
+      .find((item) => item.estado === estado && item.municipio === municipio)
+      ?.parroquias.sort() || [];
 
   useEffect(() => {
-    if (selectedEstado && selectedEstado !== initialValues?.estado) {
-      setSelectedMunicipio("")
-      setSelectedParroquia("")
+    if (estado && estado !== initialValues?.estado) {
+      setValue(`${name}.municipio`, "");
+      setValue(`${name}.parroquia`, "");
     }
-  }, [selectedEstado, initialValues?.estado])
+  }, [estado, initialValues?.estado, name, setValue]);
 
   useEffect(() => {
-    if (selectedMunicipio && selectedMunicipio !== initialValues?.municipio) {
-      setSelectedParroquia("")
+    if (municipio && municipio !== initialValues?.municipio) {
+      setValue(`${name}.parroquia`, "");
     }
-  }, [selectedMunicipio, initialValues?.municipio])
+  }, [municipio, initialValues?.municipio, name, setValue]);
+
+  // Set initial values when component mounts
+  useEffect(() => {
+    if (initialValues) {
+      setValue(`${name}.estado`, initialValues.estado);
+      setValue(`${name}.municipio`, initialValues.municipio);
+      setValue(`${name}.parroquia`, initialValues.parroquia);
+      setValue(`${name}.direccion`, initialValues.direccion);
+    }
+  }, [initialValues, name, setValue]);
 
   return (
     <div className="space-y-4">
@@ -126,10 +152,9 @@ export function AddressSelector({ name, label, initialValues }: AddressSelectorP
         <div className="space-y-2">
           <Label>Estado</Label>
           <Select
-            value={selectedEstado}
+            value={estado}
             onValueChange={(value) => {
-              setSelectedEstado(value)
-              setValue(`${name}.estado`, value)
+              setValue(`${name}.estado`, value);
             }}
           >
             <SelectTrigger className="w-full">
@@ -148,12 +173,11 @@ export function AddressSelector({ name, label, initialValues }: AddressSelectorP
         <div className="space-y-2">
           <Label>Municipio</Label>
           <Select
-            value={selectedMunicipio}
+            value={municipio}
             onValueChange={(value) => {
-              setSelectedMunicipio(value)
-              setValue(`${name}.municipio`, value)
+              setValue(`${name}.municipio`, value);
             }}
-            disabled={!selectedEstado}
+            disabled={!estado}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Seleccione un municipio" />
@@ -171,12 +195,11 @@ export function AddressSelector({ name, label, initialValues }: AddressSelectorP
         <div className="space-y-2">
           <Label>Parroquia</Label>
           <Select
-            value={selectedParroquia}
+            value={parroquia}
             onValueChange={(value) => {
-              setSelectedParroquia(value)
-              setValue(`${name}.parroquia`, value)
+              setValue(`${name}.parroquia`, value);
             }}
-            disabled={!selectedMunicipio}
+            disabled={!municipio}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Seleccione una parroquia" />
@@ -195,11 +218,10 @@ export function AddressSelector({ name, label, initialValues }: AddressSelectorP
       <div className="space-y-2">
         <Label>{label}</Label>
         <Textarea
-          value={watch(`${name}.direccion`) || ""}
-          onChange={(e) => setValue(`${name}.direccion`, e.target.value)}
+          {...direccionField}
           placeholder="Ingrese la dirección detallada (calle, número, edificio, piso, etc.)"
         />
       </div>
     </div>
-  )
-} 
+  );
+}

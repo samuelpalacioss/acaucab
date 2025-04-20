@@ -549,7 +549,32 @@ export function ContactoForm({ tipoPersona }: ContactoFormProps) {
       <div className="space-y-8">
         <div>
           <h2 className="text-xl font-semibold mb-6">Información de Contacto</h2>
-          <div className="space-y-6">{renderTelefonosSection()}</div>
+          <div className="space-y-8 max-w-2xl">
+            {renderTelefonosSection()}
+
+            <FormField
+              control={control}
+              name="correoElectronico"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Correo Electrónico</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="correo@ejemplo.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div>
+              <h3 className="text-lg font-medium mb-4">Dirección de Habitación</h3>
+              <AddressSelector
+                name="direccionHabitacion"
+                label="Dirección de Habitación"
+                initialValues={watch("direccionHabitacion")}
+              />
+            </div>
+          </div>
         </div>
       </div>
     );

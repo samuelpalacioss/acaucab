@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm, FormProvider } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Loader2 } from "lucide-react"
+import { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { toast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/components/ui/use-toast";
 
-import { TipoPersonaForm } from "@/components/steps/tipo-persona-form"
-import { DatosBasicosForm } from "@/components/steps/datos-basicos-form"
-import { ContactoForm } from "@/components/steps/contacto-form"
-import { MetodosPagoForm } from "@/components/steps/metodos-pago-form"
-import { ResumenForm } from "@/components/steps/resumen-form"
-import { StepIndicator } from "@/components/step-indicator"
-import { DireccionesForm } from "@/components/steps/direcciones-form"
+import { TipoPersonaForm } from "@/components/steps/tipo-persona-form";
+import { DatosBasicosForm } from "@/components/steps/datos-basicos-form";
+import { ContactoForm } from "@/components/steps/contacto-form";
+import { MetodosPagoForm } from "@/components/steps/metodos-pago-form";
+import { ResumenForm } from "@/components/steps/resumen-form";
+import { StepIndicator } from "@/components/step-indicator";
+import { DireccionesForm } from "@/components/steps/direcciones-form";
 
 // Common payment fields for both schemas
 const paymentFields = {
@@ -24,7 +24,7 @@ const paymentFields = {
   nombreTitular: z.string().min(1, "Nombre del titular es requerido"),
   fechaExpiracion: z.string().min(4, "Fecha de expiración es requerida"),
   codigoSeguridad: z.string().min(3, "Código de seguridad es requerido"),
-}
+};
 
 // Esquema de validación para persona natural
 const personaNaturalSchema = z.object({
@@ -41,8 +41,8 @@ const personaNaturalSchema = z.object({
     parroquia: z.string().min(1, "Parroquia es requerida"),
     direccion: z.string().min(1, "Dirección detallada es requerida"),
   }),
-  ...paymentFields
-})
+  ...paymentFields,
+});
 
 // Esquema de validación para persona jurídica
 const personaJuridicaSchema = z.object({
@@ -67,187 +67,228 @@ const personaJuridicaSchema = z.object({
     parroquia: z.string().min(1, "Parroquia es requerida"),
     direccion: z.string().min(1, "Dirección detallada es requerida"),
   }),
-  ...paymentFields
-})
+  ...paymentFields,
+});
 
 // Esquema combinado
-const formSchema = z.discriminatedUnion("tipoPersona", [personaNaturalSchema, personaJuridicaSchema])
+const formSchema = z.discriminatedUnion("tipoPersona", [
+  personaNaturalSchema,
+  personaJuridicaSchema,
+]);
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<typeof formSchema>;
 
 type AddressFields = {
-  estado: string
-  municipio: string
-  parroquia: string
-  direccion: string
-}
+  estado: string;
+  municipio: string;
+  parroquia: string;
+  direccion: string;
+};
 
 type FormValuesWithAddress = {
-  tipoPersona: "natural" | "juridica"
-  rif: string
-  telefonos: string
-  correoElectronico: string
-  metodosPago: string[]
-  numeroTarjeta?: string
-  nombreTitular?: string
-  fechaExpiracion?: string
-  codigoSeguridad?: string
-  cedula?: string
-  nombres?: string
-  apellidos?: string
+  tipoPersona: "natural" | "juridica";
+  rif: string;
+  telefonos: string;
+  correoElectronico: string;
+  metodosPago: string[];
+  numeroTarjeta?: string;
+  nombreTitular?: string;
+  fechaExpiracion?: string;
+  codigoSeguridad?: string;
+  cedula?: string;
+  nombres?: string;
+  apellidos?: string;
   direccionHabitacion?: {
-    estado: string
-    municipio: string
-    parroquia: string
-    direccion: string
-  }
-  denominacionComercial?: string
-  razonSocial?: string
-  capitalDisponible?: string
-  paginaWeb?: string
-  personasContacto?: string
+    estado: string;
+    municipio: string;
+    parroquia: string;
+    direccion: string;
+  };
+  denominacionComercial?: string;
+  razonSocial?: string;
+  capitalDisponible?: string;
+  paginaWeb?: string;
+  personasContacto?: string;
   direccionFiscal?: {
-    estado: string
-    municipio: string
-    parroquia: string
-    direccion: string
-  }
+    estado: string;
+    municipio: string;
+    parroquia: string;
+    direccion: string;
+  };
   direccionFisica?: {
-    estado: string
-    municipio: string
-    parroquia: string
-    direccion: string
-  }
-}
+    estado: string;
+    municipio: string;
+    parroquia: string;
+    direccion: string;
+  };
+};
 
-const STEPS = ["Tipo de Persona", "Datos Básicos", "Información de Contacto", "Métodos de Pago", "Resumen"]
+const STEPS = [
+  "Tipo de Persona",
+  "Datos Básicos",
+  "Información de Contacto",
+  "Método de Pago",
+  "Resumen",
+];
 
 export function RegistroMultistep() {
-  const [step, setStep] = useState(0)
-  const [contactSubstep, setContactSubstep] = useState(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [step, setStep] = useState(0);
+  const [contactSubstep, setContactSubstep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const methods = useForm<FormValuesWithAddress>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       tipoPersona: "natural",
       metodosPago: [],
+      direccionHabitacion: {
+        estado: "",
+        municipio: "",
+        parroquia: "",
+        direccion: "",
+      },
+      direccionFiscal: {
+        estado: "",
+        municipio: "",
+        parroquia: "",
+        direccion: "",
+      },
+      direccionFisica: {
+        estado: "",
+        municipio: "",
+        parroquia: "",
+        direccion: "",
+      },
     },
     mode: "onChange",
-  })
+    shouldUnregister: false,
+  });
 
-  const tipoPersona = methods.watch("tipoPersona")
+  const tipoPersona = methods.watch("tipoPersona");
 
   const nextStep = async () => {
-    if (step === 2 && contactSubstep === 0) {
-      const fields = ["telefonos", "correoElectronico", "paginaWeb", "personasContacto"]
-      const isValid = await methods.trigger(fields as any)
+    if (step === 2 && tipoPersona === "natural") {
+      const fields = ["telefonos", "correoElectronico", "direccionHabitacion"];
+      const isValid = await methods.trigger(fields as any);
       if (isValid) {
-        setContactSubstep(1)
+        setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
       }
-      return
+      return;
+    }
+
+    if (step === 2 && contactSubstep === 0) {
+      const fields = ["telefonos", "correoElectronico", "paginaWeb", "personasContacto"];
+      const isValid = await methods.trigger(fields as any);
+      if (isValid) {
+        setContactSubstep(1);
+      }
+      return;
     }
 
     if (step === 2 && contactSubstep === 1) {
-      const fields = tipoPersona === "natural" ? ["direccionHabitacion"] : ["direccionFiscal", "direccionFisica"]
-      const isValid = await methods.trigger(fields as any)
+      const fields = ["direccionFiscal", "direccionFisica"];
+      const isValid = await methods.trigger(fields as any);
       if (isValid) {
-        setContactSubstep(0)
-        setStep((prev) => Math.min(prev + 1, STEPS.length - 1))
+        setContactSubstep(0);
+        setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
       }
-      return
+      return;
     }
 
-    const fields = getFieldsForStep(step)
-    const isValid = await methods.trigger(fields as any)
+    const fields = getFieldsForStep(step);
+    const isValid = await methods.trigger(fields as any);
     if (isValid) {
-      setStep((prev) => Math.min(prev + 1, STEPS.length - 1))
+      setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
     }
-  }
+  };
 
   const prevStep = () => {
-    if (step === 3) {
-      setStep(2)
-      setContactSubstep(1)
-      return
+    if (step === 3 && tipoPersona === "juridica") {
+      setStep(2);
+      setContactSubstep(1);
+      return;
     }
     if (step === 2 && contactSubstep === 1) {
-      setContactSubstep(0)
-      return
+      setContactSubstep(0);
+      return;
     }
-    setStep((prev) => Math.max(prev - 1, 0))
-  }
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
 
   const getFieldsForStep = (currentStep: number): Array<keyof FormValuesWithAddress> => {
     switch (currentStep) {
       case 0:
-        return ["tipoPersona"]
+        return ["tipoPersona"];
       case 1:
         return tipoPersona === "natural"
           ? ["rif", "cedula", "nombres", "apellidos"]
-          : ["rif", "denominacionComercial", "razonSocial", "capitalDisponible"]
+          : ["rif", "denominacionComercial", "razonSocial", "capitalDisponible"];
       case 2:
+        if (tipoPersona === "natural") {
+          return ["telefonos", "correoElectronico", "direccionHabitacion"];
+        }
         return contactSubstep === 0
           ? ["telefonos", "correoElectronico", "paginaWeb", "personasContacto"]
-          : tipoPersona === "natural"
-          ? ["direccionHabitacion"]
-          : ["direccionFiscal", "direccionFisica"]
+          : ["direccionFiscal", "direccionFisica"];
       case 3:
-        return ["numeroTarjeta", "nombreTitular", "fechaExpiracion", "codigoSeguridad"]
+        return ["numeroTarjeta", "nombreTitular", "fechaExpiracion", "codigoSeguridad"];
       case 4:
-        return ["metodosPago"]
+        return ["metodosPago"];
       default:
-        return []
+        return [];
     }
-  }
+  };
 
   const onSubmit = async (data: FormValuesWithAddress) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       // Aquí iría la lógica para enviar los datos al servidor
-      console.log("Datos del formulario:", data)
+      console.log("Datos del formulario:", data);
 
       // Simulamos una petición al servidor
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       toast({
         title: "Registro completado",
         description: "Su información ha sido registrada exitosamente.",
-      })
+      });
     } catch (error) {
       toast({
         title: "Error",
         description: "Ocurrió un error al procesar su registro.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const renderStepContent = () => {
     if (step === 2) {
+      if (tipoPersona === "natural") {
+        return <ContactoForm tipoPersona={tipoPersona} />;
+      }
       return contactSubstep === 0 ? (
         <ContactoForm tipoPersona={tipoPersona} />
       ) : (
         <DireccionesForm tipoPersona={tipoPersona} />
-      )
+      );
     }
 
     switch (step) {
       case 0:
-        return <TipoPersonaForm />
+        return <TipoPersonaForm />;
       case 1:
-        return <DatosBasicosForm tipoPersona={tipoPersona} />
+        return <DatosBasicosForm tipoPersona={tipoPersona} />;
       case 3:
-        return <MetodosPagoForm />
+        return <MetodosPagoForm />;
       case 4:
-        return <ResumenForm />
+        return <ResumenForm />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="space-y-8">
@@ -260,7 +301,12 @@ export function RegistroMultistep() {
               {renderStepContent()}
 
               <div className="mt-8 flex justify-between">
-                <Button type="button" variant="outline" onClick={prevStep} disabled={step === 0 || isSubmitting}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={prevStep}
+                  disabled={step === 0 || isSubmitting}
+                >
                   Anterior
                 </Button>
 
@@ -280,5 +326,5 @@ export function RegistroMultistep() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
