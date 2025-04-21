@@ -25,6 +25,23 @@ export function OrderSummary({ subtotal, totalItems, onCheckout }: OrderSummaryP
           <span className="text-gray-500">Calculado en el siguiente paso</span>
         </div>
 
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span>Puntos disponibles:</span>
+            <span className="text-gray-500">100 pts</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Input type="number" placeholder="Usar puntos" className="w-32" min={0} max={1250} />
+            <span className="text-sm text-gray-500">(1 punto = 1Bs)</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Descuento</span>
+            <span>-$0.00</span>
+          </div>
+        </div>
+
         <div className="flex justify-between">
           <span>IVA (16%)</span>
           <span>${iva.toFixed(2)}</span>
