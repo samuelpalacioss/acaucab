@@ -58,7 +58,7 @@ export default function PaymentForm({
           <div className="mb-4">
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-medium">Tarjeta de Crédito/Débito</p>
+                <p className="font-medium">Tarjeta de Crédito</p>
                 <p className="text-sm text-muted-foreground">Visa, Mastercard, American Express</p>
               </div>
               <div className="flex gap-2">

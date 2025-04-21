@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 const metodosPagoMap: Record<string, string> = {
   transferencia: "Transferencia Bancaria",
   efectivo: "Efectivo",
-  tarjeta: "Tarjeta de Crédito/Débito",
+  tarjeta: "Tarjeta de Crédito",
   paypal: "PayPal",
   zelle: "Zelle",
   cripto: "Criptomonedas",
