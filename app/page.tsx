@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ShoppingCart, CreditCard } from "lucide-react";
+import { ShoppingCart, CreditCard, Beer } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -29,6 +29,13 @@ export default function HomePage() {
             <Link href="/checkout" className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
               <span>Checkout</span>
+            </Link>
+          </Button>
+
+          <Button asChild className="px-8 py-6 text-lg bg-blue-600 hover:bg-blue-700">
+            <Link href="/productos" className="flex items-center gap-2">
+              <Beer className="h-5 w-5" />
+              <span>Productos</span>
             </Link>
           </Button>
         </div>

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export default function CatalogoCervezas() {
   const [priceRange, setPriceRange] = useState([1.5, 10]);
@@ -45,7 +44,7 @@ export default function CatalogoCervezas() {
           <div className="sticky top-4 pt-2">
             {/* Filtro por tipo */}
             <div className="mb-6">
-              <h3 className="font-medium mb-3">Tipo de Cerveza</h3>
+              <h3 className="font-semibold mb-3">Tipo de Cerveza</h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="lager" />
@@ -68,7 +67,7 @@ export default function CatalogoCervezas() {
 
             {/* Filtro por precio */}
             <div className="mb-6">
-              <h3 className="font-medium mb-3">Precio</h3>
+              <h3 className="font-semibold mb-3">Precio</h3>
               <div className="space-y-5">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center">
@@ -106,7 +105,7 @@ export default function CatalogoCervezas() {
 
             {/* Filtro por marca */}
             <div className="mb-6">
-              <h3 className="font-medium mb-3">Marca</h3>
+              <h3 className="font-semibold mb-3">Marca</h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="corona" />
