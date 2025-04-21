@@ -68,6 +68,7 @@ export default function SavedPaymentMethod({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNewCardForm, setShowNewCardForm] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState("1");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [savedCards, setSavedCards] = useState([
     {
       id: "1",
@@ -147,6 +148,7 @@ export default function SavedPaymentMethod({
       cardholderName: newCard.cardholderName,
       expiryDate: newCard.expiryDate,
     });
+    setDialogOpen(false);
   };
 
   return (
@@ -204,7 +206,7 @@ export default function SavedPaymentMethod({
           </RadioGroup>
 
           <div className="px-4 mt-4 space-y-4">
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />

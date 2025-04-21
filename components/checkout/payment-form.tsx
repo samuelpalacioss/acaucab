@@ -38,6 +38,8 @@ export default function PaymentForm({
     },
   });
 
+  const isValid = form.formState.isValid;
+
   const handleSubmit = form.handleSubmit((data) => {
     if (onSubmit) {
       onSubmit(data);
@@ -78,9 +80,9 @@ export default function PaymentForm({
                   Cancelar
                 </Button>
               </DialogClose>
-              <DialogClose asChild>
-                <Button type="submit">Guardar tarjeta</Button>
-              </DialogClose>
+              <Button type="submit" disabled={!isValid}>
+                Guardar tarjeta
+              </Button>
             </div>
           )}
         </form>
