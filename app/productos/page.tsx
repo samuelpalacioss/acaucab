@@ -197,34 +197,68 @@ export default function CatalogoCervezas() {
 }
 
 // Datos de ejemplo
-const beers = [
+export const beers = [
   {
     id: 1,
     name: "Amanecer En Choroni",
     price: 4.5,
     image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
   },
   {
     id: 2,
     name: "Música de lupulo",
     price: 7.0,
     image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
   },
   {
     id: 3,
     name: "Ávila Pale Ale",
     price: 8.0,
     image: "/placeholder.svg?height=400&width=400",
+    quantity: 2,
   },
-  { id: 4, name: "Sol de Verano", price: 5.0, image: "/placeholder.svg?height=400&width=400" },
+  {
+    id: 4,
+    name: "Sol de Verano",
+    price: 5.0,
+    image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
+  },
   {
     id: 5,
     name: "La Cerveza de la Vida",
     price: 6.5,
     image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
   },
-  { id: 6, name: "Musica en el cielo", price: 5.5, image: "/placeholder.svg?height=400&width=400" },
-  { id: 7, name: "Noche de verano", price: 6.0, imaage: "/placeholder.svg?height=400&width=400" },
-  { id: 8, name: "Cielo azul", price: 8.5, image: "/placeholder.svg?height=400&width=400" },
-  { id: 9, name: "Cristal Imperial", price: 5.0, image: "/placeholder.svg?height=400&width=400" },
+  {
+    id: 6,
+    name: "Musica en el cielo",
+    price: 5.5,
+    image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
+  },
+  {
+    id: 7,
+    name: "Noche de verano",
+    price: 6.0,
+    image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
+  },
+  {
+    id: 8,
+    name: "Cielo azul",
+    price: 8.5,
+    image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
+  },
+  {
+    id: 9,
+    name: "Cristal Imperial",
+    price: 5.0,
+    image: "/placeholder.svg?height=400&width=400",
+    quantity: 1,
+  },
 ];

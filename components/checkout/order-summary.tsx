@@ -1,17 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CheckoutItem } from "./checkout-item";
 
-export default function OrderSummary() {
-  // Sample order data
-  const orderItems = [
-    { id: 1, name: "Cerveza Especial", quantity: 2, price: 12.0 },
-    { id: 2, name: "Cerveza Pale", quantity: 1, price: 10.0 },
-  ];
+interface OrderItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
 
+interface OrderSummaryProps {
+  orderItems: OrderItem[];
+}
+
+export default function OrderSummary({ orderItems }: OrderSummaryProps) {
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = 4.0;
-  const total = subtotal + shipping;
+  const iva = subtotal * 0.16;
+  // Calcular el total incluyendo IVA
+  const total = subtotal + iva + shipping;
 
   return (
     <Card>
@@ -20,14 +29,14 @@ export default function OrderSummary() {
 
         <div className="space-y-4">
           {orderItems.map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <div>
-                <p>
-                  {item.name} <span className="text-muted-foreground">x{item.quantity}</span>
-                </p>
-              </div>
-              <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-            </div>
+            <CheckoutItem
+              key={item.id}
+              id={item.id}
+              name={item.name}
+              price={item.price}
+              image={item.image}
+              quantity={item.quantity}
+            />
           ))}
 
           <Separator />
@@ -35,6 +44,11 @@ export default function OrderSummary() {
           <div className="flex justify-between">
             <p>Subtotal</p>
             <p className="font-medium">${subtotal.toFixed(2)}</p>
+          </div>
+
+          <div className="flex justify-between">
+            <span>IVA (16%)</span>
+            <span>${iva.toFixed(2)}</span>
           </div>
 
           <div className="flex justify-between">

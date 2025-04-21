@@ -10,6 +10,7 @@ import AddressModal from "@/components/checkout/address-modal";
 import OrderSummary from "@/components/checkout/order-summary";
 import PaymentForm from "@/components/checkout/payment-form";
 import SavedPaymentMethod from "@/components/checkout/saved-payment-method";
+import { beers } from "../productos/page";
 
 export default function CheckoutPage() {
   // Simulamos que el usuario tiene una tarjeta guardada
@@ -83,7 +84,7 @@ export default function CheckoutPage() {
 
         {/* Order Summary Section */}
         <div className="md:col-span-1">
-          <OrderSummary />
+          <OrderSummary orderItems={beers.slice(0, 3)} />
         </div>
       </div>
     </div>
