@@ -11,6 +11,15 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import PaymentForm from "./payment-form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface SavedPaymentMethodProps {
   cardType: "visa" | "mastercard" | "amex";
@@ -28,33 +37,26 @@ const paymentFormSchema = z.object({
   codigoSeguridad: z.string().min(3, "Ingrese un código de seguridad válido"),
 });
 
-// Datos de ejemplo de tarjetas guardadas
-const savedCards = [
-  {
-    id: "1",
-    cardType: "visa" as const,
-    lastFourDigits: "4242",
-    cardholderName: "Juan Pérez",
-    expiryDate: "04/26",
-    isDefault: true,
-  },
-  {
-    id: "2",
-    cardType: "mastercard" as const,
-    lastFourDigits: "5678",
-    cardholderName: "Juan Pérez",
-    expiryDate: "08/25",
-    isDefault: false,
-  },
-  {
-    id: "3",
-    cardType: "amex" as const,
-    lastFourDigits: "9012",
-    cardholderName: "Juan Pérez",
-    expiryDate: "12/24",
-    isDefault: false,
-  },
-];
+const detectCardType = (cardNumber: string): "visa" | "mastercard" | "amex" => {
+  const cleanNumber = cardNumber.replace(/\D/g, "");
+
+  // American Express: comienza con 34 o 37
+  if (/^3[47]/.test(cleanNumber)) {
+    return "amex";
+  }
+
+  // Mastercard: comienza con 51-55 o 2221-2720
+  if (/^5[1-5]/.test(cleanNumber) || /^2[2-7]2[0-1]/.test(cleanNumber)) {
+    return "mastercard";
+  }
+
+  // Visa: comienza con 4
+  if (/^4/.test(cleanNumber)) {
+    return "visa";
+  }
+
+  return "visa"; // Default fallback
+};
 
 export default function SavedPaymentMethod({
   cardType: initialCardType,
@@ -66,6 +68,33 @@ export default function SavedPaymentMethod({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNewCardForm, setShowNewCardForm] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState("1");
+  const [savedCards, setSavedCards] = useState([
+    {
+      id: "1",
+      cardType: "visa" as const,
+      lastFourDigits: "4242",
+      cardholderName: "Juan Pérez",
+      expiryDate: "04/26",
+      isDefault: true,
+    },
+    {
+      id: "2",
+      cardType: "mastercard" as const,
+      lastFourDigits: "5678",
+      cardholderName: "Juan Pérez",
+      expiryDate: "08/25",
+      isDefault: false,
+    },
+    {
+      id: "3",
+      cardType: "amex" as const,
+      lastFourDigits: "9012",
+      cardholderName: "Juan Pérez",
+      expiryDate: "12/24",
+      isDefault: false,
+    },
+  ]);
+
   const [selectedCard, setSelectedCard] = useState({
     cardType: initialCardType,
     lastFourDigits: initialLastFourDigits,
@@ -97,6 +126,27 @@ export default function SavedPaymentMethod({
       });
     }
     setIsExpanded(false);
+  };
+
+  const handleSaveNewCard = (formData: z.infer<typeof paymentFormSchema>) => {
+    const cardType = detectCardType(formData.numeroTarjeta);
+    const newCard = {
+      id: (savedCards.length + 1).toString(),
+      cardType,
+      lastFourDigits: formData.numeroTarjeta.slice(-4),
+      cardholderName: formData.nombreTitular,
+      expiryDate: formData.fechaExpiracion,
+      isDefault: false,
+    };
+
+    setSavedCards([...savedCards, newCard]);
+    setSelectedCardId(newCard.id);
+    setSelectedCard({
+      cardType: newCard.cardType,
+      lastFourDigits: newCard.lastFourDigits,
+      cardholderName: newCard.cardholderName,
+      expiryDate: newCard.expiryDate,
+    });
   };
 
   return (
@@ -154,18 +204,32 @@ export default function SavedPaymentMethod({
           </RadioGroup>
 
           <div className="px-4 mt-4 space-y-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => setShowNewCardForm(!showNewCardForm)}
-            >
-              <Plus className="h-4 w-4" />
-              Agregar una nueva tarjeta
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Agregar una nueva tarjeta
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Agregar nueva tarjeta</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <PaymentForm showHeader={false} onSubmit={handleSaveNewCard} />
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsExpanded(false)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsExpanded(false);
+                  setShowNewCardForm(false);
+                }}
+              >
                 Cancelar
               </Button>
               <Button size="sm" onClick={handleConfirm}>
@@ -173,12 +237,6 @@ export default function SavedPaymentMethod({
               </Button>
             </div>
           </div>
-        </div>
-      )}
-
-      {showNewCardForm && (
-        <div className="mt-4">
-          <PaymentForm />
         </div>
       )}
     </div>
