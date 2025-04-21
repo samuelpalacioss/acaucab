@@ -3,7 +3,6 @@ import Link from "next/link";
 import { MapPin, Clock, Users, ArrowLeft, Ticket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 export default function EventDetailPage({ params }: { params: { id: string } }) {
   const eventId = Number.parseInt(params.id);
@@ -22,7 +21,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
   return (
     <div className="container mx-auto py-8 bg-white text-black">
       <div className="max-w-4xl mx-auto">
-        <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900 mb-6">
+        <Link href="/eventos" className="flex items-center text-gray-600 hover:text-gray-900 mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver al calendario de eventos
         </Link>
@@ -81,17 +80,19 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
             ))}
           </ul>
         </div>
-
+        {/* 
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-3">Ubicación</h2>
           <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
             <p className="text-gray-500">Mapa de ubicación</p>
           </div>
-        </div>
+        </div> */}
 
-        <div className="flex justify-center">
-          <Button className="bg-black text-white hover:bg-gray-800">Comprar Entradas</Button>
-        </div>
+        {event.precio > 0 ? (
+          <div>
+            <Button className="bg-black text-white hover:bg-gray-800">Comprar Entrada</Button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
