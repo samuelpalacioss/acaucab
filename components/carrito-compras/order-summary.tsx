@@ -1,7 +1,8 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 interface OrderSummaryProps {
   subtotal: number;
   totalItems: number;
@@ -46,9 +47,17 @@ export function OrderSummary({ subtotal, totalItems, onCheckout }: OrderSummaryP
           <span>${total.toFixed(2)}</span>
         </div>
 
-        <Button className="w-full bg-black text-white hover:bg-gray-800" onClick={onCheckout}>
+        <Link
+          href="/checkout"
+          className={cn(
+            buttonVariants({
+              variant: "default",
+              className: "w-full",
+            })
+          )}
+        >
           Continuar al pago
-        </Button>
+        </Link>
       </div>
     </div>
   );

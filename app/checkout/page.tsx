@@ -18,7 +18,11 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+      <Link href="/carrito" className="text-md font-medium hover:underline">
+        ← Volver al carrito
+      </Link>
+
+      <h1 className="text-2xl font-bold mt-6 mb-6">Checkout</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-6">
@@ -81,12 +85,6 @@ export default function CheckoutPage() {
         <div className="md:col-span-1">
           <OrderSummary />
         </div>
-      </div>
-
-      <div className="mt-8">
-        <Link href="/carrito" className="text-sm text-primary hover:underline">
-          ← Volver al carrito
-        </Link>
       </div>
     </div>
   );
