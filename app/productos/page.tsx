@@ -175,7 +175,7 @@ export default function CatalogoCervezas() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {beers.map((beer) => (
               <div key={beer.id} className="group">
-                <Link href="#" className="block">
+                <Link href={`/productos/${beer.id}`} className="block">
                   <div className="bg-gray-200 aspect-square mb-3 relative overflow-hidden">
                     <Image
                       src={beer.image || "/placeholder.svg"}

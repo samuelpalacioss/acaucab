@@ -52,6 +52,13 @@ export default function HomePage() {
               <span>Eventos</span>
             </Link>
           </Button>
+
+          <Button asChild className="px-8 py-6 text-lg bg-orange-600 hover:bg-orange-700">
+            <Link href="/eventos/1" className="flex items-center gap-2">
+              <Beer className="h-5 w-5" />
+              <span>Evento 1</span>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
