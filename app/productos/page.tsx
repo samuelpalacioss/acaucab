@@ -204,6 +204,9 @@ export const beers = [
     price: 4.5,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 4.5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 2,
@@ -211,6 +214,9 @@ export const beers = [
     price: 7.0,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 3,
@@ -218,6 +224,9 @@ export const beers = [
     price: 8.0,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 2,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 4,
@@ -225,6 +234,9 @@ export const beers = [
     price: 5.0,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 5,
@@ -232,6 +244,9 @@ export const beers = [
     price: 6.5,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 6,
@@ -239,6 +254,9 @@ export const beers = [
     price: 5.5,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 7,
@@ -246,6 +264,9 @@ export const beers = [
     price: 6.0,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 8,
@@ -253,6 +274,9 @@ export const beers = [
     price: 8.5,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
   {
     id: 9,
@@ -260,5 +284,8 @@ export const beers = [
     price: 5.0,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,
+    alcohol: 5,
+    brand: "Artesana",
+    capacity: "355ml",
   },
 ];

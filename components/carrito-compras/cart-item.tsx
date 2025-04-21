@@ -6,6 +6,7 @@ interface CartItemProps {
   name: string;
   size: string;
   quantity: number;
+
   price: number;
   brand: string;
   imageSrc: string;

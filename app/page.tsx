@@ -38,6 +38,13 @@ export default function HomePage() {
               <span>Productos</span>
             </Link>
           </Button>
+
+          <Button asChild className="px-8 py-6 text-lg bg-purple-600 hover:bg-purple-700">
+            <Link href="/productos/3" className="flex items-center gap-2">
+              <Beer className="h-5 w-5" />
+              <span>Producto 3</span>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
