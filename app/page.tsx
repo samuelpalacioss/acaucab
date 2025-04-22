@@ -4,6 +4,7 @@ import BannerMarcas from "@/components/banner-marcas";
 import { NuevosProductos } from "@/components/nuevos-productos";
 import DiscountBanner from "@/components/banner-diario";
 import BannerEventos from "@/components/banner-eventos";
+import Footer from "@/components/footer";
 export default function HomePage() {
   return (
     <>
@@ -12,6 +13,7 @@ export default function HomePage() {
       <NuevosProductos />
       <DiscountBanner />
       <BannerEventos />
+      <Footer />
       {/* <Interfaces /> */}
     </>
   );
