@@ -13,7 +13,7 @@ export function NuevosProductos() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold">NUEVOS LANZAMIENTOS</h2>
-          <p className="text-gray-600 mt-2">Disponible para envío en parte de La Gran Caracas</p>
+          <p className="text-gray-600 mt-2">Enviamos a gran parte de La Gran Caracas</p>
         </div>
         <Link
           href="/productos"
