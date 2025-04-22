@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import Link from "next/link";
+import { ProductCard } from "@/components/product-card";
 
 export default function CatalogoCervezas() {
   const [priceRange, setPriceRange] = useState([1.5, 10]);
@@ -174,20 +175,13 @@ export default function CatalogoCervezas() {
           {/* Grid de productos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {beers.map((beer) => (
-              <div key={beer.id} className="group">
-                <Link href={`/productos/${beer.id}`} className="block">
-                  <div className="bg-gray-200 aspect-square mb-3 relative overflow-hidden">
-                    <Image
-                      src={beer.image || "/placeholder.svg"}
-                      alt={beer.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <h3 className="font-medium">{beer.name}</h3>
-                  <p className="text-gray-900 font-semibold mt-1">${beer.price}</p>
-                </Link>
-              </div>
+              <ProductCard
+                key={beer.id}
+                id={beer.id}
+                name={beer.name}
+                price={beer.price}
+                image={beer.image}
+              />
             ))}
           </div>
         </div>
@@ -250,7 +244,7 @@ export const beers = [
   },
   {
     id: 6,
-    name: "Musica en el cielo",
+    name: "Música en el cielo",
     price: 5.5,
     image: "/placeholder.svg?height=400&width=400",
     quantity: 1,

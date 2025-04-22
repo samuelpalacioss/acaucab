@@ -4,7 +4,6 @@ import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
-  { href: "/nosotros", label: "Nosotros" },
   { href: "/eventos", label: "Eventos" },
   { href: "/diario-de-cerveza", label: "DiarioDeCerveza" },
   { href: "/productos", label: "Productos" },

@@ -17,9 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Navbar />
-        <div className="flex h-screen flex-col justify-center items-center mx-auto max-w-screen-2xl px-4 md:px-6 lg:px-8">
-          {children}
-        </div>
+        <main>{children}</main>
       </body>
     </html>
   );
