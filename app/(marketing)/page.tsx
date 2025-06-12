@@ -13,8 +13,6 @@ export default function HomePage() {
       <NuevosProductos />
       <DiscountBanner />
       <BannerEventos />
-      <Footer />
-      {/* <Interfaces /> */}
     </>
   );
 }

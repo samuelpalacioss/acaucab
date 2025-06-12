@@ -2,7 +2,7 @@
 
 import { ProductCard } from "@/components/product-card";
 import Link from "next/link";
-import { beers } from "@/app/productos/page"; // Temporarily importing from here, should be moved to a proper data layer
+import { beers } from "@/app/(marketing)/productos/page"; // Temporarily importing from here, should be moved to a proper data layer
 
 export function NuevosProductos() {
   // Get the last 4 products

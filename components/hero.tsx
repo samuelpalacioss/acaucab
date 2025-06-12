@@ -1,5 +1,7 @@
+import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonVariants } from "./ui/button";
 
 export default function Hero() {
   return (
@@ -15,9 +17,12 @@ export default function Hero() {
               para el mundo.
             </p>
             <div className="pt-4">
-              <Button className="bg-black text-white hover:bg-gray-800 px-8 py-6 text-lg">
+              <Link
+                href="/productos"
+                className={cn(buttonVariants({ variant: "default", size: "lg" }), "text-base")}
+              >
                 Ver Productos
-              </Button>
+              </Link>
             </div>
           </div>
           <div className="relative h-[420px] w-full">

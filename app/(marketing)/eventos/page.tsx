@@ -82,8 +82,8 @@ export default function EventosPage() {
       <div className="flex justify-center">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl">
           {events.map((event) => (
-            <Link href={`/eventos/${event.id}`}>
-              <EventCard key={event.id} event={event} />
+            <Link key={event.id} href={`/eventos/${event.id}`}>
+              <EventCard event={event} />
             </Link>
           ))}
         </div>
