@@ -8,23 +8,32 @@ export interface CartItemType {
   price: number;
   brand: string;
   imageSrc: string;
+  category: string;
 }
 
 interface CartListProps {
   items: CartItemType[];
   onRemoveItem: (id: string) => void;
   onUpdateQuantity: (id: string, newQuantity: number) => void;
+  isCheckout?: boolean;
 }
 
-export function CartList({ items, onRemoveItem, onUpdateQuantity }: CartListProps) {
+export function CartList({
+  items,
+  onRemoveItem,
+  onUpdateQuantity,
+  isCheckout = false,
+}: CartListProps) {
   return (
     <div>
-      <p className="mb-6">
-        ¿Quieres comprar algo más?{" "}
-        <a href="#" className="underline hover:text-gray-600">
-          Continuar Comprando
-        </a>
-      </p>
+      {isCheckout && (
+        <p className="mb-6">
+          ¿Quieres comprar algo más?{" "}
+          <a href="#" className="underline hover:text-gray-600">
+            Continuar Comprando
+          </a>
+        </p>
+      )}
 
       {items.length === 0 ? (
         <div className="py-8 text-center">

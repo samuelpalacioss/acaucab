@@ -201,6 +201,7 @@ export const beers = [
     alcohol: 4.5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Pale",
   },
   {
     id: 2,
@@ -211,6 +212,7 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Pale",
   },
   {
     id: 3,
@@ -221,6 +223,7 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Pale",
   },
   {
     id: 4,
@@ -231,6 +234,7 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Pale",
   },
   {
     id: 5,
@@ -241,6 +245,7 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Especial",
   },
   {
     id: 6,
@@ -251,6 +256,7 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Especial",
   },
   {
     id: 7,
@@ -261,6 +267,7 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Pale",
   },
   {
     id: 8,
@@ -271,6 +278,7 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Pale",
   },
   {
     id: 9,
@@ -281,5 +289,6 @@ export const beers = [
     alcohol: 5,
     brand: "Artesana",
     capacity: "355ml",
+    category: "Especial",
   },
 ];

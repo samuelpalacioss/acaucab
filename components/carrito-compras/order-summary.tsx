@@ -7,9 +7,15 @@ interface OrderSummaryProps {
   subtotal: number;
   totalItems: number;
   onCheckout: () => void;
+  isCheckout?: boolean;
 }
 
-export function OrderSummary({ subtotal, totalItems, onCheckout }: OrderSummaryProps) {
+export function OrderSummary({
+  subtotal,
+  totalItems,
+  onCheckout,
+  isCheckout = false,
+}: OrderSummaryProps) {
   // Calcular el IVA (16% del subtotal)
   const iva = subtotal * 0.16;
   // Calcular el total incluyendo IVA
@@ -20,10 +26,12 @@ export function OrderSummary({ subtotal, totalItems, onCheckout }: OrderSummaryP
       <h2 className="text-2xl font-bold mb-4">Resumen del Pedido</h2>
 
       <div className="space-y-4">
-        <div className="flex justify-between">
-          <span>Envío</span>
-          <span className="text-gray-500">Calculado en el siguiente paso</span>
-        </div>
+        {isCheckout && (
+          <div className="flex justify-between">
+            <span>Envío</span>
+            <span className="text-gray-500">Calculado en el siguiente paso</span>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div className="flex justify-between items-center">

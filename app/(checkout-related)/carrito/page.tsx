@@ -14,6 +14,7 @@ const initialItems: CartItemType[] = [
     price: 12,
     brand: "Cervecería La Esquina",
     imageSrc: "/placeholder.svg?height=128&width=128",
+    category: "Especial",
   },
   {
     id: "2",
@@ -23,6 +24,7 @@ const initialItems: CartItemType[] = [
     price: 10,
     brand: "Artesana",
     imageSrc: "/placeholder.svg?height=128&width=128",
+    category: "Pale",
   },
 ];
 
@@ -62,6 +64,7 @@ export default function CarritoCompras() {
             items={cartItems}
             onRemoveItem={handleRemoveItem}
             onUpdateQuantity={handleUpdateQuantity}
+            isCheckout={true}
           />
         </div>
 
@@ -70,6 +73,7 @@ export default function CarritoCompras() {
             subtotal={calculateSubtotal()}
             totalItems={calculateTotalItems()}
             onCheckout={handleCheckout}
+            isCheckout={true}
           />
         </div>
       </div>
