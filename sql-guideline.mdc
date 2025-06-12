@@ -1,0 +1,157 @@
+# SQL Guidelines
+
+## Table Naming Conventions
+
+### Singular Form
+- All table names must be in singular form
+- This makes the database schema more intuitive and consistent
+
+❌ Don't use plural table names:
+```sql
+CREATE TABLE users ( ... )  -- Avoid this
+CREATE TABLE orders ( ... ) -- Avoid this
+CREATE TABLE products ( ... ) -- Avoid this
+```
+
+✅ Instead, use singular table names:
+```sql
+CREATE TABLE user ( ... )
+CREATE TABLE order ( ... )
+CREATE TABLE product ( ... )
+```
+
+### Table Name Examples
+```sql
+CREATE TABLE customer ( ... )
+CREATE TABLE invoice ( ... )
+CREATE TABLE payment ( ... )
+CREATE TABLE product_category ( ... )
+CREATE TABLE order_item ( ... )
+```
+
+## Constraint Naming Conventions
+
+### Primary Keys
+- Must be explicitly named using the pattern: `pk_tablename`
+- Must be defined using the `CONSTRAINT` keyword
+```sql
+CREATE TABLE users (
+    user_id INT,
+    CONSTRAINT pk_users PRIMARY KEY (user_id)
+);
+```
+
+### Foreign Keys
+- Must be explicitly named using the pattern: `fk_tablename_referencedtable`
+- Must be defined using the `CONSTRAINT` keyword
+```sql
+CREATE TABLE orders (
+    order_id INT,
+    user_id INT,
+    CONSTRAINT pk_orders PRIMARY KEY (order_id),
+    CONSTRAINT fk_orders_users FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+```
+
+### Check Constraints
+- Must be explicitly named using the pattern: `chk_tablename_constraintname`
+- Must be defined using the `CONSTRAINT` keyword
+```sql
+CREATE TABLE products (
+    product_id INT,
+    price DECIMAL(10,2),
+    stock INT,
+    CONSTRAINT pk_products PRIMARY KEY (product_id),
+    CONSTRAINT chk_products_price CHECK (price > 0),
+    CONSTRAINT chk_products_stock CHECK (stock >= 0)
+);
+```
+
+### Unique Constraints
+- Must be explicitly named using the pattern: `unq_tablename_columnname`
+- Must be defined using the `CONSTRAINT` keyword
+```sql
+CREATE TABLE employees (
+    employee_id INT,
+    email VARCHAR(100),
+    CONSTRAINT pk_employees PRIMARY KEY (employee_id),
+    CONSTRAINT unq_employees_email UNIQUE (email)
+);
+```
+
+## General Rules
+
+1. **Always Use Explicit Constraints**
+   - Never rely on implicit constraints
+   - Always use the `CONSTRAINT` keyword
+   - Always provide meaningful names for constraints
+
+2. **Table Creation Best Practices**
+   - Define all constraints at table creation time
+   - Group related constraints together
+   - Use meaningful names that describe the constraint's purpose
+
+3. **Index Naming**
+   - Primary Key Index: `idx_pk_tablename`
+   - Foreign Key Index: `idx_fk_tablename_referencedtable`
+   - Regular Index: `idx_tablename_columnname`
+
+4. **Example of Complete Table Creation**
+```sql
+CREATE TABLE orders (
+    order_id INT,
+    user_id INT,
+    order_date TIMESTAMP,
+    total_amount DECIMAL(10,2),
+    status VARCHAR(20),
+    
+    -- Primary Key
+    CONSTRAINT pk_orders PRIMARY KEY (order_id),
+    
+    -- Foreign Keys
+    CONSTRAINT fk_orders_users FOREIGN KEY (user_id) REFERENCES users(user_id),
+    
+    -- Check Constraints
+    CONSTRAINT chk_orders_amount CHECK (total_amount >= 0),
+    CONSTRAINT chk_orders_status CHECK (status IN ('pending', 'completed', 'cancelled')),
+    
+    -- Unique Constraints
+    CONSTRAINT unq_orders_date_user UNIQUE (order_date, user_id)
+);
+```
+
+5. **Altering Tables**
+   - When adding constraints to existing tables, follow the same naming conventions
+   - Always use explicit constraint names
+```sql
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_payments FOREIGN KEY (payment_id) REFERENCES payments(payment_id);
+```
+
+6. **Documentation**
+   - Document all constraints in table comments
+   - Include the business rules that each constraint enforces
+```sql
+COMMENT ON TABLE orders IS 'Stores order information with constraints ensuring data integrity';
+COMMENT ON CONSTRAINT chk_orders_amount ON orders IS 'Ensures order amount is never negative';
+```
+
+## Common Anti-patterns to Avoid
+
+❌ Don't use implicit constraints:
+```sql
+CREATE TABLE users (
+    id INT PRIMARY KEY,  -- Avoid this
+    email VARCHAR(100) UNIQUE  -- Avoid this
+);
+```
+
+✅ Instead, use explicit constraints:
+```sql
+CREATE TABLE users (
+    id INT,
+    email VARCHAR(100),
+    CONSTRAINT pk_users PRIMARY KEY (id),
+    CONSTRAINT unq_users_email UNIQUE (email)
+);
+``` 
