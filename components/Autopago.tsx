@@ -45,8 +45,9 @@ export default function Autopago() {
     : products;
 
   // Calculate total
-  const total = cart.reduce((sum, product) => sum + product.price * product.quantity, 0);
-
+  const subtotal = cart.reduce((sum, product) => sum + product.price * product.quantity, 0);
+  const iva = subtotal * 0.16;
+  const total = subtotal + iva;
   // Handle quantity changes
   const handleUpdateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) {

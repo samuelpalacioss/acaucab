@@ -113,6 +113,8 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
   };
 
   // Calculate cart summary
+  const subtotal = total / 1.16;
+  const iva = total - subtotal;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -395,11 +397,11 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
                 <div className="border-t pt-4 mt-4 space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${(total - total * 0.08).toFixed(2)}</span>
+                    <span>${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>IVA (8%)</span>
-                    <span>${(total * 0.08).toFixed(2)}</span>
+                    <span>IVA (16%)</span>
+                    <span>${iva.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
