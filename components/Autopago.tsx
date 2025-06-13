@@ -7,18 +7,8 @@ import { CartList, CartItemType } from "@/components/carrito-compras/cart-list";
 import { OrderSummary } from "@/components/carrito-compras/order-summary";
 import CategoryFilter from "@/components/cajero/category-filter";
 import CheckoutCajero from "./cajero/checkout-cajero";
-
-// Define types for our data
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  size?: string;
-  brand?: string;
-  imageSrc?: string;
-  category: string;
-};
+import PaymentView from "./cajero/payment-view";
+import { beers } from "@/app/(marketing)/productos/page";
 
 type PaymentMethod = "cash" | "card" | "transfer";
 
@@ -33,48 +23,19 @@ enum Step {
 export default function Autopago() {
   const [currentStep, setCurrentStep] = useState<Step>(Step.WELCOME);
   const [cedula, setCedula] = useState("");
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Cerveza Especial",
-      price: 12,
+  const [cart, setCart] = useState<CartItemType[]>([]);
+  const [products, setProducts] = useState<CartItemType[]>(
+    beers.map((beer) => ({
+      id: beer.id,
+      name: beer.name,
+      price: beer.price,
       quantity: 1,
-      size: "355ml",
-      brand: "Cervecería La Esquina",
-      imageSrc: "/placeholder.svg?height=128&width=128",
-      category: "Especial",
-    },
-    {
-      id: 2,
-      name: "Cerveza Pale",
-      price: 10,
-      quantity: 1,
-      size: "355ml",
-      brand: "Artesana",
-      imageSrc: "/placeholder.svg?height=128&width=128",
-      category: "Pale",
-    },
-    {
-      id: 3,
-      name: "Cerveza Negra",
-      price: 11.5,
-      quantity: 1,
-      size: "355ml",
-      brand: "Cervecería La Esquina",
-      imageSrc: "/placeholder.svg?height=128&width=128",
-      category: "Negra",
-    },
-    {
-      id: 4,
-      name: "Cerveza IPA",
-      price: 13,
-      quantity: 1,
-      size: "355ml",
-      brand: "Artesana",
-      imageSrc: "/placeholder.svg?height=128&width=128",
-      category: "IPA",
-    },
-  ]);
+      size: beer.capacity,
+      brand: beer.brand,
+      imageSrc: beer.image,
+      category: beer.category,
+    }))
+  );
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
@@ -84,19 +45,36 @@ export default function Autopago() {
     : products;
 
   // Calculate total
-  const total = products.reduce((sum, product) => sum + product.price * product.quantity, 0);
+  const total = cart.reduce((sum, product) => sum + product.price * product.quantity, 0);
 
   // Handle quantity changes
   const handleUpdateQuantity = (id: number, newQuantity: number) => {
-    setProducts(
-      products.map((product) =>
-        product.id === id ? { ...product, quantity: Math.max(0, newQuantity) } : product
-      )
-    );
+    if (newQuantity <= 0) {
+      setCart(cart.filter((product) => product.id !== id));
+    } else {
+      const existingItem = cart.find((item) => item.id === id);
+      if (existingItem) {
+        setCart(
+          cart.map((product) =>
+            product.id === id ? { ...product, quantity: newQuantity } : product
+          )
+        );
+      } else {
+        // Find the product in the products list and add it to cart
+        const productToAdd = products.find((p) => p.id === id);
+        if (productToAdd) {
+          setCart([...cart, { ...productToAdd, quantity: newQuantity }]);
+        }
+      }
+    }
   };
 
   const handleRemoveItem = (id: number) => {
-    setProducts(products.filter((product) => product.id !== id));
+    setCart(cart.filter((product) => product.id !== id));
+  };
+
+  const handleClearCart = () => {
+    setCart([]);
   };
 
   const calculateSubtotal = () => {
@@ -157,42 +135,24 @@ export default function Autopago() {
         );
 
       case Step.PRODUCT_SELECTION:
-        return <CheckoutCajero />;
+        return (
+          <CheckoutCajero
+            onCheckout={() => setCurrentStep(Step.PAYMENT)}
+            cart={cart}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            onClearCart={handleClearCart}
+          />
+        );
 
       case Step.PAYMENT:
         return (
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Método de Pago</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {(["cash", "card", "transfer"] as PaymentMethod[]).map((method) => (
-                <Button
-                  key={method}
-                  variant={selectedPaymentMethod === method ? "default" : "outline"}
-                  className="h-16 text-lg"
-                  onClick={() => setSelectedPaymentMethod(method)}
-                >
-                  {method === "cash" ? "Efectivo" : method === "card" ? "Tarjeta" : "Transferencia"}
-                </Button>
-              ))}
-            </div>
-            <div className="mt-6">
-              <Button
-                className="w-full"
-                disabled={!selectedPaymentMethod}
-                onClick={() => {
-                  // Here you would handle the final payment
-                  alert("Pago procesado exitosamente");
-                  // Reset the state and go back to welcome
-                  setCurrentStep(Step.WELCOME);
-                  setCedula("");
-                  setProducts(products.map((p) => ({ ...p, quantity: 0 })));
-                  setSelectedPaymentMethod(null);
-                }}
-              >
-                Confirmar Pago
-              </Button>
-            </div>
-          </div>
+          <PaymentView
+            items={cart}
+            total={total}
+            onComplete={() => {}}
+            onCancel={() => setCurrentStep(Step.PRODUCT_SELECTION)}
+          />
         );
     }
   };

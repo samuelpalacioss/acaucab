@@ -17,10 +17,24 @@ function getUniqueCategories(products: CartItemType[]): string[] {
   return [...new Set(categories)];
 }
 
-export default function CheckoutCajero() {
+interface CheckoutCajeroProps {
+  onCheckout: () => void;
+  cart: CartItemType[];
+  onUpdateQuantity: (id: number, quantity: number) => void;
+  onRemoveItem: (id: number) => void;
+  onClearCart: () => void;
+}
+
+export default function CheckoutCajero({
+  onCheckout,
+  cart,
+  onUpdateQuantity,
+  onRemoveItem,
+  onClearCart,
+}: CheckoutCajeroProps) {
   const [products] = useState<CartItemType[]>(
     beers.map((beer) => ({
-      id: beer.id.toString(),
+      id: Number(beer.id),
       name: beer.name,
       price: beer.price,
       quantity: 1,
@@ -32,17 +46,13 @@ export default function CheckoutCajero() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>("Todas");
-  const [cart, setCart] = useState<CartItemType[]>([]);
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [receiptData, setReceiptData] = useState<CartItemType[]>([]);
-  const [transactionId, setTransactionId] = useState("");
   const [recentlyUsed, setRecentlyUsed] = useState<CartItemType[]>([]);
 
   const categories = getUniqueCategories(products);
 
   // Convert products to CartItemType for display
   const displayProducts: CartItemType[] = products.map((product) => ({
-    id: product.id.toString(),
+    id: product.id,
     name: product.name,
     price: product.price,
     quantity: 1,
@@ -75,7 +85,7 @@ export default function CheckoutCajero() {
 
   const addToCart = (product: CartItemType) => {
     // Add to recently used if not already there
-    const originalProduct = products.find((p) => p.id.toString() === product.id);
+    const originalProduct = products.find((p) => p.id === product.id);
     if (originalProduct) {
       setRecentlyUsed((prev) => {
         const exists = prev.some((p) => p.id === originalProduct.id);
@@ -87,49 +97,12 @@ export default function CheckoutCajero() {
       });
     }
 
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        return [...prevCart, product];
-      }
-    });
-  };
-
-  const updateQuantity = (id: string, quantity: number) => {
-    if (quantity <= 0) {
-      setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+    const existingItem = cart.find((item) => item.id === product.id);
+    if (existingItem) {
+      onUpdateQuantity(product.id, existingItem.quantity + 1);
     } else {
-      setCart((prevCart) =>
-        prevCart.map((item) => (item.id === id ? { ...item, quantity } : item))
-      );
+      onUpdateQuantity(product.id, 1);
     }
-  };
-
-  const removeFromCart = (id: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
-  };
-
-  const clearCart = () => {
-    setCart([]);
-  };
-
-  const checkout = () => {
-    if (cart.length === 0) return;
-
-    // Generate a transaction ID
-    const newTransactionId = `TXN-${Date.now().toString().slice(-6)}`;
-    setTransactionId(newTransactionId);
-    setReceiptData([...cart]);
-    setShowReceipt(true);
-    clearCart();
-  };
-
-  const closeReceipt = () => {
-    setShowReceipt(false);
   };
 
   return (
@@ -141,7 +114,7 @@ export default function CheckoutCajero() {
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Buscar productos..."
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -157,7 +130,7 @@ export default function CheckoutCajero() {
 
           {!selectedCategory && searchQuery === "" && (
             <h3 className="font-medium text-gray-700 mb-2">
-              {recentlyUsed.length > 0 ? "Recently Used Products" : "Popular Products"}
+              {recentlyUsed.length > 0 ? "Productos Usados Recientemente" : "Productos Populares"}
             </h3>
           )}
 
@@ -173,10 +146,10 @@ export default function CheckoutCajero() {
       <div className="lg:col-span-1">
         <Cart
           items={cart}
-          onUpdateQuantity={updateQuantity}
-          onRemoveItem={removeFromCart}
-          onClearCart={clearCart}
-          onCheckout={checkout}
+          onUpdateQuantity={onUpdateQuantity}
+          onRemoveItem={onRemoveItem}
+          onClearCart={onClearCart}
+          onCheckout={onCheckout}
         />
       </div>
     </div>

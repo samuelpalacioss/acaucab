@@ -13,7 +13,7 @@ import { toast } from "@/components/ui/use-toast";
 import { DatosBasicosForm } from "@/components/steps/datos-basicos-form";
 import { ContactoForm } from "@/components/steps/contacto-form";
 import { DireccionesForm } from "@/components/steps/direcciones-form";
-import { MetodosPagoForm } from "@/components/steps/metodos-pago-form";
+import { TarjetaForm } from "@/components/steps/tarjeta-form";
 import { ResumenForm } from "@/components/steps/resumen-form";
 import { StepIndicator } from "@/components/step-indicator";
 import { PaymentMethodsBanner } from "./payment-methods-banner";
@@ -152,7 +152,7 @@ export function RegistroPersonaJuridica() {
       case 3:
         return (
           <>
-            <MetodosPagoForm />
+            <TarjetaForm />
             <PaymentMethodsBanner className="mt-4" />
           </>
         );

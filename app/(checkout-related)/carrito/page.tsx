@@ -7,7 +7,7 @@ import { OrderSummary } from "@/components/carrito-compras/order-summary";
 // This would typically come from a context or state management library
 const initialItems: CartItemType[] = [
   {
-    id: "1",
+    id: 1,
     name: "Cerveza Especial",
     size: "355ml",
     quantity: 1,
@@ -17,7 +17,7 @@ const initialItems: CartItemType[] = [
     category: "Especial",
   },
   {
-    id: "2",
+    id: 2,
     name: "Cerveza Pale",
     size: "355ml",
     quantity: 1,
@@ -31,11 +31,11 @@ const initialItems: CartItemType[] = [
 export default function CarritoCompras() {
   const [cartItems, setCartItems] = useState<CartItemType[]>(initialItems);
 
-  const handleRemoveItem = (id: string) => {
+  const handleRemoveItem = (id: number) => {
     setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
-  const handleUpdateQuantity = (id: string, newQuantity: number) => {
+  const handleUpdateQuantity = (id: number, newQuantity: number) => {
     setCartItems((prevItems) =>
       prevItems.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item))
     );

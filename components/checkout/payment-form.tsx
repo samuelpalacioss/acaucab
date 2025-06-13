@@ -4,7 +4,7 @@ import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { MetodosPagoForm } from "@/components/steps/metodos-pago-form";
+import { TarjetaForm } from "@/components/steps/tarjeta-form";
 import { CreditCard } from "lucide-react";
 import { PaymentMethodsBanner } from "@/components/payment-methods-banner";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ export default function PaymentForm({
 
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <MetodosPagoForm maxWidth={maxWidth} />
+          <TarjetaForm maxWidth={maxWidth} />
 
           {!showHeader && (
             <div className="flex justify-end gap-2 mt-6">

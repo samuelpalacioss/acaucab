@@ -1,7 +1,7 @@
 import { CartItem } from "./cart-item";
 
 export interface CartItemType {
-  id: string;
+  id: number;
   name: string;
   size: string;
   quantity: number;
@@ -13,8 +13,8 @@ export interface CartItemType {
 
 interface CartListProps {
   items: CartItemType[];
-  onRemoveItem: (id: string) => void;
-  onUpdateQuantity: (id: string, newQuantity: number) => void;
+  onRemoveItem: (id: number) => void;
+  onUpdateQuantity: (id: number, newQuantity: number) => void;
   isCheckout?: boolean;
 }
 

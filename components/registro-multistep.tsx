@@ -13,11 +13,11 @@ import { toast } from "@/components/ui/use-toast";
 import { TipoPersonaForm } from "@/components/steps/tipo-persona-form";
 import { DatosBasicosForm } from "@/components/steps/datos-basicos-form";
 import { ContactoForm } from "@/components/steps/contacto-form";
-import { MetodosPagoForm } from "@/components/steps/metodos-pago-form";
+
 import { ResumenForm } from "@/components/steps/resumen-form";
 import { StepIndicator } from "@/components/step-indicator";
 import { DireccionesForm } from "@/components/steps/direcciones-form";
-
+import { TarjetaForm } from "@/components/steps/tarjeta-form";
 // Common payment fields for both schemas
 const paymentFields = {
   numeroTarjeta: z.string().min(16, "Número de tarjeta es requerido y debe tener 16 dígitos"),
@@ -283,7 +283,7 @@ export function RegistroMultistep() {
       case 1:
         return <DatosBasicosForm tipoPersona={tipoPersona} />;
       case 3:
-        return <MetodosPagoForm />;
+        return <TarjetaForm />;
       case 4:
         return <ResumenForm />;
       default:

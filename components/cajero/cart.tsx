@@ -6,8 +6,8 @@ import { CartItemType } from "@/components/carrito-compras/cart-list";
 
 interface CartProps {
   items: CartItemType[];
-  onUpdateQuantity: (id: string, quantity: number) => void;
-  onRemoveItem: (id: string) => void;
+  onUpdateQuantity: (id: number, quantity: number) => void; // Changed to number
+  onRemoveItem: (id: number) => void; // Changed to number
   onClearCart: () => void;
   onCheckout: () => void;
 }

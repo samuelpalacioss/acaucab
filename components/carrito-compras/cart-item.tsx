@@ -2,16 +2,15 @@ import Image from "next/image";
 import { ItemQuantity } from "./item-quantity";
 
 interface CartItemProps {
-  id: string;
+  id: number;
   name: string;
   size: string;
   quantity: number;
-
   price: number;
   brand: string;
   imageSrc: string;
   onRemove: () => void;
-  onUpdateQuantity: (id: string, newQuantity: number) => void;
+  onUpdateQuantity: (id: number, newQuantity: number) => void;
 }
 
 export function CartItem({
