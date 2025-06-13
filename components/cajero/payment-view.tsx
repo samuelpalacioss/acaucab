@@ -165,20 +165,7 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
                     <Banknote className="h-6 w-6 mb-0" />
                     <span>Efectivo</span>
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="pagoMovil"
-                    className="
-                    flex-1 flex flex-col items-center justify-center gap-2 py-2 text-base
-                    data-[state=active]:bg-transparent
-                    data-[state=active]:shadow-none
-                    data-[state=active]:border-none
-                    data-[state=active]:py-2
-                    transition
-                  "
-                  >
-                    <Smartphone className="h-6 w-6 mb-0" />
-                    <span>Pago móvil</span>
-                  </TabsTrigger>
+
                   <TabsTrigger
                     value="puntos"
                     className="
@@ -257,66 +244,6 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
                             <span>${(total - Number.parseFloat(cashReceived)).toFixed(2)}</span>
                           </div>
                         )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="pagoMovil" className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-md text-sm mb-4">
-                      <p>
-                        1. El cliente debe realizar la transferencia al número{" "}
-                        <strong>0414-1234567</strong>
-                      </p>
-                      <p>2. Ingrese el número del cliente y el código de confirmación recibido</p>
-                      <p>
-                        3. Verifique que el monto transferido sea{" "}
-                        <strong>${total.toFixed(2)}</strong>
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phoneNumber">Número de teléfono</Label>
-                      <div className="flex gap-2">
-                        <Select value={phonePrefix} onValueChange={setPhonePrefix}>
-                          <SelectTrigger className="w-[100px]">
-                            <SelectValue placeholder="Prefijo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0424">0424</SelectItem>
-                            <SelectItem value="0414">0414</SelectItem>
-                            <SelectItem value="0412">0412</SelectItem>
-                            <SelectItem value="0416">0416</SelectItem>
-                            <SelectItem value="0426">0426</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          id="phoneNumber"
-                          placeholder="1234567"
-                          value={phoneNumber}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "").slice(0, 7);
-                            setPhoneNumber(value);
-                          }}
-                          maxLength={7}
-                          required
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmationCode">
-                        Últimos 6 dígitos del número de referencia
-                      </Label>
-                      <Input
-                        id="confirmationCode"
-                        placeholder="Últimos 6 dígitos"
-                        value={confirmationCode}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                          setConfirmationCode(value);
-                        }}
-                        maxLength={6}
-                        required
-                      />
                     </div>
                   </TabsContent>
 
