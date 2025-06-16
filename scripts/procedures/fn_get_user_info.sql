@@ -24,14 +24,14 @@ BEGIN
                 cj.denominación_comercial,
                 cn.primer_nombre || ' ' || cn.primer_apellido
             )
-        ) as nombre_completo,
+        )::VARCHAR as nombre_completo,
         -- Tipo de usuario
         CASE 
             WHEN eu.fk_empleado IS NOT NULL THEN 'Empleado'
             WHEN mu.fk_miembro_1 IS NOT NULL THEN 'Miembro'
             WHEN cu.fk_cliente_juridico IS NOT NULL THEN 'Cliente Jurídico'
             WHEN cu.fk_cliente_natural IS NOT NULL THEN 'Cliente Natural'
-        END as tipo_usuario
+        END::VARCHAR as tipo_usuario
     FROM usuario u
     LEFT JOIN correo c ON u.fk_correo = c.id
     LEFT JOIN rol r ON u.fk_rol = r.id
