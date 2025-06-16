@@ -40,10 +40,11 @@ const supabase = createClient(
 /**
  * Ejecuta una consulta SQL usando el cliente de Supabase
  * @param {string} sql - Consulta SQL a ejecutar
+ * @param {string} type - Tipo de objeto ('procedure' o 'function')
  */
-async function executeSql(sql) {
+async function executeSql(sql, type) {
     try {
-        console.log('📝 Ejecutando SQL...')
+        console.log(`📝 Ejecutando ${type}...`)
 
         // Primero, verificar la conexión
         const { data: testData, error: testError } = await supabase
@@ -63,13 +64,13 @@ async function executeSql(sql) {
             .rpc('exec_sql', { sql })
 
         if (error) {
-            console.error('❌ Error en la consulta SQL:', error.message)
+            console.error(`❌ Error en la consulta SQL (${type}):`, error.message)
             throw error
         }
 
         return data
     } catch (error) {
-        console.error('❌ Error al ejecutar SQL:', error.message)
+        console.error(`❌ Error al ejecutar ${type}:`, error.message)
         if (error.details) console.error('Detalles:', error.details)
         if (error.hint) console.error('Sugerencia:', error.hint)
         throw error
@@ -77,29 +78,43 @@ async function executeSql(sql) {
 }
 
 /**
- * Sincroniza procedimientos almacenados con Supabase
+ * Determina el tipo de objeto SQL basado en su contenido
+ * @param {string} sql - Contenido SQL
+ * @returns {string} - 'procedure' o 'function'
+ */
+function determineSqlType(sql) {
+    const lowerSql = sql.toLowerCase()
+    if (lowerSql.includes('create or replace function')) {
+        return 'function'
+    }
+    if (lowerSql.includes('create or replace procedure')) {
+        return 'procedure'
+    }
+    return 'unknown'
+}
+
+/**
+ * Sincroniza procedimientos y funciones almacenados con Supabase
  * @param {string} specificFile - Archivo específico a sincronizar (opcional)
  * @param {string} specificFolder - Carpeta específica a sincronizar (opcional)
  */
 async function syncProcedures(specificFile = null, specificFolder = null) {
     try {
-        // Ruta base a la carpeta de procedimientos
         const basePath = path.join(process.cwd(), 'scripts', 'procedures')
         console.log('📁 Ruta base:', basePath)
 
         if (specificFile) {
-            // Sincronizar un archivo específico
             const filePath = path.join(basePath, specificFile)
             if (fs.existsSync(filePath)) {
-                console.log(`🔄 Sincronizando procedimiento: ${specificFile}`)
                 const sql = fs.readFileSync(filePath, 'utf-8')
-                await executeSql(sql)
+                const type = determineSqlType(sql)
+                console.log(`🔄 Sincronizando ${type}: ${specificFile}`)
+                await executeSql(sql, type)
                 console.log(`✅ ${specificFile} sincronizado correctamente`)
             } else {
                 console.error(`❌ Archivo ${specificFile} no encontrado en ${basePath}`)
             }
         } else if (specificFolder) {
-            // Sincronizar una carpeta específica
             const folderPath = path.join(basePath, specificFolder)
             if (fs.existsSync(folderPath)) {
                 await syncFolder(folderPath)
@@ -107,11 +122,10 @@ async function syncProcedures(specificFile = null, specificFolder = null) {
                 console.error(`❌ Carpeta ${specificFolder} no encontrada en ${basePath}`)
             }
         } else {
-            // Sincronizar toda la carpeta de procedimientos
             await syncFolder(basePath)
         }
     } catch (error) {
-        console.error('❌ Error al sincronizar procedimientos:', error.message)
+        console.error('❌ Error al sincronizar:', error.message)
         process.exit(1)
     }
 }
@@ -128,13 +142,12 @@ async function syncFolder(folderPath) {
         const stat = fs.statSync(itemPath)
 
         if (stat.isDirectory()) {
-            // Si es una carpeta, sincronizar recursivamente
             await syncFolder(itemPath)
         } else if (item.endsWith('.sql')) {
-            // Si es un archivo SQL, sincronizarlo
-            console.log(`🔄 Sincronizando procedimiento: ${item}`)
             const sql = fs.readFileSync(itemPath, 'utf-8')
-            await executeSql(sql)
+            const type = determineSqlType(sql)
+            console.log(`🔄 Sincronizando ${type}: ${item}`)
+            await executeSql(sql, type)
             console.log(`✅ ${item} sincronizado correctamente`)
         }
     }

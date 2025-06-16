@@ -1,7 +1,15 @@
-CREATE OR REPLACE PROCEDURE sp_get_user_info(p_user_id INTEGER)
+CREATE OR REPLACE FUNCTION fn_get_user_info(p_user_id INTEGER)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    correo VARCHAR,
+    rol VARCHAR,
+    nombre_completo VARCHAR,
+    tipo_usuario VARCHAR
+) 
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    RETURN QUERY
     SELECT 
         u.id as usuario_id,
         c.dirección_correo as correo,
