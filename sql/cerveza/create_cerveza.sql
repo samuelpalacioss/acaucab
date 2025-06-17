@@ -85,13 +85,16 @@ CREATE TABLE cerveza (
  * @param fk_caracteristica - ID de la característica
  */
 CREATE TABLE cerveza_caracteristica (
+    id SERIAL,
     valor_rango_inferior DECIMAL(10,2),
     valor_rango_superior DECIMAL(10,2),
     descripcion          TEXT,
     fk_cerveza           INTEGER,
     fk_tipo_cerveza      INTEGER,
     fk_caracteristica    INTEGER NOT NULL,
-    CONSTRAINT cerveza_caracteristica_pk PRIMARY KEY (fk_caracteristica),
+    -- Pk compuesta
+    CONSTRAINT cerveza_caracteristica_pk PRIMARY KEY (id),
+    -- Fk
     CONSTRAINT cerveza_caracteristica_fk_caracteristica FOREIGN KEY (fk_caracteristica) REFERENCES caracteristica(id),
     CONSTRAINT cerveza_caracteristica_fk_cerveza FOREIGN KEY (fk_cerveza) REFERENCES cerveza(id),
     CONSTRAINT cerveza_caracteristica_fk_tipo_cerveza FOREIGN KEY (fk_tipo_cerveza) REFERENCES tipo_cerveza(id),
@@ -99,6 +102,13 @@ CREATE TABLE cerveza_caracteristica (
     CONSTRAINT chk_arc_cerveza_caracteristica CHECK (
         (fk_cerveza IS NOT NULL AND fk_tipo_cerveza IS NULL) OR
         (fk_cerveza IS NULL AND fk_tipo_cerveza IS NOT NULL)
+    ),
+
+    -- Constraint que garantiza que si el tipo de característica es 'numerica', 
+    -- entonces la descripción debe ser NULL
+    CONSTRAINT chk_descripcion_caracteristica_numerica CHECK (
+        (SELECT tipo FROM caracteristica WHERE id = fk_caracteristica) != 'numerica' 
+        OR descripcion IS NULL
     )
 );
 

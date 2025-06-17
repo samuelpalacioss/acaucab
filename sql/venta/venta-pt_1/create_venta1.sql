@@ -79,17 +79,15 @@ CREATE TABLE venta (
 CREATE TABLE detalle_presentacion (
     cantidad        INTEGER NOT NULL,                    /** Cantidad de productos vendidos (tipo: INTEGER) */
     precio_unitario DECIMAL(10,2),                      /** Precio por unidad del producto (tipo: DECIMAL) */
-    fk_inventario_1 VARCHAR(20) NOT NULL,                   /** Primera clave foránea del inventario (tipo: INTEGER) */
-    fk_inventario_2 INTEGER NOT NULL,               /** Segunda clave foránea del inventario - SKU (tipo: VARCHAR) */
-    fk_inventario_3 INTEGER NOT NULL,                   /** Tercera clave foránea del inventario (tipo: INTEGER) */
+    fk_presentacion VARCHAR(20) NOT NULL,                   /** Primera clave foránea del inventario (tipo: INTEGER) */
     fk_venta        INTEGER NOT NULL,                   /** Clave foránea que referencia la venta (tipo: INTEGER) */
     
     /** Definición de clave primaria compuesta */
-    CONSTRAINT detalle_presentacion_pk PRIMARY KEY (fk_inventario_1, fk_inventario_2, fk_inventario_3, fk_venta),
+    CONSTRAINT detalle_presentacion_pk PRIMARY KEY (fk_presentacion, fk_venta),
     
     /** Clave foránea que referencia la tabla inventario */
-    CONSTRAINT detalle_presentacion_fk_inventario FOREIGN KEY (fk_inventario_1, fk_inventario_2, fk_inventario_3) 
-        REFERENCES inventario (fk_presentacion_cerveza_1, fk_presentacion_cerveza_2, fk_almacen),
+    CONSTRAINT detalle_presentacion_fk_presentacion FOREIGN KEY (fk_presentacion) 
+        REFERENCES presentacion (sku),
     
     /** Clave foránea que referencia la tabla venta */
     CONSTRAINT detalle_presentacion_fk_venta FOREIGN KEY (fk_venta) 

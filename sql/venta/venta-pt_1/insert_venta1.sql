@@ -4,6 +4,15 @@
  * Cada tabla tendrá 10 registros de ejemplo
  */
 
+-- Limpiar las tablas en orden correcto según dependencias de claves foráneas
+-- Primero las tablas dependientes, luego las principales
+TRUNCATE TABLE detalle_presentacion CASCADE;
+TRUNCATE TABLE miembro_presentacion_cerveza CASCADE;
+TRUNCATE TABLE venta RESTART IDENTITY CASCADE;
+
+-- Reiniciar las secuencias de IDs
+ALTER SEQUENCE venta_id_seq RESTART WITH 1;
+
 /**
  * Inserción de datos para la tabla venta
  * Almacena información principal de las ventas realizadas
@@ -124,514 +133,514 @@ INSERT INTO venta (monto_total, dirección_entrega, observación, fk_usuario, fk
  * @param fk_inventario_3 - Tercera clave foránea del inventario - ID almacén (tipo: INTEGER)
  * @param fk_venta - Clave foránea que referencia la venta (tipo: INTEGER)
  */
-INSERT INTO detalle_presentacion (cantidad, precio_unitario, fk_inventario_1, fk_inventario_2, fk_inventario_3, fk_venta) VALUES
+INSERT INTO detalle_presentacion (cantidad, precio_unitario, fk_presentacion, fk_venta) VALUES
 /** Venta 1: 5 botellas + 3 latas + 2 growlers = 10 productos */
-(5, 3.00, 'B330', 1, 1, 1),       /** 5 botellas 330ml cerveza 1 */
-(3, 2.50, 'L330', 3, 2, 1),       /** 3 latas 330ml cerveza 3 */
-(2, 10.00, 'G1L', 9, 5, 1),       /** 2 growlers 1L cerveza 9 */
+(5, 3.00, 'B330', 1),       /** 5 botellas 330ml cerveza 1 */
+(3, 2.50, 'L330', 1),       /** 3 latas 330ml cerveza 3 */
+(2, 10.00, 'G1L', 1),       /** 2 growlers 1L cerveza 9 */
 
 /** Venta 2: 4 botellas 500ml + 2 six-packs + 4 latas = 10 productos */
-(4, 5.20, 'B500', 2, 1, 2),       /** 4 botellas 500ml cerveza 2 */
-(2, 15.00, 'SP330', 4, 2, 2),     /** 2 six-packs 330ml cerveza 4 */
-(4, 2.60, 'L330', 3, 2, 2),       /** 4 latas 330ml cerveza 3 */
+(4, 5.20, 'B500', 2),       /** 4 botellas 500ml cerveza 2 */
+(2, 15.00, 'SP330', 2),     /** 2 six-packs 330ml cerveza 4 */
+(4, 2.60, 'L330', 2),       /** 4 latas 330ml cerveza 3 */
 
 /** Venta 3: 6 botellas + 2 botellas 500ml + 1 caja + 1 lata = 10 productos */
-(6, 2.95, 'B330', 1, 1, 3),       /** 6 botellas 330ml cerveza 1 */
-(2, 5.10, 'B500', 2, 1, 3),       /** 2 botellas 500ml cerveza 2 */
-(1, 50.00, 'C24330', 5, 3, 3),    /** 1 caja 24 unidades cerveza 5 */
-(1, 2.40, 'L330', 3, 2, 3),       /** 1 lata 330ml cerveza 3 */
+(6, 2.95, 'B330', 3),       /** 6 botellas 330ml cerveza 1 */
+(2, 5.10, 'B500', 3),       /** 2 botellas 500ml cerveza 2 */
+(1, 50.00, 'C24330', 3),    /** 1 caja 24 unidades cerveza 5 */
+(1, 2.40, 'L330', 3),       /** 1 lata 330ml cerveza 3 */
 
 /** Venta 4: 3 botellas + 2 latas + 1 barril + 4 botellas 330ml cerveza 11 = 10 productos */
-(3, 3.15, 'B330', 1, 1, 4),       /** 3 botellas 330ml cerveza 1 */
-(2, 2.70, 'L330', 3, 2, 4),       /** 2 latas 330ml cerveza 3 */
-(1, 70.00, 'B20', 6, 3, 4),       /** 1 barril 20L cerveza 6 */
-(4, 3.20, 'B330', 11, 6, 4),      /** 4 botellas 330ml cerveza 11 */
+(3, 3.15, 'B330', 4),       /** 3 botellas 330ml cerveza 1 */
+(2, 2.70, 'L330', 4),       /** 2 latas 330ml cerveza 3 */
+(1, 70.00, 'B20', 4),       /** 1 barril 20L cerveza 6 */
+(4, 3.20, 'C24330', 4),      /** 4 botellas 330ml cerveza 11 */
 
 /** Venta 5: 5 botellas 500ml + 3 latas + 2 growlers = 10 productos */
-(5, 5.30, 'B500', 12, 6, 5),      /** 5 botellas 500ml cerveza 12 */
-(3, 2.55, 'L330', 13, 7, 5),      /** 3 latas 330ml cerveza 13 */
-(2, 10.25, 'G1L', 9, 5, 5),       /** 2 growlers 1L cerveza 9 */
+(5, 5.30, 'B500', 5),      /** 5 botellas 500ml cerveza 12 */
+(3, 2.55, 'L330', 5),      /** 3 latas 330ml cerveza 13 */
+(2, 10.25, 'G1L', 5),       /** 2 growlers 1L cerveza 9 */
 
 /** Venta 6: 4 botellas + 1 six-pack + 3 latas + 2 cajas 12 unidades = 10 productos */
-(4, 3.20, 'B330', 1, 1, 6),       /** 4 botellas 330ml cerveza 1 */
-(1, 15.50, 'SP330', 14, 7, 6),    /** 1 six-pack 330ml cerveza 14 */
-(3, 2.45, 'L330', 3, 2, 6),       /** 3 latas 330ml cerveza 3 */
-(2, 45.00, 'C12500', 10, 5, 6),   /** 2 cajas 12 unidades 500ml cerveza 10 */
+(4, 3.20, 'B330', 6),       /** 4 botellas 330ml cerveza 1 */
+(1, 15.50, 'SP330', 6),    /** 1 six-pack 330ml cerveza 14 */
+(3, 2.45, 'L330', 6),       /** 3 latas 330ml cerveza 3 */
+(2, 45.00, 'C12500', 6),   /** 2 cajas 12 unidades 500ml cerveza 10 */
 
 /** Venta 7: 7 botellas + 1 barril + 2 latas = 10 productos */
-(7, 3.25, 'B330', 11, 6, 7),      /** 7 botellas 330ml cerveza 11 */
-(1, 100.00, 'B30', 7, 4, 7),      /** 1 barril 30L cerveza 7 */
-(2, 2.80, 'L330', 13, 7, 7),      /** 2 latas 330ml cerveza 13 */
+(7, 3.25, 'B330', 7),      /** 7 botellas 330ml cerveza 11 */
+(1, 100.00, 'B30', 7),      /** 1 barril 30L cerveza 7 */
+(2, 2.80, 'L330', 7),      /** 2 latas 330ml cerveza 13 */
 
 /** Venta 8: 6 botellas + 1 caja + 3 latas = 10 productos */
-(6, 2.90, 'B330', 1, 1, 8),       /** 6 botellas 330ml cerveza 1 */
-(1, 52.00, 'C24330', 15, 8, 8),   /** 1 caja 24 unidades cerveza 15 */
-(3, 2.35, 'L330', 3, 2, 8),       /** 3 latas 330ml cerveza 3 */
+(6, 2.90, 'B330', 8),       /** 6 botellas 330ml cerveza 1 */
+(1, 52.00, 'C24330', 8),   /** 1 caja 24 unidades cerveza 15 */
+(3, 2.35, 'L330', 8),       /** 3 latas 330ml cerveza 3 */
 
 /** Venta 9: 5 botellas 500ml + 2 six-packs + 3 latas = 10 productos */
-(5, 5.60, 'B500', 2, 1, 9),       /** 5 botellas 500ml cerveza 2 */
-(2, 15.25, 'SP330', 4, 2, 9),     /** 2 six-packs 330ml cerveza 4 */
-(3, 2.65, 'L330', 13, 7, 9),      /** 3 latas 330ml cerveza 13 */
+(5, 5.60, 'B500', 9),       /** 5 botellas 500ml cerveza 2 */
+(2, 15.25, 'SP330', 9),     /** 2 six-packs 330ml cerveza 4 */
+(3, 2.65, 'L330', 9),      /** 3 latas 330ml cerveza 13 */
 
 /** Venta 10: 4 botellas + 1 barril + 2 growlers + 3 latas = 10 productos */
-(4, 3.00, 'B330', 11, 6, 10),     /** 4 botellas 330ml cerveza 11 */
-(1, 160.00, 'B50', 8, 4, 10),     /** 1 barril 50L cerveza 8 */
-(2, 11.50, 'G1L', 9, 5, 10),      /** 2 growlers 1L cerveza 9 */
-(3, 2.75, 'L330', 3, 2, 10),      /** 3 latas 330ml cerveza 3 */
+(4, 3.00, 'B330', 10),     /** 4 botellas 330ml cerveza 11 */
+(1, 160.00, 'B50', 10),     /** 1 barril 50L cerveza 8 */
+(2, 11.50, 'G1L', 10),      /** 2 growlers 1L cerveza 9 */
+(3, 2.75, 'L330', 10),      /** 3 latas 330ml cerveza 3 */
 
 /** Venta 11: 8 botellas + 1 barril + 1 lata = 10 productos */
-(8, 3.05, 'B330', 1, 1, 11),      /** 8 botellas 330ml cerveza 1 */
-(1, 72.00, 'B20', 16, 8, 11),     /** 1 barril 20L cerveza 16 */
-(1, 2.50, 'L330', 3, 2, 11),      /** 1 lata 330ml cerveza 3 */
+(8, 3.05, 'B330', 11),      /** 8 botellas 330ml cerveza 1 */
+(1, 72.00, 'B20', 11),     /** 1 barril 20L cerveza 16 */
+(1, 2.50, 'L330', 11),      /** 1 lata 330ml cerveza 3 */
 
 /** Venta 12: 3 botellas + 1 six-pack + 2 botellas 500ml + 4 latas = 10 productos */
-(3, 3.15, 'B330', 1, 1, 12),      /** 3 botellas 330ml cerveza 1 */
-(1, 15.25, 'SP330', 4, 2, 12),    /** 1 six-pack 330ml cerveza 4 */
-(2, 5.40, 'B500', 12, 6, 12),     /** 2 botellas 500ml cerveza 12 */
-(4, 2.45, 'L330', 3, 2, 12),      /** 4 latas 330ml cerveza 3 */
+(3, 3.15, 'B330', 12),      /** 3 botellas 330ml cerveza 1 */
+(1, 15.25, 'SP330', 12),    /** 1 six-pack 330ml cerveza 4 */
+(2, 5.40, 'B500', 12),     /** 2 botellas 500ml cerveza 12 */
+(4, 2.45, 'L330', 12),      /** 4 latas 330ml cerveza 3 */
 
 /** Venta 13: 6 latas + 1 barril + 3 botellas 500ml = 10 productos */
-(6, 2.40, 'L330', 13, 7, 13),     /** 6 latas 330ml cerveza 13 */
-(1, 105.00, 'B30', 17, 9, 13),    /** 1 barril 30L cerveza 17 */
-(3, 5.15, 'B500', 2, 1, 13),      /** 3 botellas 500ml cerveza 2 */
+(6, 2.40, 'L330', 13),     /** 6 latas 330ml cerveza 13 */
+(1, 105.00, 'B30', 13),    /** 1 barril 30L cerveza 17 */
+(3, 5.15, 'B500', 13),      /** 3 botellas 500ml cerveza 2 */
 
 /** Venta 14: 5 botellas + 1 caja + 4 latas = 10 productos */
-(5, 3.25, 'B330', 11, 6, 14),     /** 5 botellas 330ml cerveza 11 */
-(1, 48.00, 'C24330', 5, 3, 14),   /** 1 caja 24 unidades cerveza 5 */
-(4, 2.60, 'L330', 13, 7, 14),     /** 4 latas 330ml cerveza 13 */
+(5, 3.25, 'B330', 14),     /** 5 botellas 330ml cerveza 11 */
+(1, 48.00, 'C24330', 14),   /** 1 caja 24 unidades cerveza 5 */
+(4, 2.60, 'L330', 14),     /** 4 latas 330ml cerveza 13 */
 
 /** Venta 15: 4 botellas + 2 botellas 500ml + 1 six-pack + 3 latas = 10 productos */
-(4, 2.95, 'B330', 1, 1, 15),      /** 4 botellas 330ml cerveza 1 */
-(2, 5.35, 'B500', 2, 1, 15),      /** 2 botellas 500ml cerveza 2 */
-(1, 16.00, 'SP330', 14, 7, 15),   /** 1 six-pack 330ml cerveza 14 */
-(3, 2.55, 'L330', 3, 2, 15),      /** 3 latas 330ml cerveza 3 */
+(4, 2.95, 'B330', 15),      /** 4 botellas 330ml cerveza 1 */
+(2, 5.35, 'B500', 15),      /** 2 botellas 500ml cerveza 2 */
+(1, 16.00, 'SP330', 15),   /** 1 six-pack 330ml cerveza 14 */
+(3, 2.55, 'L330', 15),      /** 3 latas 330ml cerveza 3 */
 
 /** Venta 16: 7 botellas + 1 barril + 2 latas = 10 productos */
-(7, 3.10, 'B330', 11, 6, 16),     /** 7 botellas 330ml cerveza 11 */
-(1, 165.00, 'B50', 18, 9, 16),    /** 1 barril 50L cerveza 18 */
-(2, 2.65, 'L330', 13, 7, 16),     /** 2 latas 330ml cerveza 13 */
+(7, 3.10, 'B330', 16),     /** 7 botellas 330ml cerveza 11 */
+(1, 165.00, 'B50', 16),    /** 1 barril 50L cerveza 18 */
+(2, 2.65, 'L330', 16),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 17: 3 botellas + 2 six-packs + 1 caja + 4 latas = 10 productos */
-(3, 3.20, 'B330', 1, 1, 17),      /** 3 botellas 330ml cerveza 1 */
-(2, 15.00, 'SP330', 4, 2, 17),    /** 2 six-packs 330ml cerveza 4 */
-(1, 46.00, 'C12500', 10, 5, 17),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(4, 2.70, 'L330', 3, 2, 17),      /** 4 latas 330ml cerveza 3 */
+(3, 3.20, 'B330', 17),      /** 3 botellas 330ml cerveza 1 */
+(2, 15.00, 'SP330', 17),    /** 2 six-packs 330ml cerveza 4 */
+(1, 46.00, 'C12500', 17),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(4, 2.70, 'L330', 17),      /** 4 latas 330ml cerveza 3 */
 
 /** Venta 18: 6 botellas 500ml + 2 growlers + 2 latas = 10 productos */
-(6, 5.40, 'B500', 12, 6, 18),     /** 6 botellas 500ml cerveza 12 */
-(2, 11.00, 'G1L', 9, 5, 18),      /** 2 growlers 1L cerveza 9 */
-(2, 2.45, 'L330', 13, 7, 18),     /** 2 latas 330ml cerveza 13 */
+(6, 5.40, 'B500', 18),     /** 6 botellas 500ml cerveza 12 */
+(2, 11.00, 'G1L', 18),      /** 2 growlers 1L cerveza 9 */
+(2, 2.45, 'L330', 18),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 19: 5 latas + 1 barril + 4 botellas = 10 productos */
-(5, 2.50, 'L330', 3, 2, 19),      /** 5 latas 330ml cerveza 3 */
-(1, 78.00, 'B20', 6, 3, 19),      /** 1 barril 20L cerveza 6 */
-(4, 3.30, 'B330', 11, 6, 19),     /** 4 botellas 330ml cerveza 11 */
+(5, 2.50, 'L330', 19),      /** 5 latas 330ml cerveza 3 */
+(1, 78.00, 'B20', 19),      /** 1 barril 20L cerveza 6 */
+(4, 3.30, 'B330', 19),     /** 4 botellas 330ml cerveza 11 */
 
 /** Venta 20: 8 botellas + 1 caja + 1 lata = 10 productos */
-(8, 3.15, 'B330', 1, 1, 20),      /** 8 botellas 330ml cerveza 1 */
-(1, 49.50, 'C24330', 15, 8, 20),  /** 1 caja 24 unidades cerveza 15 */
-(1, 2.60, 'L330', 3, 2, 20),      /** 1 lata 330ml cerveza 3 */
+(8, 3.15, 'B330', 20),      /** 8 botellas 330ml cerveza 1 */
+(1, 49.50, 'C24330', 20),  /** 1 caja 24 unidades cerveza 15 */
+(1, 2.60, 'L330', 20),      /** 1 lata 330ml cerveza 3 */
 
 /** Ventas 21-40: Combinaciones adicionales usando todos los productos del inventario */
 /** Venta 21: 4 botellas + 3 latas + 2 six-packs + 1 growler = 10 productos */
-(4, 3.05, 'B330', 1, 1, 21),      /** 4 botellas 330ml cerveza 1 */
-(3, 2.50, 'L330', 3, 2, 21),      /** 3 latas 330ml cerveza 3 */
-(2, 15.20, 'SP330', 14, 7, 21),   /** 2 six-packs 330ml cerveza 14 */
-(1, 10.75, 'G1L', 9, 5, 21),      /** 1 growler 1L cerveza 9 */
+(4, 3.05, 'B330', 21),      /** 4 botellas 330ml cerveza 1 */
+(3, 2.50, 'L330', 21),      /** 3 latas 330ml cerveza 3 */
+(2, 15.20, 'SP330', 21),   /** 2 six-packs 330ml cerveza 14 */
+(1, 10.75, 'G1L', 21),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 22: 6 botellas 500ml + 2 latas + 1 caja + 1 botella = 10 productos */
-(6, 5.40, 'B500', 12, 6, 22),     /** 6 botellas 500ml cerveza 12 */
-(2, 2.45, 'L330', 13, 7, 22),     /** 2 latas 330ml cerveza 13 */
-(1, 47.00, 'C12500', 10, 5, 22),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(1, 3.20, 'B330', 11, 6, 22),     /** 1 botella 330ml cerveza 11 */
+(6, 5.40, 'B500', 22),     /** 6 botellas 500ml cerveza 12 */
+(2, 2.45, 'L330', 22),     /** 2 latas 330ml cerveza 13 */
+(1, 47.00, 'C12500', 22),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(1, 3.20, 'B330', 22),     /** 1 botella 330ml cerveza 11 */
 
 /** Venta 23: 5 botellas + 1 barril + 3 latas + 1 six-pack = 10 productos */
-(5, 3.15, 'B330', 1, 1, 23),      /** 5 botellas 330ml cerveza 1 */
-(1, 110.00, 'B30', 17, 9, 23),    /** 1 barril 30L cerveza 17 */
-(3, 2.60, 'L330', 3, 2, 23),      /** 3 latas 330ml cerveza 3 */
-(1, 16.50, 'SP330', 4, 2, 23),    /** 1 six-pack 330ml cerveza 4 */
+(5, 3.15, 'B330', 23),      /** 5 botellas 330ml cerveza 1 */
+(1, 110.00, 'B30', 23),    /** 1 barril 30L cerveza 17 */
+(3, 2.60, 'L330', 23),      /** 3 latas 330ml cerveza 3 */
+(1, 16.50, 'SP330', 23),    /** 1 six-pack 330ml cerveza 4 */
 
 /** Venta 24: 7 latas + 2 botellas 500ml + 1 growler = 10 productos */
-(7, 2.55, 'L330', 13, 7, 24),     /** 7 latas 330ml cerveza 13 */
-(2, 5.30, 'B500', 2, 1, 24),      /** 2 botellas 500ml cerveza 2 */
-(1, 11.25, 'G1L', 9, 5, 24),      /** 1 growler 1L cerveza 9 */
+(7, 2.55, 'L330', 24),     /** 7 latas 330ml cerveza 13 */
+(2, 5.30, 'B500', 24),      /** 2 botellas 500ml cerveza 2 */
+(1, 11.25, 'G1L', 24),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 25: 3 botellas + 1 caja + 2 six-packs + 4 latas = 10 productos */
-(3, 3.00, 'B330', 11, 6, 25),     /** 3 botellas 330ml cerveza 11 */
-(1, 51.50, 'C24330', 15, 8, 25),  /** 1 caja 24 unidades cerveza 15 */
-(2, 15.75, 'SP330', 14, 7, 25),   /** 2 six-packs 330ml cerveza 14 */
-(4, 2.40, 'L330', 3, 2, 25),      /** 4 latas 330ml cerveza 3 */
+(3, 3.00, 'B330', 25),     /** 3 botellas 330ml cerveza 11 */
+(1, 51.50, 'C24330', 25),  /** 1 caja 24 unidades cerveza 15 */
+(2, 15.75, 'SP330', 25),   /** 2 six-packs 330ml cerveza 14 */
+(4, 2.40, 'L330', 25),      /** 4 latas 330ml cerveza 3 */
 
 /** Venta 26: 8 botellas + 1 barril + 1 lata = 10 productos */
-(8, 2.95, 'B330', 1, 1, 26),      /** 8 botellas 330ml cerveza 1 */
-(1, 170.00, 'B50', 18, 9, 26),    /** 1 barril 50L cerveza 18 */
-(1, 2.65, 'L330', 13, 7, 26),     /** 1 lata 330ml cerveza 13 */
+(8, 2.95, 'B330', 26),      /** 8 botellas 330ml cerveza 1 */
+(1, 170.00, 'B50', 26),    /** 1 barril 50L cerveza 18 */
+(1, 2.65, 'L330', 26),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 27: 4 botellas 500ml + 3 latas + 2 growlers + 1 six-pack = 10 productos */
-(4, 5.45, 'B500', 12, 6, 27),     /** 4 botellas 500ml cerveza 12 */
-(3, 2.70, 'L330', 3, 2, 27),      /** 3 latas 330ml cerveza 3 */
-(2, 10.50, 'G1L', 9, 5, 27),      /** 2 growlers 1L cerveza 9 */
-(1, 15.00, 'SP330', 4, 2, 27),    /** 1 six-pack 330ml cerveza 4 */
+(4, 5.45, 'B500', 27),     /** 4 botellas 500ml cerveza 12 */
+(3, 2.70, 'L330', 27),      /** 3 latas 330ml cerveza 3 */
+(2, 10.50, 'G1L', 27),      /** 2 growlers 1L cerveza 9 */
+(1, 15.00, 'SP330', 27),    /** 1 six-pack 330ml cerveza 4 */
 
 /** Venta 28: 6 botellas + 1 caja + 2 latas + 1 botella 500ml = 10 productos */
-(6, 3.10, 'B330', 11, 6, 28),     /** 6 botellas 330ml cerveza 11 */
-(1, 48.50, 'C12500', 10, 5, 28),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(2, 2.50, 'L330', 13, 7, 28),     /** 2 latas 330ml cerveza 13 */
-(1, 5.20, 'B500', 2, 1, 28),      /** 1 botella 500ml cerveza 2 */
+(6, 3.10, 'B330', 28),     /** 6 botellas 330ml cerveza 11 */
+(1, 48.50, 'C12500', 28),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(2, 2.50, 'L330', 28),     /** 2 latas 330ml cerveza 13 */
+(1, 5.20, 'B500', 28),      /** 1 botella 500ml cerveza 2 */
 
 /** Venta 29: 5 latas + 1 barril + 3 botellas + 1 six-pack = 10 productos */
-(5, 2.45, 'L330', 3, 2, 29),      /** 5 latas 330ml cerveza 3 */
-(1, 75.00, 'B20', 16, 8, 29),     /** 1 barril 20L cerveza 16 */
-(3, 3.25, 'B330', 1, 1, 29),      /** 3 botellas 330ml cerveza 1 */
-(1, 16.25, 'SP330', 14, 7, 29),   /** 1 six-pack 330ml cerveza 14 */
+(5, 2.45, 'L330', 29),      /** 5 latas 330ml cerveza 3 */
+(1, 75.00, 'B20', 29),     /** 1 barril 20L cerveza 16 */
+(3, 3.25, 'B330', 29),      /** 3 botellas 330ml cerveza 1 */
+(1, 16.25, 'SP330', 29),   /** 1 six-pack 330ml cerveza 14 */
 
 /** Venta 30: 7 botellas + 1 caja + 2 latas = 10 productos */
-(7, 3.30, 'B330', 11, 6, 30),     /** 7 botellas 330ml cerveza 11 */
-(1, 52.75, 'C24330', 5, 3, 30),   /** 1 caja 24 unidades cerveza 5 */
-(2, 2.80, 'L330', 13, 7, 30),     /** 2 latas 330ml cerveza 13 */
+(7, 3.30, 'B330', 30),     /** 7 botellas 330ml cerveza 11 */
+(1, 52.75, 'C24330', 30),   /** 1 caja 24 unidades cerveza 5 */
+(2, 2.80, 'L330', 30),     /** 2 latas 330ml cerveza 13 */
 
 /** Continuando con ventas 31-50 usando más productos del inventario */
 /** Venta 31: 4 botellas + 2 botellas 500ml + 1 barril + 3 latas = 10 productos */
-(4, 3.15, 'B330', 1, 1, 31),      /** 4 botellas 330ml cerveza 1 */
-(2, 5.50, 'B500', 12, 6, 31),     /** 2 botellas 500ml cerveza 12 */
-(1, 108.00, 'B30', 7, 4, 31),     /** 1 barril 30L cerveza 7 */
-(3, 2.60, 'L330', 3, 2, 31),      /** 3 latas 330ml cerveza 3 */
+(4, 3.15, 'B330', 31),      /** 4 botellas 330ml cerveza 1 */
+(2, 5.50, 'B500', 31),     /** 2 botellas 500ml cerveza 12 */
+(1, 108.00, 'B30', 31),     /** 1 barril 30L cerveza 7 */
+(3, 2.60, 'L330', 31),      /** 3 latas 330ml cerveza 3 */
 
 /** Venta 32: 8 latas + 1 six-pack + 1 growler = 10 productos */
-(8, 2.35, 'L330', 13, 7, 32),     /** 8 latas 330ml cerveza 13 */
-(1, 15.50, 'SP330', 4, 2, 32),    /** 1 six-pack 330ml cerveza 4 */
-(1, 11.75, 'G1L', 9, 5, 32),      /** 1 growler 1L cerveza 9 */
+(8, 2.35, 'L330', 32),     /** 8 latas 330ml cerveza 13 */
+(1, 15.50, 'SP330', 32),    /** 1 six-pack 330ml cerveza 4 */
+(1, 11.75, 'G1L', 32),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 33: 5 botellas + 1 caja + 2 botellas 500ml + 2 latas = 10 productos */
-(5, 2.90, 'B330', 11, 6, 33),     /** 5 botellas 330ml cerveza 11 */
-(1, 49.00, 'C12500', 10, 5, 33),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(2, 5.35, 'B500', 2, 1, 33),      /** 2 botellas 500ml cerveza 2 */
-(2, 2.75, 'L330', 3, 2, 33),      /** 2 latas 330ml cerveza 3 */
+(5, 2.90, 'B330', 33),     /** 5 botellas 330ml cerveza 11 */
+(1, 49.00, 'C12500', 33),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(2, 5.35, 'B500', 33),      /** 2 botellas 500ml cerveza 2 */
+(2, 2.75, 'L330', 33),      /** 2 latas 330ml cerveza 3 */
 
 /** Venta 34: 6 botellas + 1 barril + 2 six-packs + 1 lata = 10 productos */
-(6, 3.20, 'B330', 1, 1, 34),      /** 6 botellas 330ml cerveza 1 */
-(1, 162.00, 'B50', 8, 4, 34),     /** 1 barril 50L cerveza 8 */
-(2, 15.25, 'SP330', 14, 7, 34),   /** 2 six-packs 330ml cerveza 14 */
-(1, 2.55, 'L330', 13, 7, 34),     /** 1 lata 330ml cerveza 13 */
+(6, 3.20, 'B330', 34),      /** 6 botellas 330ml cerveza 1 */
+(1, 162.00, 'B50', 34),     /** 1 barril 50L cerveza 8 */
+(2, 15.25, 'SP330', 34),   /** 2 six-packs 330ml cerveza 14 */
+(1, 2.55, 'L330', 34),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 35: 3 botellas 500ml + 4 latas + 2 growlers + 1 caja = 10 productos */
-(3, 5.60, 'B500', 12, 6, 35),     /** 3 botellas 500ml cerveza 12 */
-(4, 2.45, 'L330', 3, 2, 35),      /** 4 latas 330ml cerveza 3 */
-(2, 10.25, 'G1L', 9, 5, 35),      /** 2 growlers 1L cerveza 9 */
-(1, 53.00, 'C24330', 15, 8, 35),  /** 1 caja 24 unidades cerveza 15 */
+(3, 5.60, 'B500', 35),     /** 3 botellas 500ml cerveza 12 */
+(4, 2.45, 'L330', 35),      /** 4 latas 330ml cerveza 3 */
+(2, 10.25, 'G1L', 35),      /** 2 growlers 1L cerveza 9 */
+(1, 53.00, 'C24330', 35),  /** 1 caja 24 unidades cerveza 15 */
 
 /** Venta 36: 9 botellas + 1 lata = 10 productos */
-(9, 3.00, 'B330', 11, 6, 36),     /** 9 botellas 330ml cerveza 11 */
-(1, 2.80, 'L330', 13, 7, 36),     /** 1 lata 330ml cerveza 13 */
+(9, 3.00, 'B330', 36),     /** 9 botellas 330ml cerveza 11 */
+(1, 2.80, 'L330', 36),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 37: 5 latas + 1 barril + 2 botellas 500ml + 2 six-packs = 10 productos */
-(5, 2.65, 'L330', 3, 2, 37),      /** 5 latas 330ml cerveza 3 */
-(1, 115.00, 'B30', 17, 9, 37),    /** 1 barril 30L cerveza 17 */
-(2, 5.25, 'B500', 2, 1, 37),      /** 2 botellas 500ml cerveza 2 */
-(2, 16.00, 'SP330', 4, 2, 37),    /** 2 six-packs 330ml cerveza 4 */
+(5, 2.65, 'L330', 37),      /** 5 latas 330ml cerveza 3 */
+(1, 115.00, 'B30', 37),    /** 1 barril 30L cerveza 17 */
+(2, 5.25, 'B500', 37),      /** 2 botellas 500ml cerveza 2 */
+(2, 16.00, 'SP330', 37),    /** 2 six-packs 330ml cerveza 4 */
 
 /** Venta 38: 4 botellas + 1 caja + 3 latas + 2 growlers = 10 productos */
-(4, 3.35, 'B330', 1, 1, 38),      /** 4 botellas 330ml cerveza 1 */
-(1, 46.50, 'C12500', 10, 5, 38),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(3, 2.50, 'L330', 13, 7, 38),     /** 3 latas 330ml cerveza 13 */
-(2, 11.00, 'G1L', 9, 5, 38),      /** 2 growlers 1L cerveza 9 */
+(4, 3.35, 'B330', 38),      /** 4 botellas 330ml cerveza 1 */
+(1, 46.50, 'C12500', 38),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(3, 2.50, 'L330', 38),     /** 3 latas 330ml cerveza 13 */
+(2, 11.00, 'G1L', 38),      /** 2 growlers 1L cerveza 9 */
 
 /** Venta 39: 7 botellas + 1 barril + 1 six-pack + 1 lata = 10 productos */
-(7, 2.85, 'B330', 11, 6, 39),     /** 7 botellas 330ml cerveza 11 */
-(1, 80.00, 'B20', 6, 3, 39),      /** 1 barril 20L cerveza 6 */
-(1, 15.75, 'SP330', 14, 7, 39),   /** 1 six-pack 330ml cerveza 14 */
-(1, 2.70, 'L330', 3, 2, 39),      /** 1 lata 330ml cerveza 3 */
+(7, 2.85, 'B330', 39),     /** 7 botellas 330ml cerveza 11 */
+(1, 80.00, 'B20', 39),      /** 1 barril 20L cerveza 6 */
+(1, 15.75, 'SP330', 39),   /** 1 six-pack 330ml cerveza 14 */
+(1, 2.70, 'L330', 39),      /** 1 lata 330ml cerveza 3 */
 
 /** Venta 40: 6 latas + 2 botellas 500ml + 1 caja + 1 botella = 10 productos */
-(6, 2.40, 'L330', 13, 7, 40),     /** 6 latas 330ml cerveza 13 */
-(2, 5.40, 'B500', 12, 6, 40),     /** 2 botellas 500ml cerveza 12 */
-(1, 50.25, 'C24330', 5, 3, 40),   /** 1 caja 24 unidades cerveza 5 */
-(1, 3.10, 'B330', 1, 1, 40),      /** 1 botella 330ml cerveza 1 */
+(6, 2.40, 'L330', 40),     /** 6 latas 330ml cerveza 13 */
+(2, 5.40, 'B500', 40),     /** 2 botellas 500ml cerveza 12 */
+(1, 50.25, 'C24330', 40),   /** 1 caja 24 unidades cerveza 5 */
+(1, 3.10, 'B330', 40),      /** 1 botella 330ml cerveza 1 */
 
 /** Ventas 41-90: Completando todas las ventas con variedad de productos */
 /** Venta 41: 5 botellas + 2 six-packs + 3 latas = 10 productos */
-(5, 3.05, 'B330', 1, 1, 41),      /** 5 botellas 330ml cerveza 1 */
-(2, 15.30, 'SP330', 4, 2, 41),    /** 2 six-packs 330ml cerveza 4 */
-(3, 2.50, 'L330', 3, 2, 41),      /** 3 latas 330ml cerveza 3 */
+(5, 3.05, 'B330', 41),      /** 5 botellas 330ml cerveza 1 */
+(2, 15.30, 'SP330', 41),    /** 2 six-packs 330ml cerveza 4 */
+(3, 2.50, 'L330', 41),      /** 3 latas 330ml cerveza 3 */
 
 /** Venta 42: 4 botellas + 3 botellas 500ml + 2 growlers + 1 lata = 10 productos */
-(4, 3.20, 'B330', 11, 6, 42),     /** 4 botellas 330ml cerveza 11 */
-(3, 5.30, 'B500', 12, 6, 42),     /** 3 botellas 500ml cerveza 12 */
-(2, 10.75, 'G1L', 9, 5, 42),      /** 2 growlers 1L cerveza 9 */
-(1, 2.65, 'L330', 13, 7, 42),     /** 1 lata 330ml cerveza 13 */
+(4, 3.20, 'B330', 42),     /** 4 botellas 330ml cerveza 11 */
+(3, 5.30, 'B500', 42),     /** 3 botellas 500ml cerveza 12 */
+(2, 10.75, 'G1L', 42),      /** 2 growlers 1L cerveza 9 */
+(1, 2.65, 'L330', 42),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 43: 6 latas + 1 barril + 2 botellas + 1 six-pack = 10 productos */
-(6, 2.45, 'L330', 3, 2, 43),      /** 6 latas 330ml cerveza 3 */
-(1, 85.00, 'B20', 16, 8, 43),     /** 1 barril 20L cerveza 16 */
-(2, 3.15, 'B330', 1, 1, 43),      /** 2 botellas 330ml cerveza 1 */
-(1, 16.00, 'SP330', 14, 7, 43),   /** 1 six-pack 330ml cerveza 14 */
+(6, 2.45, 'L330', 43),      /** 6 latas 330ml cerveza 3 */
+(1, 85.00, 'B20', 43),     /** 1 barril 20L cerveza 16 */
+(2, 3.15, 'B330', 43),      /** 2 botellas 330ml cerveza 1 */
+(1, 16.00, 'SP330', 43),   /** 1 six-pack 330ml cerveza 14 */
 
 /** Venta 44: 7 botellas + 1 caja + 2 latas = 10 productos */
-(7, 2.95, 'B330', 11, 6, 44),     /** 7 botellas 330ml cerveza 11 */
-(1, 51.25, 'C24330', 15, 8, 44),  /** 1 caja 24 unidades cerveza 15 */
-(2, 2.70, 'L330', 13, 7, 44),     /** 2 latas 330ml cerveza 13 */
+(7, 2.95, 'B330', 44),     /** 7 botellas 330ml cerveza 11 */
+(1, 51.25, 'C24330', 44),  /** 1 caja 24 unidades cerveza 15 */
+(2, 2.70, 'L330', 44),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 45: 3 botellas 500ml + 4 latas + 1 barril + 2 six-packs = 10 productos */
-(3, 5.45, 'B500', 2, 1, 45),      /** 3 botellas 500ml cerveza 2 */
-(4, 2.55, 'L330', 3, 2, 45),      /** 4 latas 330ml cerveza 3 */
-(1, 120.00, 'B30', 17, 9, 45),    /** 1 barril 30L cerveza 17 */
-(2, 15.75, 'SP330', 4, 2, 45),    /** 2 six-packs 330ml cerveza 4 */
+(3, 5.45, 'B500', 45),      /** 3 botellas 500ml cerveza 2 */
+(4, 2.55, 'L330', 45),      /** 4 latas 330ml cerveza 3 */
+(1, 120.00, 'B30', 45),    /** 1 barril 30L cerveza 17 */
+(2, 15.75, 'SP330', 45),    /** 2 six-packs 330ml cerveza 4 */
 
 /** Venta 46: 8 botellas + 1 caja + 1 growler = 10 productos */
-(8, 3.10, 'B330', 1, 1, 46),      /** 8 botellas 330ml cerveza 1 */
-(1, 48.75, 'C12500', 10, 5, 46),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(1, 11.50, 'G1L', 9, 5, 46),      /** 1 growler 1L cerveza 9 */
+(8, 3.10, 'B330', 46),      /** 8 botellas 330ml cerveza 1 */
+(1, 48.75, 'C12500', 46),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(1, 11.50, 'G1L', 46),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 47: 5 latas + 2 botellas 500ml + 1 barril + 2 botellas = 10 productos */
-(5, 2.40, 'L330', 13, 7, 47),     /** 5 latas 330ml cerveza 13 */
-(2, 5.60, 'B500', 12, 6, 47),     /** 2 botellas 500ml cerveza 12 */
-(1, 175.00, 'B50', 18, 9, 47),    /** 1 barril 50L cerveza 18 */
-(2, 3.25, 'B330', 11, 6, 47),     /** 2 botellas 330ml cerveza 11 */
+(5, 2.40, 'L330', 47),     /** 5 latas 330ml cerveza 13 */
+(2, 5.60, 'B500', 47),     /** 2 botellas 500ml cerveza 12 */
+(1, 175.00, 'B50', 47),    /** 1 barril 50L cerveza 18 */
+(2, 3.25, 'B330', 47),     /** 2 botellas 330ml cerveza 11 */
 
 /** Venta 48: 6 botellas + 2 six-packs + 2 latas = 10 productos */
-(6, 2.85, 'B330', 1, 1, 48),      /** 6 botellas 330ml cerveza 1 */
-(2, 15.50, 'SP330', 14, 7, 48),   /** 2 six-packs 330ml cerveza 14 */
-(2, 2.75, 'L330', 3, 2, 48),      /** 2 latas 330ml cerveza 3 */
+(6, 2.85, 'B330', 48),      /** 6 botellas 330ml cerveza 1 */
+(2, 15.50, 'SP330', 48),   /** 2 six-packs 330ml cerveza 14 */
+(2, 2.75, 'L330', 48),      /** 2 latas 330ml cerveza 3 */
 
 /** Venta 49: 4 botellas + 1 caja + 3 growlers + 2 latas = 10 productos */
-(4, 3.00, 'B330', 11, 6, 49),     /** 4 botellas 330ml cerveza 11 */
-(1, 52.50, 'C24330', 5, 3, 49),   /** 1 caja 24 unidades cerveza 5 */
-(3, 10.25, 'G1L', 9, 5, 49),      /** 3 growlers 1L cerveza 9 */
-(2, 2.80, 'L330', 13, 7, 49),     /** 2 latas 330ml cerveza 13 */
+(4, 3.00, 'B330', 49),     /** 4 botellas 330ml cerveza 11 */
+(1, 52.50, 'C24330', 49),   /** 1 caja 24 unidades cerveza 5 */
+(3, 10.25, 'G1L', 49),      /** 3 growlers 1L cerveza 9 */
+(2, 2.80, 'L330', 49),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 50: 9 latas + 1 botellas 500ml = 10 productos */
-(9, 2.35, 'L330', 3, 2, 50),      /** 9 latas 330ml cerveza 3 */
-(1, 5.75, 'B500', 2, 1, 50),      /** 1 botella 500ml cerveza 2 */
+(9, 2.35, 'L330', 50),      /** 9 latas 330ml cerveza 3 */
+(1, 5.75, 'B500', 50),      /** 1 botella 500ml cerveza 2 */
 
 /** Continuando ventas 51-70 con más variedad */
 /** Venta 51: 3 botellas + 1 barril + 2 six-packs + 4 latas = 10 productos */
-(3, 3.15, 'B330', 1, 1, 51),      /** 3 botellas 330ml cerveza 1 */
-(1, 90.00, 'B20', 6, 3, 51),      /** 1 barril 20L cerveza 6 */
-(2, 16.25, 'SP330', 4, 2, 51),    /** 2 six-packs 330ml cerveza 4 */
-(4, 2.60, 'L330', 3, 2, 51),      /** 4 latas 330ml cerveza 3 */
+(3, 3.15, 'B330', 51),      /** 3 botellas 330ml cerveza 1 */
+(1, 90.00, 'B20', 51),      /** 1 barril 20L cerveza 6 */
+(2, 16.25, 'SP330', 51),    /** 2 six-packs 330ml cerveza 4 */
+(4, 2.60, 'L330', 51),      /** 4 latas 330ml cerveza 3 */
 
 /** Venta 52: 5 botellas 500ml + 1 caja + 3 latas + 1 growler = 10 productos */
-(5, 5.50, 'B500', 12, 6, 52),     /** 5 botellas 500ml cerveza 12 */
-(1, 47.50, 'C12500', 10, 5, 52),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(3, 2.45, 'L330', 13, 7, 52),     /** 3 latas 330ml cerveza 13 */
-(1, 11.00, 'G1L', 9, 5, 52),      /** 1 growler 1L cerveza 9 */
+(5, 5.50, 'B500', 52),     /** 5 botellas 500ml cerveza 12 */
+(1, 47.50, 'C12500', 52),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(3, 2.45, 'L330', 52),     /** 3 latas 330ml cerveza 13 */
+(1, 11.00, 'G1L', 52),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 53: 7 botellas + 1 barril + 1 six-pack + 1 lata = 10 productos */
-(7, 2.90, 'B330', 11, 6, 53),     /** 7 botellas 330ml cerveza 11 */
-(1, 125.00, 'B30', 7, 4, 53),     /** 1 barril 30L cerveza 7 */
-(1, 15.00, 'SP330', 14, 7, 53),   /** 1 six-pack 330ml cerveza 14 */
-(1, 2.85, 'L330', 3, 2, 53),      /** 1 lata 330ml cerveza 3 */
+(7, 2.90, 'B330', 53),     /** 7 botellas 330ml cerveza 11 */
+(1, 125.00, 'B30', 53),     /** 1 barril 30L cerveza 7 */
+(1, 15.00, 'SP330', 53),   /** 1 six-pack 330ml cerveza 14 */
+(1, 2.85, 'L330', 53),      /** 1 lata 330ml cerveza 3 */
 
 /** Venta 54: 6 latas + 2 botellas 500ml + 1 caja + 1 botella = 10 productos */
-(6, 2.50, 'L330', 13, 7, 54),     /** 6 latas 330ml cerveza 13 */
-(2, 5.40, 'B500', 2, 1, 54),      /** 2 botellas 500ml cerveza 2 */
-(1, 53.75, 'C24330', 15, 8, 54),  /** 1 caja 24 unidades cerveza 15 */
-(1, 3.20, 'B330', 1, 1, 54),      /** 1 botella 330ml cerveza 1 */
+(6, 2.50, 'L330', 54),     /** 6 latas 330ml cerveza 13 */
+(2, 5.40, 'B500', 54),      /** 2 botellas 500ml cerveza 2 */
+(1, 53.75, 'C24330', 54),  /** 1 caja 24 unidades cerveza 15 */
+(1, 3.20, 'B330', 54),      /** 1 botella 330ml cerveza 1 */
 
 /** Venta 55: 4 botellas + 1 barril + 2 growlers + 3 latas = 10 productos */
-(4, 3.05, 'B330', 11, 6, 55),     /** 4 botellas 330ml cerveza 11 */
-(1, 180.00, 'B50', 8, 4, 55),     /** 1 barril 50L cerveza 8 */
-(2, 10.50, 'G1L', 9, 5, 55),      /** 2 growlers 1L cerveza 9 */
-(3, 2.70, 'L330', 3, 2, 55),      /** 3 latas 330ml cerveza 3 */
+(4, 3.05, 'B330', 55),     /** 4 botellas 330ml cerveza 11 */
+(1, 180.00, 'B50', 55),     /** 1 barril 50L cerveza 8 */
+(2, 10.50, 'G1L', 55),      /** 2 growlers 1L cerveza 9 */
+(3, 2.70, 'L330', 55),      /** 3 latas 330ml cerveza 3 */
 
 /** Venta 56: 8 botellas + 1 six-pack + 1 lata = 10 productos */
-(8, 2.95, 'B330', 1, 1, 56),      /** 8 botellas 330ml cerveza 1 */
-(1, 16.50, 'SP330', 4, 2, 56),    /** 1 six-pack 330ml cerveza 4 */
-(1, 2.55, 'L330', 13, 7, 56),     /** 1 lata 330ml cerveza 13 */
+(8, 2.95, 'B330', 56),      /** 8 botellas 330ml cerveza 1 */
+(1, 16.50, 'SP330', 56),    /** 1 six-pack 330ml cerveza 4 */
+(1, 2.55, 'L330', 56),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 57: 5 latas + 3 botellas 500ml + 1 caja + 1 six-pack = 10 productos */
-(5, 2.65, 'L330', 3, 2, 57),      /** 5 latas 330ml cerveza 3 */
-(3, 5.25, 'B500', 12, 6, 57),     /** 3 botellas 500ml cerveza 12 */
-(1, 49.00, 'C12500', 10, 5, 57),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(1, 15.75, 'SP330', 14, 7, 57),   /** 1 six-pack 330ml cerveza 14 */
+(5, 2.65, 'L330', 57),      /** 5 latas 330ml cerveza 3 */
+(3, 5.25, 'B500', 57),     /** 3 botellas 500ml cerveza 12 */
+(1, 49.00, 'C12500', 57),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(1, 15.75, 'SP330', 57),   /** 1 six-pack 330ml cerveza 14 */
 
 /** Venta 58: 6 botellas + 1 barril + 2 latas + 1 growler = 10 productos */
-(6, 3.10, 'B330', 11, 6, 58),     /** 6 botellas 330ml cerveza 11 */
-(1, 95.00, 'B20', 16, 8, 58),     /** 1 barril 20L cerveza 16 */
-(2, 2.40, 'L330', 13, 7, 58),     /** 2 latas 330ml cerveza 13 */
-(1, 11.25, 'G1L', 9, 5, 58),      /** 1 growler 1L cerveza 9 */
+(6, 3.10, 'B330', 58),     /** 6 botellas 330ml cerveza 11 */
+(1, 95.00, 'B20', 58),     /** 1 barril 20L cerveza 16 */
+(2, 2.40, 'L330', 58),     /** 2 latas 330ml cerveza 13 */
+(1, 11.25, 'G1L', 58),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 59: 7 botellas + 1 caja + 1 six-pack + 1 lata = 10 productos */
-(7, 2.80, 'B330', 1, 1, 59),      /** 7 botellas 330ml cerveza 1 */
-(1, 54.25, 'C24330', 5, 3, 59),   /** 1 caja 24 unidades cerveza 5 */
-(1, 16.00, 'SP330', 4, 2, 59),    /** 1 six-pack 330ml cerveza 4 */
-(1, 2.75, 'L330', 3, 2, 59),      /** 1 lata 330ml cerveza 3 */
+(7, 2.80, 'B330', 59),      /** 7 botellas 330ml cerveza 1 */
+(1, 54.25, 'C24330', 59),   /** 1 caja 24 unidades cerveza 5 */
+(1, 16.00, 'SP330', 59),    /** 1 six-pack 330ml cerveza 4 */
+(1, 2.75, 'L330', 59),      /** 1 lata 330ml cerveza 3 */
 
 /** Venta 60: 4 botellas 500ml + 3 latas + 1 barril + 2 botellas = 10 productos */
-(4, 5.35, 'B500', 2, 1, 60),      /** 4 botellas 500ml cerveza 2 */
-(3, 2.50, 'L330', 13, 7, 60),     /** 3 latas 330ml cerveza 13 */
-(1, 130.00, 'B30', 17, 9, 60),    /** 1 barril 30L cerveza 17 */
-(2, 3.25, 'B330', 11, 6, 60),     /** 2 botellas 330ml cerveza 11 */
+(4, 5.35, 'B500', 60),      /** 4 botellas 500ml cerveza 2 */
+(3, 2.50, 'L330', 60),     /** 3 latas 330ml cerveza 13 */
+(1, 130.00, 'B30', 60),    /** 1 barril 30L cerveza 17 */
+(2, 3.25, 'B330', 60),     /** 2 botellas 330ml cerveza 11 */
 
 /** Continuando ventas 61-90 para completar todas */
 /** Venta 61: 9 botellas + 1 growler = 10 productos */
-(9, 2.85, 'B330', 1, 1, 61),      /** 9 botellas 330ml cerveza 1 */
-(1, 12.00, 'G1L', 9, 5, 61),      /** 1 growler 1L cerveza 9 */
+(9, 2.85, 'B330', 61),      /** 9 botellas 330ml cerveza 1 */
+(1, 12.00, 'G1L', 61),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 62: 5 latas + 2 six-packs + 1 caja + 2 botellas = 10 productos */
-(5, 2.45, 'L330', 3, 2, 62),      /** 5 latas 330ml cerveza 3 */
-(2, 15.25, 'SP330', 14, 7, 62),   /** 2 six-packs 330ml cerveza 14 */
-(1, 50.50, 'C12500', 10, 5, 62),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(2, 3.00, 'B330', 11, 6, 62),     /** 2 botellas 330ml cerveza 11 */
+(5, 2.45, 'L330', 62),      /** 5 latas 330ml cerveza 3 */
+(2, 15.25, 'SP330', 62),   /** 2 six-packs 330ml cerveza 14 */
+(1, 50.50, 'C12500', 62),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(2, 3.00, 'B330', 62),     /** 2 botellas 330ml cerveza 11 */
 
 /** Venta 63: 6 botellas + 1 barril + 2 botellas 500ml + 1 lata = 10 productos */
-(6, 3.15, 'B330', 1, 1, 63),      /** 6 botellas 330ml cerveza 1 */
-(1, 185.00, 'B50', 18, 9, 63),    /** 1 barril 50L cerveza 18 */
-(2, 5.60, 'B500', 12, 6, 63),     /** 2 botellas 500ml cerveza 12 */
-(1, 2.80, 'L330', 13, 7, 63),     /** 1 lata 330ml cerveza 13 */
+(6, 3.15, 'B330', 63),      /** 6 botellas 330ml cerveza 1 */
+(1, 185.00, 'B50', 63),    /** 1 barril 50L cerveza 18 */
+(2, 5.60, 'B500', 63),     /** 2 botellas 500ml cerveza 12 */
+(1, 2.80, 'L330', 63),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 64: 7 latas + 1 caja + 1 six-pack + 1 growler = 10 productos */
-(7, 2.35, 'L330', 3, 2, 64),      /** 7 latas 330ml cerveza 3 */
-(1, 52.00, 'C24330', 15, 8, 64),  /** 1 caja 24 unidades cerveza 15 */
-(1, 16.50, 'SP330', 4, 2, 64),    /** 1 six-pack 330ml cerveza 4 */
-(1, 11.75, 'G1L', 9, 5, 64),      /** 1 growler 1L cerveza 9 */
+(7, 2.35, 'L330', 64),      /** 7 latas 330ml cerveza 3 */
+(1, 52.00, 'C24330', 64),  /** 1 caja 24 unidades cerveza 15 */
+(1, 16.50, 'SP330', 64),    /** 1 six-pack 330ml cerveza 4 */
+(1, 11.75, 'G1L', 64),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 65: 4 botellas + 3 botellas 500ml + 1 barril + 2 latas = 10 productos */
-(4, 2.90, 'B330', 11, 6, 65),     /** 4 botellas 330ml cerveza 11 */
-(3, 5.45, 'B500', 2, 1, 65),      /** 3 botellas 500ml cerveza 2 */
-(1, 100.00, 'B20', 6, 3, 65),     /** 1 barril 20L cerveza 6 */
-(2, 2.65, 'L330', 13, 7, 65),     /** 2 latas 330ml cerveza 13 */
+(4, 2.90, 'B330', 65),     /** 4 botellas 330ml cerveza 11 */
+(3, 5.45, 'B500', 65),      /** 3 botellas 500ml cerveza 2 */
+(1, 100.00, 'B20', 65),     /** 1 barril 20L cerveza 6 */
+(2, 2.65, 'L330', 65),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 66: 8 botellas + 1 caja + 1 lata = 10 productos */
-(8, 3.20, 'B330', 1, 1, 66),      /** 8 botellas 330ml cerveza 1 */
-(1, 48.25, 'C12500', 10, 5, 66),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(1, 2.70, 'L330', 3, 2, 66),      /** 1 lata 330ml cerveza 3 */
+(8, 3.20, 'B330', 66),      /** 8 botellas 330ml cerveza 1 */
+(1, 48.25, 'C12500', 66),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(1, 2.70, 'L330', 66),      /** 1 lata 330ml cerveza 3 */
 
 /** Venta 67: 5 botellas + 2 six-packs + 1 barril + 2 latas = 10 productos */
-(5, 2.95, 'B330', 11, 6, 67),     /** 5 botellas 330ml cerveza 11 */
-(2, 15.75, 'SP330', 14, 7, 67),   /** 2 six-packs 330ml cerveza 14 */
-(1, 135.00, 'B30', 17, 9, 67),    /** 1 barril 30L cerveza 17 */
-(2, 2.55, 'L330', 13, 7, 67),     /** 2 latas 330ml cerveza 13 */
+(5, 2.95, 'B330', 67),     /** 5 botellas 330ml cerveza 11 */
+(2, 15.75, 'SP330', 67),   /** 2 six-packs 330ml cerveza 14 */
+(1, 135.00, 'B30', 67),    /** 1 barril 30L cerveza 17 */
+(2, 2.55, 'L330', 67),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 68: 6 latas + 2 botellas 500ml + 1 caja + 1 growler = 10 productos */
-(6, 2.40, 'L330', 3, 2, 68),      /** 6 latas 330ml cerveza 3 */
-(2, 5.30, 'B500', 12, 6, 68),     /** 2 botellas 500ml cerveza 12 */
-(1, 53.50, 'C24330', 5, 3, 68),   /** 1 caja 24 unidades cerveza 5 */
-(1, 10.75, 'G1L', 9, 5, 68),      /** 1 growler 1L cerveza 9 */
+(6, 2.40, 'L330', 68),      /** 6 latas 330ml cerveza 3 */
+(2, 5.30, 'B500', 68),     /** 2 botellas 500ml cerveza 12 */
+(1, 53.50, 'C24330', 68),   /** 1 caja 24 unidades cerveza 5 */
+(1, 10.75, 'G1L', 68),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 69: 7 botellas + 1 barril + 1 six-pack + 1 lata = 10 productos */
-(7, 3.05, 'B330', 1, 1, 69),      /** 7 botellas 330ml cerveza 1 */
-(1, 105.00, 'B20', 16, 8, 69),    /** 1 barril 20L cerveza 16 */
-(1, 15.00, 'SP330', 4, 2, 69),    /** 1 six-pack 330ml cerveza 4 */
-(1, 2.85, 'L330', 13, 7, 69),     /** 1 lata 330ml cerveza 13 */
+(7, 3.05, 'B330', 69),      /** 7 botellas 330ml cerveza 1 */
+(1, 105.00, 'B20', 69),    /** 1 barril 20L cerveza 16 */
+(1, 15.00, 'SP330', 69),    /** 1 six-pack 330ml cerveza 4 */
+(1, 2.85, 'L330', 69),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 70: 4 botellas + 3 latas + 1 barril + 2 botellas 500ml = 10 productos */
-(4, 2.80, 'B330', 11, 6, 70),     /** 4 botellas 330ml cerveza 11 */
-(3, 2.60, 'L330', 3, 2, 70),      /** 3 latas 330ml cerveza 3 */
-(1, 190.00, 'B50', 8, 4, 70),     /** 1 barril 50L cerveza 8 */
-(2, 5.50, 'B500', 2, 1, 70),      /** 2 botellas 500ml cerveza 2 */
+(4, 2.80, 'B330', 70),     /** 4 botellas 330ml cerveza 11 */
+(3, 2.60, 'L330', 70),      /** 3 latas 330ml cerveza 3 */
+(1, 190.00, 'B50', 70),     /** 1 barril 50L cerveza 8 */
+(2, 5.50, 'B500', 70),      /** 2 botellas 500ml cerveza 2 */
 
 /** Ventas finales 71-90 */
 /** Venta 71: 9 latas + 1 caja = 10 productos */
-(9, 2.30, 'L330', 13, 7, 71),     /** 9 latas 330ml cerveza 13 */
-(1, 49.75, 'C12500', 10, 5, 71),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(9, 2.30, 'L330', 71),     /** 9 latas 330ml cerveza 13 */
+(1, 49.75, 'C12500', 71),  /** 1 caja 12 unidades 500ml cerveza 10 */
 
 /** Venta 72: 5 botellas + 2 six-packs + 2 growlers + 1 lata = 10 productos */
-(5, 3.10, 'B330', 1, 1, 72),      /** 5 botellas 330ml cerveza 1 */
-(2, 16.00, 'SP330', 14, 7, 72),   /** 2 six-packs 330ml cerveza 14 */
-(2, 11.50, 'G1L', 9, 5, 72),      /** 2 growlers 1L cerveza 9 */
-(1, 2.75, 'L330', 3, 2, 72),      /** 1 lata 330ml cerveza 3 */
+(5, 3.10, 'B330', 72),      /** 5 botellas 330ml cerveza 1 */
+(2, 16.00, 'SP330', 72),   /** 2 six-packs 330ml cerveza 14 */
+(2, 11.50, 'G1L', 72),      /** 2 growlers 1L cerveza 9 */
+(1, 2.75, 'L330', 72),      /** 1 lata 330ml cerveza 3 */
 
 /** Venta 73: 6 botellas + 1 barril + 1 caja + 2 latas = 10 productos */
-(6, 2.85, 'B330', 11, 6, 73),     /** 6 botellas 330ml cerveza 11 */
-(1, 140.00, 'B30', 17, 9, 73),    /** 1 barril 30L cerveza 17 */
-(1, 54.00, 'C24330', 15, 8, 73),  /** 1 caja 24 unidades cerveza 15 */
-(2, 2.50, 'L330', 13, 7, 73),     /** 2 latas 330ml cerveza 13 */
+(6, 2.85, 'B330', 73),     /** 6 botellas 330ml cerveza 11 */
+(1, 140.00, 'B30', 73),    /** 1 barril 30L cerveza 17 */
+(1, 54.00, 'C24330', 73),  /** 1 caja 24 unidades cerveza 15 */
+(2, 2.50, 'L330', 73),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 74: 7 botellas + 2 botellas 500ml + 1 six-pack = 10 productos */
-(7, 3.00, 'B330', 1, 1, 74),      /** 7 botellas 330ml cerveza 1 */
-(2, 5.65, 'B500', 12, 6, 74),     /** 2 botellas 500ml cerveza 12 */
-(1, 15.50, 'SP330', 4, 2, 74),    /** 1 six-pack 330ml cerveza 4 */
+(7, 3.00, 'B330', 74),      /** 7 botellas 330ml cerveza 1 */
+(2, 5.65, 'B500', 74),     /** 2 botellas 500ml cerveza 12 */
+(1, 15.50, 'SP330', 74),    /** 1 six-pack 330ml cerveza 4 */
 
 /** Venta 75: 4 latas + 1 barril + 3 botellas + 2 growlers = 10 productos */
-(4, 2.55, 'L330', 3, 2, 75),      /** 4 latas 330ml cerveza 3 */
-(1, 195.00, 'B50', 18, 9, 75),    /** 1 barril 50L cerveza 18 */
-(3, 3.15, 'B330', 11, 6, 75),     /** 3 botellas 330ml cerveza 11 */
-(2, 10.25, 'G1L', 9, 5, 75),      /** 2 growlers 1L cerveza 9 */
+(4, 2.55, 'L330', 75),      /** 4 latas 330ml cerveza 3 */
+(1, 195.00, 'B50', 75),    /** 1 barril 50L cerveza 18 */
+(3, 3.15, 'B330', 75),     /** 3 botellas 330ml cerveza 11 */
+(2, 10.25, 'G1L', 75),      /** 2 growlers 1L cerveza 9 */
 
 /** Venta 76: 8 botellas + 1 caja + 1 lata = 10 productos */
-(8, 2.90, 'B330', 1, 1, 76),      /** 8 botellas 330ml cerveza 1 */
-(1, 51.00, 'C12500', 10, 5, 76),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(1, 2.80, 'L330', 13, 7, 76),     /** 1 lata 330ml cerveza 13 */
+(8, 2.90, 'B330', 76),      /** 8 botellas 330ml cerveza 1 */
+(1, 51.00, 'C12500', 76),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(1, 2.80, 'L330', 76),     /** 1 lata 330ml cerveza 13 */
 
 /** Venta 77: 5 botellas + 1 barril + 2 six-packs + 2 latas = 10 productos */
-(5, 3.05, 'B330', 11, 6, 77),     /** 5 botellas 330ml cerveza 11 */
-(1, 110.00, 'B20', 6, 3, 77),     /** 1 barril 20L cerveza 6 */
-(2, 15.25, 'SP330', 14, 7, 77),   /** 2 six-packs 330ml cerveza 14 */
-(2, 2.45, 'L330', 3, 2, 77),      /** 2 latas 330ml cerveza 3 */
+(5, 3.05, 'B330', 77),     /** 5 botellas 330ml cerveza 11 */
+(1, 110.00, 'B20', 77),     /** 1 barril 20L cerveza 6 */
+(2, 15.25, 'SP330', 77),   /** 2 six-packs 330ml cerveza 14 */
+(2, 2.45, 'L330', 77),      /** 2 latas 330ml cerveza 3 */
 
 /** Venta 78: 6 latas + 3 botellas 500ml + 1 caja = 10 productos */
-(6, 2.60, 'L330', 13, 7, 78),     /** 6 latas 330ml cerveza 13 */
-(3, 5.40, 'B500', 2, 1, 78),      /** 3 botellas 500ml cerveza 2 */
-(1, 52.25, 'C24330', 5, 3, 78),   /** 1 caja 24 unidades cerveza 5 */
+(6, 2.60, 'L330', 78),     /** 6 latas 330ml cerveza 13 */
+(3, 5.40, 'B500', 78),      /** 3 botellas 500ml cerveza 2 */
+(1, 52.25, 'C24330', 78),   /** 1 caja 24 unidades cerveza 5 */
 
 /** Venta 79: 7 botellas + 1 barril + 1 growler + 1 lata = 10 productos */
-(7, 2.75, 'B330', 1, 1, 79),      /** 7 botellas 330ml cerveza 1 */
-(1, 145.00, 'B30', 7, 4, 79),     /** 1 barril 30L cerveza 7 */
-(1, 11.00, 'G1L', 9, 5, 79),      /** 1 growler 1L cerveza 9 */
-(1, 2.70, 'L330', 3, 2, 79),      /** 1 lata 330ml cerveza 3 */
+(7, 2.75, 'B330', 79),      /** 7 botellas 330ml cerveza 1 */
+(1, 145.00, 'B30', 79),     /** 1 barril 30L cerveza 7 */
+(1, 11.00, 'G1L', 79),      /** 1 growler 1L cerveza 9 */
+(1, 2.70, 'L330', 79),      /** 1 lata 330ml cerveza 3 */
 
 /** Venta 80: 4 botellas + 2 six-packs + 1 caja + 3 latas = 10 productos */
-(4, 3.20, 'B330', 11, 6, 80),     /** 4 botellas 330ml cerveza 11 */
-(2, 16.25, 'SP330', 4, 2, 80),    /** 2 six-packs 330ml cerveza 4 */
-(1, 48.00, 'C12500', 10, 5, 80),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(3, 2.55, 'L330', 13, 7, 80),     /** 3 latas 330ml cerveza 13 */
+(4, 3.20, 'B330', 80),     /** 4 botellas 330ml cerveza 11 */
+(2, 16.25, 'SP330', 80),    /** 2 six-packs 330ml cerveza 4 */
+(1, 48.00, 'C12500', 80),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(3, 2.55, 'L330', 80),     /** 3 latas 330ml cerveza 13 */
 
 /** Ventas finales 81-90 */
 /** Venta 81: 8 latas + 1 barril + 1 botella = 10 productos */
-(8, 2.40, 'L330', 3, 2, 81),      /** 8 latas 330ml cerveza 3 */
-(1, 200.00, 'B50', 18, 9, 81),    /** 1 barril 50L cerveza 18 */
-(1, 3.25, 'B330', 1, 1, 81),      /** 1 botella 330ml cerveza 1 */
+(8, 2.40, 'L330', 81),      /** 8 latas 330ml cerveza 3 */
+(1, 200.00, 'B50', 81),    /** 1 barril 50L cerveza 18 */
+(1, 3.25, 'B330', 81),      /** 1 botella 330ml cerveza 1 */
 
 /** Venta 82: 5 botellas + 2 botellas 500ml + 1 caja + 2 growlers = 10 productos */
-(5, 2.95, 'B330', 11, 6, 82),     /** 5 botellas 330ml cerveza 11 */
-(2, 5.50, 'B500', 12, 6, 82),     /** 2 botellas 500ml cerveza 12 */
-(1, 53.75, 'C24330', 15, 8, 82),  /** 1 caja 24 unidades cerveza 15 */
-(2, 10.50, 'G1L', 9, 5, 82),      /** 2 growlers 1L cerveza 9 */
+(5, 2.95, 'B330', 82),     /** 5 botellas 330ml cerveza 11 */
+(2, 5.50, 'B500', 82),     /** 2 botellas 500ml cerveza 12 */
+(1, 53.75, 'C24330', 82),  /** 1 caja 24 unidades cerveza 15 */
+(2, 10.50, 'G1L', 82),      /** 2 growlers 1L cerveza 9 */
 
 /** Venta 83: 6 botellas + 1 six-pack + 1 barril + 2 latas = 10 productos */
-(6, 3.10, 'B330', 1, 1, 83),      /** 6 botellas 330ml cerveza 1 */
-(1, 15.75, 'SP330', 14, 7, 83),   /** 1 six-pack 330ml cerveza 14 */
-(1, 115.00, 'B20', 16, 8, 83),    /** 1 barril 20L cerveza 16 */
-(2, 2.65, 'L330', 13, 7, 83),     /** 2 latas 330ml cerveza 13 */
+(6, 3.10, 'B330', 83),      /** 6 botellas 330ml cerveza 1 */
+(1, 15.75, 'SP330', 83),   /** 1 six-pack 330ml cerveza 14 */
+(1, 115.00, 'B20', 83),    /** 1 barril 20L cerveza 16 */
+(2, 2.65, 'L330', 83),     /** 2 latas 330ml cerveza 13 */
 
 /** Venta 84: 7 latas + 2 botellas 500ml + 1 caja = 10 productos */
-(7, 2.35, 'L330', 3, 2, 84),      /** 7 latas 330ml cerveza 3 */
-(2, 5.35, 'B500', 2, 1, 84),      /** 2 botellas 500ml cerveza 2 */
-(1, 54.50, 'C12500', 10, 5, 84),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(7, 2.35, 'L330', 84),      /** 7 latas 330ml cerveza 3 */
+(2, 5.35, 'B500', 84),      /** 2 botellas 500ml cerveza 2 */
+(1, 54.50, 'C12500', 84),  /** 1 caja 12 unidades 500ml cerveza 10 */
 
 /** Venta 85: 4 botellas + 1 barril + 2 six-packs + 3 latas = 10 productos */
-(4, 2.80, 'B330', 11, 6, 85),     /** 4 botellas 330ml cerveza 11 */
-(1, 150.00, 'B30', 17, 9, 85),    /** 1 barril 30L cerveza 17 */
-(2, 16.00, 'SP330', 4, 2, 85),    /** 2 six-packs 330ml cerveza 4 */
-(3, 2.70, 'L330', 13, 7, 85),     /** 3 latas 330ml cerveza 13 */
+(4, 2.80, 'B330', 85),     /** 4 botellas 330ml cerveza 11 */
+(1, 150.00, 'B30', 85),    /** 1 barril 30L cerveza 17 */
+(2, 16.00, 'SP330', 85),    /** 2 six-packs 330ml cerveza 4 */
+(3, 2.70, 'L330', 85),     /** 3 latas 330ml cerveza 13 */
 
 /** Venta 86: 9 botellas + 1 growler = 10 productos */
-(9, 3.00, 'B330', 1, 1, 86),      /** 9 botellas 330ml cerveza 1 */
-(1, 12.25, 'G1L', 9, 5, 86),      /** 1 growler 1L cerveza 9 */
+(9, 3.00, 'B330', 86),      /** 9 botellas 330ml cerveza 1 */
+(1, 12.25, 'G1L', 86),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 87: 5 latas + 3 botellas 500ml + 1 caja + 1 six-pack = 10 productos */
-(5, 2.50, 'L330', 3, 2, 87),      /** 5 latas 330ml cerveza 3 */
-(3, 5.60, 'B500', 12, 6, 87),     /** 3 botellas 500ml cerveza 12 */
-(1, 49.25, 'C24330', 5, 3, 87),   /** 1 caja 24 unidades cerveza 5 */
-(1, 15.50, 'SP330', 14, 7, 87),   /** 1 six-pack 330ml cerveza 14 */
+(5, 2.50, 'L330', 87),      /** 5 latas 330ml cerveza 3 */
+(3, 5.60, 'B500', 87),     /** 3 botellas 500ml cerveza 12 */
+(1, 49.25, 'C24330', 87),   /** 1 caja 24 unidades cerveza 5 */
+(1, 15.50, 'SP330', 87),   /** 1 six-pack 330ml cerveza 14 */
 
 /** Venta 88: 6 botellas + 1 barril + 2 latas + 1 botella 500ml = 10 productos */
-(6, 2.85, 'B330', 11, 6, 88),     /** 6 botellas 330ml cerveza 11 */
-(1, 205.00, 'B50', 8, 4, 88),     /** 1 barril 50L cerveza 8 */
-(2, 2.75, 'L330', 13, 7, 88),     /** 2 latas 330ml cerveza 13 */
-(1, 5.70, 'B500', 2, 1, 88),      /** 1 botella 500ml cerveza 2 */
+(6, 2.85, 'B330', 88),     /** 6 botellas 330ml cerveza 11 */
+(1, 205.00, 'B50', 88),     /** 1 barril 50L cerveza 8 */
+(2, 2.75, 'L330', 88),     /** 2 latas 330ml cerveza 13 */
+(1, 5.70, 'B500', 88),      /** 1 botella 500ml cerveza 2 */
 
 /** Venta 89: 7 botellas + 1 caja + 1 six-pack + 1 growler = 10 productos */
-(7, 3.15, 'B330', 1, 1, 89),      /** 7 botellas 330ml cerveza 1 */
-(1, 52.00, 'C12500', 10, 5, 89),  /** 1 caja 12 unidades 500ml cerveza 10 */
-(1, 16.50, 'SP330', 4, 2, 89),    /** 1 six-pack 330ml cerveza 4 */
-(1, 11.75, 'G1L', 9, 5, 89),      /** 1 growler 1L cerveza 9 */
+(7, 3.15, 'B330', 89),      /** 7 botellas 330ml cerveza 1 */
+(1, 52.00, 'C12500', 89),  /** 1 caja 12 unidades 500ml cerveza 10 */
+(1, 16.50, 'SP330', 89),    /** 1 six-pack 330ml cerveza 4 */
+(1, 11.75, 'G1L', 89),      /** 1 growler 1L cerveza 9 */
 
 /** Venta 90: 8 latas + 1 barril + 1 botella = 10 productos */
-(8, 2.45, 'L330', 13, 7, 90),     /** 8 latas 330ml cerveza 13 */
-(1, 120.00, 'B20', 6, 3, 90),     /** 1 barril 20L cerveza 6 */
-(1, 3.30, 'B330', 11, 6, 90);     /** 1 botella 330ml cerveza 11 */
+(8, 2.45, 'L330', 90),     /** 8 latas 330ml cerveza 13 */
+(1, 120.00, 'B20', 90),     /** 1 barril 20L cerveza 6 */
+(1, 3.30, 'B330', 90);     /** 1 botella 330ml cerveza 11 */
 
 /**
  * Inserción de datos para la tabla miembro_presentacion_cerveza

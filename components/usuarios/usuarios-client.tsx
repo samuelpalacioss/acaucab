@@ -164,7 +164,7 @@ export default function UsuariosClient({}: UsuariosClientProps) {
               Gestionar Roles
             </Button>
           </Link>
-          <Link href="/dashboard/usuarios/nuevo">
+          <Link href="/usuarios/nuevo">
             <Button id="nuevo-usuario-button">
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Usuario
