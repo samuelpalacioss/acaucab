@@ -19,8 +19,8 @@ CREATE TABLE status (
  * @param fk_mensualidad_3 - Referencia a la naturaleza del RIF del miembro
  */
 CREATE TABLE status_mensualidad (
-    fecha_actualización DATE NOT NULL,
-    fecha_fin           DATE,
+    fecha_actualización TIMESTAMP NOT NULL,
+    fecha_fin           TIMESTAMP,
     fk_status           INTEGER NOT NULL,
     fk_mensualidad_1    INTEGER NOT NULL,
     fk_mensualidad_2    INTEGER NOT NULL,
@@ -50,14 +50,15 @@ ALTER SEQUENCE status_id_seq RESTART WITH 1;
  * @param fk_orden_reposicion - Referencia a la orden de reposición
  */
 CREATE TABLE status_orden (
-    fecha_actualización DATE NOT NULL,
-    fecha_fin           DATE,
+    id     SERIAL,
+    fecha_actualización TIMESTAMP NOT NULL,
+    fecha_fin           TIMESTAMP,
     fk_orden_de_compra  INTEGER,
     fk_status           INTEGER NOT NULL,
     fk_orden_de_reposicion INTEGER,
     /* Primary key Constraint */
     CONSTRAINT status_orden_pk 
-        PRIMARY KEY (fk_status),
+        PRIMARY KEY (id),
     /* Foreign key Constraints */
     CONSTRAINT status_orden_compra_fk 
         FOREIGN KEY (fk_orden_de_compra)
@@ -85,14 +86,15 @@ CREATE TABLE status_orden (
  * @param fk_venta_evento - Referencia a la venta de evento
  */
 CREATE TABLE status_venta (
-    fecha_actualización DATE NOT NULL,
-    fecha_fin           DATE,
+    id     SERIAL,
+    fecha_actualización TIMESTAMP NOT NULL,
+    fecha_fin           TIMESTAMP,
     fk_status          INTEGER NOT NULL,
     fk_venta           INTEGER, 
     fk_venta_evento    INTEGER,
     /* Primary key Constraint */
     CONSTRAINT status_venta_pk 
-        PRIMARY KEY (fk_status),
+        PRIMARY KEY (id),
     /* Foreign key Constraints */
     CONSTRAINT status_venta_status_fk 
         FOREIGN KEY (fk_status)
@@ -108,5 +110,5 @@ CREATE TABLE status_venta (
         CHECK (
             (fk_venta IS NOT NULL AND fk_venta_evento IS NULL) OR
             (fk_venta IS NULL AND fk_venta_evento IS NOT NULL)
-        )
+        ) 
 );

@@ -5,7 +5,6 @@
 CREATE TABLE venta_evento (
     id                  SERIAL,                           /** Identificador único de la venta */
     monto_total         DECIMAL(10,2) NOT NULL,           /** Monto total de la venta */
-    fecha_venta         DATE NOT NULL,                    /** Fecha cuando se realizó la venta */
     fk_cliente_juridico INTEGER,                          /** Referencia a cliente jurídico (opcional) */
     fk_cliente_natural  INTEGER,                          /** Referencia a cliente natural (opcional) */
     

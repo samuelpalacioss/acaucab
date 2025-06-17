@@ -1,4 +1,83 @@
 /**
+ * Script consolidado de inserts para todas las tablas de status
+ * Contiene los inserts para las tablas: status, status_mensualidad, status_orden y status_venta
+ * 
+ * ORDEN DE EJECUCIÓN:
+ * 1. status - Tabla principal con los diferentes estados
+ * 2. status_mensualidad - Relaciona estados con mensualidades
+ * 3. status_orden - Relaciona estados con órdenes de compra y reposición
+ * 4. status_venta - Relaciona estados con ventas regulares y de eventos
+ */
+
+-- =============================================================================
+-- 1. INSERTS PARA LA TABLA STATUS
+-- =============================================================================
+
+/**
+ * Inserts para la tabla status
+ * Contiene los diferentes estados que puede tener una orden o mensualidad
+ */
+INSERT INTO status (nombre) VALUES
+    ('Pendiente'),
+    ('En Proceso'),
+    ('Aprobado'),
+    ('Rechazado'),
+    ('Completado'),
+    ('Cancelado'),
+    ('En Revisión'),
+    ('Devuelto'),
+    ('En Espera'),
+    ('Finalizado'),
+    ('Suspendido'),
+    ('Anulado');
+
+-- =============================================================================
+-- 2. INSERTS PARA LA TABLA STATUS_MENSUALIDAD
+-- =============================================================================
+
+/**
+ * Inserts para la tabla status_mensualidad
+ * Relaciona los estados con las mensualidades existentes
+ */
+INSERT INTO status_mensualidad (fecha_actualización, fecha_fin, fk_status, fk_mensualidad_1, fk_mensualidad_2, fk_mensualidad_3) VALUES
+    ('2024-01-01', NULL, 1, 1, 123456789, 'J'),
+    ('2024-01-02', NULL, 2, 2, 987654321, 'V'),
+    ('2024-01-03', NULL, 3, 3, 234567890, 'J'),
+    ('2024-01-04', NULL, 4, 4, 345678901, 'V'),
+    ('2024-01-05', NULL, 5, 5, 456789012, 'J'),
+    ('2024-01-06', NULL, 6, 6, 567890123, 'V'),
+    ('2024-01-07', NULL, 7, 7, 678901234, 'J'),
+    ('2024-01-08', NULL, 8, 8, 789012345, 'V'),
+    ('2024-01-09', NULL, 9, 9, 890123456, 'J'),
+    ('2024-01-10', NULL, 10, 10, 901234567, 'V'),
+    ('2024-01-11', NULL, 11, 11, 12345678, 'J');
+
+-- =============================================================================
+-- 3. INSERTS PARA LA TABLA STATUS_ORDEN
+-- =============================================================================
+
+/**
+ * Inserts para la tabla status_orden
+ * Relaciona los estados con las órdenes de compra y reposición
+ * Cada orden debe tener o fk_orden_de_compra o fk_orden_reposicion, no ambos
+ */
+INSERT INTO status_orden (fecha_actualización, fecha_fin, fk_orden_de_compra, fk_status, fk_orden_de_reposicion) VALUES
+    ('2024-01-01', NULL, 1, 1, NULL),
+    ('2024-01-02', NULL, NULL, 2, 2), 
+    ('2024-01-03', NULL, 3, 3, NULL),
+    ('2024-01-04', NULL, NULL, 4, 4),
+    ('2024-01-05', NULL, 5, 5, NULL),
+    ('2024-01-06', NULL, NULL, 6, 6),
+    ('2024-01-07', NULL, 7, 7, NULL),
+    ('2024-01-08', NULL, NULL, 8, 8),
+    ('2024-01-09', NULL, 9, 9, NULL),
+    ('2024-01-10', NULL, NULL, 10, 10);
+
+-- =============================================================================
+-- 4. INSERTS PARA LA TABLA STATUS_VENTA
+-- =============================================================================
+
+/**
  * Inserts para la tabla status_venta
  * Relaciona los estados con las ventas regulares
  * Cada venta tiene dos registros: En Proceso (2) y Completado (5)
@@ -187,4 +266,4 @@ INSERT INTO status_venta (fecha_actualización, fecha_fin, fk_status, fk_venta, 
     ('2024-03-27 16:00:00', NULL, 5, 87, NULL),   -- Venta 87 - Completado
     ('2024-03-28 16:00:00', NULL, 5, 88, NULL),   -- Venta 88 - Completado
     ('2024-03-29 16:00:00', NULL, 5, 89, NULL),   -- Venta 89 - Completado
-    ('2024-03-30 16:00:00', NULL, 5, 90, NULL);   -- Venta 90 - Completado 
+    ('2024-03-30 16:00:00', NULL, 5, 90, NULL);   -- Venta 90 - Completado

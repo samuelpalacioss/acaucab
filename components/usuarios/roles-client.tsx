@@ -1,0 +1,401 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Plus, Edit, Trash2, Shield, Users } from "lucide-react";
+import Link from "next/link";
+
+/**
+ * Datos de ejemplo para roles del sistema
+ * TODO: Esta información debería provenir de una API de roles y permisos
+ */
+const roles = [
+  {
+    id: 1,
+    name: "Administrador",
+    description: "Acceso completo al sistema",
+    userCount: 3,
+    permissions: ["all"],
+  },
+  {
+    id: 2,
+    name: "Gerente",
+    description: "Gestión de equipos y reportes",
+    userCount: 5,
+    permissions: ["users.read", "reports.all", "sales.all"],
+  },
+  {
+    id: 3,
+    name: "Supervisor",
+    description: "Supervisión de operaciones",
+    userCount: 8,
+    permissions: ["users.read", "inventory.all", "orders.read"],
+  },
+  {
+    id: 4,
+    name: "Empleado",
+    description: "Acceso básico al sistema",
+    userCount: 12,
+    permissions: ["profile.read", "orders.read"],
+  },
+];
+
+/**
+ * Lista completa de permisos disponibles en el sistema
+ * TODO: Esta información debería provenir de una API de configuración de permisos
+ */
+const allPermissions = [
+  { id: "users.read", name: "Ver usuarios", category: "Usuarios" },
+  { id: "users.write", name: "Gestionar usuarios", category: "Usuarios" },
+  { id: "roles.read", name: "Ver roles", category: "Roles" },
+  { id: "roles.write", name: "Gestionar roles", category: "Roles" },
+  { id: "reports.read", name: "Ver reportes", category: "Reportes" },
+  { id: "reports.write", name: "Crear reportes", category: "Reportes" },
+  { id: "sales.read", name: "Ver ventas", category: "Ventas" },
+  { id: "sales.write", name: "Gestionar ventas", category: "Ventas" },
+  { id: "inventory.read", name: "Ver inventario", category: "Inventario" },
+  { id: "inventory.write", name: "Gestionar inventario", category: "Inventario" },
+  { id: "orders.read", name: "Ver pedidos", category: "Pedidos" },
+  { id: "orders.write", name: "Gestionar pedidos", category: "Pedidos" },
+];
+
+/**
+ * Interface para las props del componente
+ */
+interface RolesClientProps {
+  // Aquí se pueden agregar props que vengan del servidor
+  // Por ejemplo: initialRoles, availablePermissions, userPermissions, etc.
+}
+
+/**
+ * Interface para la información de un nuevo rol
+ */
+interface NewRoleData {
+  name: string;
+  description: string;
+  permissions: string[];
+}
+
+/**
+ * Componente cliente para la gestión de roles del sistema
+ * Maneja toda la interfaz de usuario y las interacciones de gestión de roles y permisos
+ */
+export default function RolesClient({}: RolesClientProps) {
+  /*
+   * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
+   *
+   * Estados para controlar la funcionalidad de gestión de roles:
+   * - isCreateModalOpen: Controla la visibilidad del modal de creación
+   * - editingRole: Rol actualmente en edición
+   * - newRole: Datos del nuevo rol a crear
+   */
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<any>(null);
+  const [newRole, setNewRole] = useState<NewRoleData>({
+    name: "",
+    description: "",
+    permissions: [],
+  });
+
+  /**
+   * Función para agrupar permisos por categoría
+   */
+  const groupedPermissions = allPermissions.reduce((acc, permission) => {
+    if (!acc[permission.category]) {
+      acc[permission.category] = [];
+    }
+    acc[permission.category].push(permission);
+    return acc;
+  }, {} as Record<string, typeof allPermissions>);
+
+  /**
+   * Función para crear un nuevo rol
+   * TODO: Implementar llamada a API para crear el rol
+   */
+  const handleCreateRole = () => {
+    console.log("Creating role:", newRole);
+    setIsCreateModalOpen(false);
+    setNewRole({ name: "", description: "", permissions: [] });
+  };
+
+  /**
+   * Función para editar un rol existente
+   * TODO: Implementar llamada a API para editar el rol
+   */
+  const handleEditRole = (role: any) => {
+    setEditingRole(role);
+  };
+
+  /**
+   * Función para eliminar un rol
+   * TODO: Implementar llamada a API para eliminar el rol
+   */
+  const handleDeleteRole = (roleId: number) => {
+    console.log("Deleting role:", roleId);
+  };
+
+  /**
+   * Función para alternar permisos en el nuevo rol
+   */
+  const togglePermission = (permissionId: string) => {
+    setNewRole((prev) => ({
+      ...prev,
+      permissions: prev.permissions.includes(permissionId)
+        ? prev.permissions.filter((p) => p !== permissionId)
+        : [...prev.permissions, permissionId],
+    }));
+  };
+
+  /**
+   * Función para actualizar los datos del nuevo rol
+   */
+  const updateNewRole = (field: keyof NewRoleData, value: string) => {
+    setNewRole((prev) => ({ ...prev, [field]: value }));
+  };
+
+  /**
+   * Función para abrir el modal de creación
+   */
+  const openCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  /**
+   * Función para cerrar el modal de creación
+   */
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setNewRole({ name: "", description: "", permissions: [] });
+  };
+
+  /**
+   * Cálculo del total de usuarios asignados
+   */
+  const totalUsuariosAsignados = roles.reduce((sum, role) => sum + role.userCount, 0);
+
+  return (
+    <div id="roles-container" className="p-6 space-y-6">
+      {/* 
+        BLOQUE DE COMENTARIOS: ENCABEZADO DE GESTIÓN DE ROLES
+        
+        Sección principal que muestra el encabezado con navegación de retorno,
+        información sobre la gestión de roles y botón para crear nuevos roles
+      */}
+      <div id="roles-header" className="flex items-center justify-between">
+        <div id="header-info" className="flex items-center gap-4">
+          <Link href="/dashboard/usuarios">
+            <Button variant="ghost" size="sm" id="volver-button">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver
+            </Button>
+          </Link>
+          <div id="header-title-info">
+            <h1 id="roles-title" className="text-2xl font-bold">
+              Gestión de Roles
+            </h1>
+            <p id="roles-description" className="text-gray-600">
+              Configura roles y permisos del sistema
+            </p>
+          </div>
+        </div>
+        <Button onClick={openCreateModal} id="nuevo-rol-button">
+          <Plus className="w-4 h-4 mr-2" />
+          Nuevo Rol
+        </Button>
+      </div>
+
+      {/* 
+        BLOQUE DE COMENTARIOS: ESTADÍSTICAS DE ROLES
+        
+        Tarjetas que muestran información resumida sobre el sistema de roles:
+        - Roles configurados
+        - Permisos disponibles
+        - Usuarios asignados
+      */}
+      <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card id="roles-configurados-card">
+          <CardContent className="p-4">
+            <div id="roles-count" className="text-2xl font-bold">
+              {roles.length}
+            </div>
+            <div className="text-sm text-gray-600">Roles Configurados</div>
+          </CardContent>
+        </Card>
+        <Card id="permisos-disponibles-card">
+          <CardContent className="p-4">
+            <div id="permisos-count" className="text-2xl font-bold">
+              {allPermissions.length}
+            </div>
+            <div className="text-sm text-gray-600">Permisos Disponibles</div>
+          </CardContent>
+        </Card>
+        <Card id="usuarios-asignados-card">
+          <CardContent className="p-4">
+            <div id="usuarios-asignados-count" className="text-2xl font-bold">
+              {totalUsuariosAsignados}
+            </div>
+            <div className="text-sm text-gray-600">Usuarios Asignados</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 
+        BLOQUE DE COMENTARIOS: TABLA DE ROLES
+        
+        Tabla principal que muestra todos los roles del sistema con:
+        - Información básica del rol
+        - Descripción y conteo de usuarios
+        - Permisos asignados
+        - Acciones de edición y eliminación
+      */}
+      <Card id="roles-table-card">
+        <CardHeader>
+          <CardTitle id="tabla-roles-title">Lista de Roles</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table id="roles-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Rol</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Usuarios</TableHead>
+                <TableHead>Permisos</TableHead>
+                <TableHead>Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {roles.map((role) => (
+                <TableRow key={role.id} id={`role-row-${role.id}`}>
+                  <TableCell id={`role-name-${role.id}`}>
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4" />
+                      <span className="font-medium">{role.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell id={`role-description-${role.id}`}>{role.description}</TableCell>
+                  <TableCell id={`role-users-${role.id}`}>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      <span>{role.userCount}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell id={`role-permissions-${role.id}`}>
+                    <Badge variant="secondary" id={`permissions-badge-${role.id}`}>
+                      {role.permissions.includes("all") ? "Todos" : `${role.permissions.length} permisos`}
+                    </Badge>
+                  </TableCell>
+                  <TableCell id={`role-actions-${role.id}`}>
+                    <div className="flex gap-1">
+                      <Link href={`/dashboard/usuarios/roles/${role.id}`}>
+                        <Button variant="ghost" size="sm" id={`edit-role-${role.id}`}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteRole(role.id)}
+                        disabled={role.userCount > 0}
+                        id={`delete-role-${role.id}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* 
+        BLOQUE DE COMENTARIOS: MODAL DE CREACIÓN DE ROLES
+        
+        Dialog modal que permite crear nuevos roles con:
+        - Formulario de información básica (nombre, descripción)
+        - Selector de permisos agrupados por categorías
+        - Validación y confirmación de creación
+      */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" id="create-role-dialog">
+          <DialogHeader>
+            <DialogTitle id="create-role-title">Crear Nuevo Rol</DialogTitle>
+          </DialogHeader>
+          <div id="create-role-form" className="space-y-4">
+            {/* Campo de nombre del rol */}
+            <div id="role-name-field">
+              <label className="text-sm font-medium">Nombre del Rol *</label>
+              <Input
+                id="role-name-input"
+                value={newRole.name}
+                onChange={(e) => updateNewRole("name", e.target.value)}
+                placeholder="Ej: Coordinador"
+              />
+            </div>
+
+            {/* Campo de descripción */}
+            <div id="role-description-field">
+              <label className="text-sm font-medium">Descripción</label>
+              <Input
+                id="role-description-input"
+                value={newRole.description}
+                onChange={(e) => updateNewRole("description", e.target.value)}
+                placeholder="Descripción del rol"
+              />
+            </div>
+
+            {/* Sección de permisos */}
+            <div id="permissions-section">
+              <label className="text-sm font-medium mb-3 block">Permisos</label>
+              <div id="permissions-categories" className="space-y-4">
+                {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                  <div key={category} id={`category-${category.toLowerCase()}`}>
+                    <h4 className="font-medium text-sm mb-2">{category}</h4>
+                    <div
+                      id={`permissions-grid-${category.toLowerCase()}`}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-4"
+                    >
+                      {permissions.map((permission) => (
+                        <div
+                          key={permission.id}
+                          id={`permission-${permission.id}`}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`checkbox-${permission.id}`}
+                            checked={newRole.permissions.includes(permission.id)}
+                            onCheckedChange={() => togglePermission(permission.id)}
+                          />
+                          <label htmlFor={`checkbox-${permission.id}`} className="text-sm">
+                            {permission.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Botones de acción */}
+            <div id="modal-actions" className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={closeCreateModal} id="cancel-create-button">
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateRole} disabled={!newRole.name} id="confirm-create-button">
+                Crear Rol
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
