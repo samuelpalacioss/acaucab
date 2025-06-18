@@ -75,17 +75,27 @@ INSERT INTO cliente_metodo_pago (fk_metodo_pago, fk_cliente_natural, fk_cliente_
 (10, NULL, 5);
 
 -- Insert data into tasa
-INSERT INTO tasa (moneda, monto_equivalencia, fecha_inicio, fecha_fin) VALUES
-('USD', 70.00, '2025-02-01', '2025-02-15'),
-('USD', 74.00, '2025-03-01', '2025-03-31'),
-('USD', 85.20, '2025-04-01', '2025-04-30'),
-('USD', 92.75, '2025-05-01', '2025-05-15'),
-('USD', 100.40, '2025-05-16', NULL),
-('EUR', 86.00, '2025-02-01', '2025-02-15'),
-('EUR', 90.50, '2025-02-16', '2025-02-28'),
-('EUR', 98.50, '2025-04-01', '2025-04-30'),
-('EUR', 105.80, '2025-05-01', '2025-05-15'),
-('EUR', 116.20, '2025-05-16', NULL);
+-- NOTA: En producción, las tasas del USD serán actualizadas automáticamente por el cron job del BCV
+-- Ver: scripts/procedures/refresh_bcv.sql y scripts/procedures/README_BCV_CRON.md
+
+-- Datos de ejemplo para desarrollo (se puede ejecutar el script específico)
+-- \i sql/pago/insert/08_insert_tasa_inicial.sql
+
+/**
+ * Insertar historial de tasas para testing (opcional)
+ * Simula el comportamiento del cron job con datos históricos
+ */
+INSERT INTO tasa (moneda, monto_equivalencia, fecha_inicio, fecha_fin)
+VALUES 
+    -- Semana anterior
+    ('USD', 100.20, CURRENT_DATE - INTERVAL '7 days', CURRENT_DATE - INTERVAL '6 days'),
+    ('USD', 101.25, CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE - INTERVAL '5 days'),
+    ('USD', 101.30, CURRENT_DATE - INTERVAL '5 days', CURRENT_DATE - INTERVAL '4 days'),
+    ('USD', 101.35, CURRENT_DATE - INTERVAL '4 days', CURRENT_DATE - INTERVAL '3 days'),
+    ('USD', 101.40, CURRENT_DATE - INTERVAL '3 days', CURRENT_DATE - INTERVAL '2 days'),
+    ('USD', 101.45, CURRENT_DATE - INTERVAL '2 days', CURRENT_DATE - INTERVAL '1 day'),
+    ('USD', 101.48, CURRENT_DATE - INTERVAL '1 day', CURRENT_DATE);
+
 
 /**
  * Inserts para la tabla pago

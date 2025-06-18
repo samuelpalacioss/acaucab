@@ -151,6 +151,8 @@ CREATE TABLE tasa (
     CONSTRAINT tasa_pk PRIMARY KEY (id)
 );
 
+CREATE UNIQUE INDEX idx_tasa_unica_por_dia ON tasa (moneda, fecha_inicio);
+
 /**
  * Tabla que almacena los pagos realizados en el sistema
  * @param id - Identificador único del pago
