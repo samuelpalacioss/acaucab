@@ -96,26 +96,19 @@ export interface VentaExpandida extends Venta {
 
 /**
  * Interface para la respuesta de la función PostgreSQL
- * Estructura que devuelve fn_get_ventas()
+ * Estructura que devuelve fn_get_ventas() - ACTUALIZADA para coincidir con la función SQL
  */
 export interface VentaResponse {
   id: number;
   monto_total: number;
-  direccion_entrega?: string;
-  observacion?: string;
-  fecha_venta?: string;
-  nombre_cliente: string;
+  direccion_entrega?: string;  // Cambiado de dirección_entrega
+  observacion?: string;        // Cambiado de observación
   tipo_cliente: string;
-  canal_venta: string;
-  estado?: string;
-  puntos?: number;
-  moneda?: string;
-  fk_usuario?: number;
-  fk_lugar?: number;
-  fk_cliente_juridico?: number;
-  fk_cliente_natural?: number;
-  fk_tienda_fisica?: number;
-  fk_tienda_web?: number;
+  nombre_cliente: string;
+  tipo_tienda: string;
+  lugar_entrega?: string;
+  estado_entrega?: string;
+  fecha_ultimo_estado?: string; // TIMESTAMP se convierte a string
 }
 
 /**
@@ -147,6 +140,7 @@ export interface FiltrosVenta {
 
 /**
  * Función utilitaria para transformar VentaResponse a VentaExpandida
+ * ACTUALIZADA para manejar la nueva estructura de fn_get_ventas()
  * 
  * @param ventaResponse - Datos de la respuesta de PostgreSQL
  * @returns VentaExpandida - Datos formateados para la interfaz
@@ -157,19 +151,20 @@ export function transformarVentaResponse(ventaResponse: VentaResponse): VentaExp
     monto_total: ventaResponse.monto_total,
     direccion_entrega: ventaResponse.direccion_entrega,
     observacion: ventaResponse.observacion,
-    fecha_venta: ventaResponse.fecha_venta,
+    fecha_venta: ventaResponse.fecha_ultimo_estado, // Usar fecha_ultimo_estado como fecha_venta
     nombre_cliente: ventaResponse.nombre_cliente,
     tipo_cliente: ventaResponse.tipo_cliente as TipoCliente,
-    canal_venta: ventaResponse.canal_venta as CanalVenta,
-    estado: ventaResponse.estado as EstadoVenta,
-    puntos: ventaResponse.puntos || 0,
-    moneda: ventaResponse.moneda || 'Bs',
-    fk_usuario: ventaResponse.fk_usuario,
-    fk_lugar: ventaResponse.fk_lugar,
-    fk_cliente_juridico: ventaResponse.fk_cliente_juridico,
-    fk_cliente_natural: ventaResponse.fk_cliente_natural,
-    fk_tienda_fisica: ventaResponse.fk_tienda_fisica,
-    fk_tienda_web: ventaResponse.fk_tienda_web,
+    canal_venta: ventaResponse.tipo_tienda === 'Física' ? 'Tienda' : 'Web', // Mapear tipo_tienda a canal_venta
+    estado: ventaResponse.estado_entrega as EstadoVenta,
+    puntos: 0, // No viene en la función SQL, asignar valor por defecto
+    moneda: 'Bs', // No viene en la función SQL, asignar valor por defecto
+    // Las FK no vienen en la función SQL, se pueden omitir o asignar undefined
+    fk_usuario: undefined,
+    fk_lugar: undefined,
+    fk_cliente_juridico: undefined,
+    fk_cliente_natural: undefined,
+    fk_tienda_fisica: undefined,
+    fk_tienda_web: undefined,
   };
 }
 

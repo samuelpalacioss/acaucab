@@ -16,8 +16,8 @@ for (const envVar of requiredEnvVars) {
     }
 }
 
-// Asegurarnos de que la URL de Supabase sea correcta
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL.replace('db.', '')
+// Usar la URL de Supabase directamente (ya debe estar correcta en .env.local)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 console.log('🔍 Configuración:')
 console.log('URL:', supabaseUrl)
 console.log('Service Role Key:', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10) + '...')

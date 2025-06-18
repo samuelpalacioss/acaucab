@@ -62,15 +62,10 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
   /**
-   * Log de los datos recibidos en el cliente (ya procesados)
+   * Log simple de los datos recibidos en el cliente
    */
-  if (typeof window !== "undefined") {
-    console.log("🎯 Datos de ventas recibidos en VentasClient (ya procesados):", {
-      total_ventas: ventasExpandidas.length,
-      datos_completos: ventasExpandidas,
-      primera_venta: ventasExpandidas[0] || null,
-      timestamp: new Date().toISOString(),
-    });
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+    console.log("📊 Ventas cargadas:", ventasExpandidas.length);
   }
 
   /**
