@@ -8,8 +8,6 @@
 /**
  * Estado de la venta
  */
-export type EstadoVenta = 'Pendiente' | 'En proceso' | 'Entregado' | 'Cancelado';
-
 /**
  * Canal de venta
  */
@@ -82,7 +80,7 @@ export interface VentaExpandida extends Venta {
   canal_venta: CanalVenta;
   
   /** Estado de la venta */
-  estado?: EstadoVenta;
+  estado?: string;
   
   /** Lista de productos/presentaciones en la venta */
   detalles_presentacion?: DetallePresentacion[];
@@ -122,7 +120,7 @@ export interface FiltrosVenta {
   canal?: CanalVenta;
   
   /** Filtro por estado */
-  estado?: EstadoVenta;
+  estado?: string;
   
   /** Filtro por tipo de cliente */
   tipo_cliente?: TipoCliente;
@@ -155,7 +153,7 @@ export function transformarVentaResponse(ventaResponse: VentaResponse): VentaExp
     nombre_cliente: ventaResponse.nombre_cliente,
     tipo_cliente: ventaResponse.tipo_cliente as TipoCliente,
     canal_venta: ventaResponse.tipo_tienda === 'Física' ? 'Tienda' : 'Web', // Mapear tipo_tienda a canal_venta
-    estado: ventaResponse.estado_entrega as EstadoVenta,
+    estado: ventaResponse.estado_entrega as string,
     puntos: 0, // No viene en la función SQL, asignar valor por defecto
     moneda: 'Bs', // No viene en la función SQL, asignar valor por defecto
     // Las FK no vienen en la función SQL, se pueden omitir o asignar undefined

@@ -17,6 +17,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { VentaExpandida } from "@/models/venta";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Status } from "@/models/status";
 
 /**
  * Propiedades del componente VentasClient
@@ -24,6 +34,7 @@ import { VentaExpandida } from "@/models/venta";
 interface VentasClientProps {
   /** Datos de ventas ya procesados y validados desde el servidor */
   ventasExpandidas: VentaExpandida[];
+  status: Status[];
 }
 
 /**
@@ -50,24 +61,19 @@ const chartData = {
  * Maneja toda la interfaz de usuario y los estados locales
  * Recibe datos ya procesados y validados desde el servidor
  */
-export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
+export default function VentasClient({ ventasExpandidas, status }: VentasClientProps) {
   const router = useRouter();
 
   // Estados para filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
   const [currency, setCurrency] = useState("Bs");
-  const [showReturnsOnly, setShowReturnsOnly] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState("");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
-  /**
-   * Log simple de los datos recibidos en el cliente
-   */
-  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-    console.log("📊 Ventas cargadas:", ventasExpandidas.length);
-  }
-
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   /**
    * Función para navegar al detalle de la venta
    */
@@ -89,20 +95,26 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
 
   /**
    * Función para obtener el color del badge según el estado
+   * Maneja diferentes variaciones de nombres de status
    */
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Entregado":
-        return "bg-green-100 text-green-800";
-      case "En proceso":
-        return "bg-blue-100 text-blue-800";
-      case "Pendiente":
-        return "bg-yellow-100 text-yellow-800";
-      case "Cancelado":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const getStatusColor = (statusNombre: string) => {
+    /** Normalizar el nombre del status para comparación */
+    const statusLower = statusNombre.toLowerCase();
+    
+    if (statusLower.includes("entregado") || statusLower.includes("completado") || statusLower.includes("pagado")) {
+      return "bg-green-100 text-green-800";
     }
+    if (statusLower.includes("proceso") || statusLower.includes("preparación") || statusLower.includes("enviado")) {
+      return "bg-blue-100 text-blue-800";
+    }
+    if (statusLower.includes("pendiente") || statusLower.includes("espera")) {
+      return "bg-yellow-100 text-yellow-800";
+    }
+    if (statusLower.includes("cancelado") || statusLower.includes("rechazado") || statusLower.includes("anulado")) {
+      return "bg-red-100 text-red-800";
+    }
+    /** Color por defecto para status no reconocidos */
+    return "bg-gray-100 text-gray-800";
   };
 
   /**
@@ -119,14 +131,66 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
     }
   };
 
-  // Filtrar datos según la búsqueda usando los datos ya procesados
+  /**
+   * Función para mapear los valores del filtro de canal a los valores reales
+   */
+  const mapChannelFilter = (filterValue: string): string | null => {
+    switch (filterValue) {
+      case "web":
+        return "Web";
+      case "store":
+        return "Tienda";
+      case "all":
+      case "":
+        return null;
+      default:
+        return null;
+    }
+  };
+
+  /**
+   * Función para mapear los valores del filtro de estado a los valores reales
+   * Usa los status dinámicos del prop status
+   */
+  const mapStatusFilter = (filterValue: string): string | null => {
+    if (filterValue === "all" || filterValue === "") {
+      return null;
+    }
+    
+    /** Buscar el status por ID en el array de status */
+    const statusEncontrado = status.find(s => s.id.toString() === filterValue);
+    return statusEncontrado ? statusEncontrado.nombre : null;
+  };
+
+  // Filtrar datos según todos los filtros aplicados
   const filteredData = ventasExpandidas.filter((sale) => {
+    // Filtro de búsqueda por ID o cliente
     const busquedaId = sale.id.toString().toLowerCase().includes(searchTerm.toLowerCase());
     const busquedaCliente = sale.nombre_cliente.toLowerCase().includes(searchTerm.toLowerCase());
-    return busquedaId || busquedaCliente;
+    const cumpleBusqueda = searchTerm === "" || busquedaId || busquedaCliente;
+
+    // Filtro por canal de venta
+    const canalFiltrado = mapChannelFilter(selectedChannel);
+    const cumpleCanal = canalFiltrado === null || sale.canal_venta === canalFiltrado;
+
+    // Filtro por estado de entrega (mapeado a estado de pago)
+    const estadoFiltrado = mapStatusFilter(selectedPaymentStatus);
+    const cumpleEstado = estadoFiltrado === null || sale.estado === estadoFiltrado;
+
+    // Filtro por método de pago (por ahora no tenemos esta información en los datos)
+    // Se puede expandir cuando tengamos la información de método de pago
+    const cumpleMetodoPago = selectedPaymentMethod === "" || selectedPaymentMethod === "all";
+
+    return cumpleBusqueda && cumpleCanal && cumpleEstado && cumpleMetodoPago;
   });
 
-  // Calcular totales por canal usando datos reales
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  // Calcular totales por canal usando datos filtrados (no paginados)
   const webSales = filteredData.filter((sale) => sale.canal_venta === "Web");
   const storeSales = filteredData.filter((sale) => sale.canal_venta === "Tienda");
 
@@ -135,6 +199,24 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
   const totalSales = totalWebSales + totalStoreSales;
   const totalTransactions = filteredData.length;
 
+  /**
+   * Función para cambiar de página
+   */
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  /**
+   * Función para resetear filtros
+   */
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedChannel("");
+    setSelectedPaymentStatus("");
+    setSelectedPaymentMethod("");
+    setCurrentPage(1);
+  };
+
   return (
     <div id="ventas-container" className="p-6 space-y-6">
       {/* Encabezado de la página */}
@@ -142,6 +224,9 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
         <h1 id="ventas-title" className="text-2xl font-bold">
           Ventas
         </h1>
+        <Button variant="outline" onClick={resetFilters}>
+          Limpiar filtros
+        </Button>
       </div>
 
       {/* KPIs principales */}
@@ -154,33 +239,7 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
             <div className="text-2xl font-bold">
               {totalSales.toLocaleString("es-ES", { style: "currency", currency: "VES" })}
             </div>
-            <div className="h-[80px] mt-4 text-xs text-muted-foreground">
-              <div className="flex items-end justify-between h-full">
-                {chartData.labels.map((label, index) => (
-                  <div key={label} className="relative flex flex-col items-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <div
-                        className="w-6 bg-blue-500 rounded-t"
-                        style={{
-                          height: `${
-                            (chartData.datasets[0].data[index] / Math.max(...chartData.datasets[0].data)) * 30
-                          }px`,
-                        }}
-                      />
-                      <div
-                        className="w-6 bg-green-500 rounded-t"
-                        style={{
-                          height: `${
-                            (chartData.datasets[1].data[index] / Math.max(...chartData.datasets[1].data)) * 30
-                          }px`,
-                        }}
-                      />
-                    </div>
-                    <span className="absolute -bottom-5 text-[10px] rotate-45 origin-left">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground mt-2">{totalTransactions} transacciones</p>
           </CardContent>
         </Card>
 
@@ -214,15 +273,38 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
           </CardContent>
         </Card>
 
-        <Card id="average-ticket-card">
+        <Card id="chart-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Ticket Promedio</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tendencia Semanal</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {(totalSales / totalTransactions).toLocaleString("es-ES", { style: "currency", currency: "VES" })}
+            <div className="h-[80px] mt-4 text-xs text-muted-foreground">
+              <div className="flex items-end justify-between h-full">
+                {chartData.labels.map((label, index) => (
+                  <div key={label} className="relative flex flex-col items-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <div
+                        className="w-6 bg-blue-500 rounded-t"
+                        style={{
+                          height: `${
+                            (chartData.datasets[0].data[index] / Math.max(...chartData.datasets[0].data)) * 30
+                          }px`,
+                        }}
+                      />
+                      <div
+                        className="w-6 bg-green-500 rounded-t"
+                        style={{
+                          height: `${
+                            (chartData.datasets[1].data[index] / Math.max(...chartData.datasets[1].data)) * 30
+                          }px`,
+                        }}
+                      />
+                    </div>
+                    <span className="absolute -bottom-5 text-[10px] rotate-45 origin-left">{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Periodo actual</p>
           </CardContent>
         </Card>
       </div>
@@ -236,15 +318,20 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
             placeholder="Buscar por factura, cliente..."
             className="pl-8"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset a la primera página al buscar
+            }}
           />
         </div>
 
-        <div id="date-picker-wrapper">
-          <DateRangePicker />
-        </div>
-
-        <Select value={selectedChannel} onValueChange={setSelectedChannel}>
+        <Select 
+          value={selectedChannel} 
+          onValueChange={(value) => {
+            setSelectedChannel(value);
+            setCurrentPage(1); // Reset a la primera página al filtrar
+          }}
+        >
           <SelectTrigger id="channel-select">
             <SelectValue placeholder="Canal" />
           </SelectTrigger>
@@ -255,22 +342,37 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
           </SelectContent>
         </Select>
 
-        <Select value={selectedPaymentStatus} onValueChange={setSelectedPaymentStatus}>
+        <Select 
+          value={selectedPaymentStatus} 
+          onValueChange={(value) => {
+            setSelectedPaymentStatus(value);
+            setCurrentPage(1); // Reset a la primera página al filtrar
+          }}
+        >
           <SelectTrigger id="payment-status-select">
-            <SelectValue placeholder="Estado de pago" />
+            <SelectValue placeholder="Estado de entrega" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los estados</SelectItem>
-            <SelectItem value="paid">Pagado</SelectItem>
-            <SelectItem value="pending">Pendiente</SelectItem>
-            <SelectItem value="cancelled">Cancelado</SelectItem>
+            {/** Renderizar los status dinámicamente desde el prop */}
+            {status.map((estado) => (
+              <SelectItem key={estado.id} value={estado.id.toString()}>
+                {estado.nombre}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
       {/* Controles de filtrado - Segunda fila */}
       <div id="secondary-filters" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
+        <Select 
+          value={selectedPaymentMethod} 
+          onValueChange={(value) => {
+            setSelectedPaymentMethod(value);
+            setCurrentPage(1); // Reset a la primera página al filtrar
+          }}
+        >
           <SelectTrigger id="payment-method-select">
             <SelectValue placeholder="Método de pago" />
           </SelectTrigger>
@@ -292,6 +394,30 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
             <SelectItem value="USD">Dólares (USD)</SelectItem>
           </SelectContent>
         </Select>
+
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-muted-foreground">
+            Mostrando {startIndex + 1}-{Math.min(endIndex, filteredData.length)} de {filteredData.length} resultados
+          </span>
+        </div>
+
+        <Select 
+          value={itemsPerPage.toString()} 
+          onValueChange={(value) => {
+            setItemsPerPage(Number(value));
+            setCurrentPage(1); // Reset a la primera página al cambiar
+          }}
+        >
+          <SelectTrigger id="items-per-page-select">
+            <SelectValue placeholder="Elementos por página" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="5">5 por página</SelectItem>
+            <SelectItem value="10">10 por página</SelectItem>
+            <SelectItem value="20">20 por página</SelectItem>
+            <SelectItem value="50">50 por página</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Tabla de ventas */}
@@ -311,78 +437,223 @@ export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((sale) => (
-                <TableRow
-                  key={sale.id}
-                  id={`sale-row-${sale.id}`}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleRowClick(sale.id)}
-                >
-                  <TableCell className="font-medium">{sale.id}</TableCell>
-                  <TableCell>{sale.fecha_venta ? formatDate(sale.fecha_venta) : "N/A"}</TableCell>
-                  <TableCell>{sale.nombre_cliente}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      {getChannelIcon(sale.canal_venta)}
-                      {sale.canal_venta}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {sale.monto_total.toLocaleString("es-ES", {
-                      style: "currency",
-                      currency: currency === "Bs" ? "VES" : "USD",
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={getStatusColor(sale.estado || "Pendiente")}>
-                      {sale.estado || "Pendiente"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{sale.puntos || 0}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" id={`actions-button-${sale.id}`}>
-                          <span className="sr-only">Abrir menú</span>
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/dashboard/finanzas/ventas/${sale.id}`);
-                          }}
-                        >
-                          Ver detalle
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Lógica para reenviar factura
-                          }}
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          Re-enviar factura
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Lógica para exportar
-                          }}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Exportar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((sale) => (
+                  <TableRow
+                    key={sale.id}
+                    id={`sale-row-${sale.id}`}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleRowClick(sale.id)}
+                  >
+                    <TableCell className="font-medium">{sale.id}</TableCell>
+                    <TableCell>{sale.fecha_venta ? formatDate(sale.fecha_venta) : "N/A"}</TableCell>
+                    <TableCell>{sale.nombre_cliente}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {getChannelIcon(sale.canal_venta)}
+                        {sale.canal_venta}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {sale.monto_total.toLocaleString("es-ES", {
+                        style: "currency",
+                        currency: currency === "Bs" ? "VES" : "USD",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getStatusColor(sale.estado || "Pendiente")}>
+                        {sale.estado || "Pendiente"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{sale.puntos || 0}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" id={`actions-button-${sale.id}`}>
+                            <span className="sr-only">Abrir menú</span>
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/dashboard/finanzas/ventas/${sale.id}`);
+                            }}
+                          >
+                            Ver detalle
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Lógica para reenviar factura
+                            }}
+                          >
+                            <Mail className="h-4 w-4 mr-2" />
+                            Re-enviar factura
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Lógica para exportar
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Exportar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center">
+                    No se encontraron ventas que coincidan con los filtros aplicados.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Controles de paginación */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      handlePageChange(currentPage - 1);
+                    }
+                  }}
+                  className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              
+              {/* Lógica simplificada de paginación */}
+              {(() => {
+                const pages = [];
+                const maxVisiblePages = 5;
+
+                if (totalPages <= maxVisiblePages) {
+                  // Mostrar todas las páginas si son pocas
+                  for (let i = 1; i <= totalPages; i++) {
+                    pages.push(
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(i);
+                          }}
+                          isActive={currentPage === i}
+                        >
+                          {i}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                } else {
+                  // Lógica para muchas páginas
+                  // Siempre mostrar primera página
+                  pages.push(
+                    <PaginationItem key={1}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(1);
+                        }}
+                        isActive={currentPage === 1}
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+
+                  // Mostrar ellipsis si hay espacio
+                  if (currentPage > 3) {
+                    pages.push(
+                      <PaginationItem key="ellipsis-start">
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+
+                  // Mostrar páginas alrededor de la actual
+                  const start = Math.max(2, currentPage - 1);
+                  const end = Math.min(totalPages - 1, currentPage + 1);
+
+                  for (let i = start; i <= end; i++) {
+                    pages.push(
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(i);
+                          }}
+                          isActive={currentPage === i}
+                        >
+                          {i}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+
+                  // Mostrar ellipsis si hay espacio
+                  if (currentPage < totalPages - 2) {
+                    pages.push(
+                      <PaginationItem key="ellipsis-end">
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+
+                  // Siempre mostrar última página
+                  if (totalPages > 1) {
+                    pages.push(
+                      <PaginationItem key={totalPages}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(totalPages);
+                          }}
+                          isActive={currentPage === totalPages}
+                        >
+                          {totalPages}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                }
+
+                return pages;
+              })()}
+
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                      handlePageChange(currentPage + 1);
+                    }
+                  }}
+                  className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

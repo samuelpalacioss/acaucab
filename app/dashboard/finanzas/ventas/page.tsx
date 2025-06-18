@@ -1,6 +1,8 @@
 import VentasClient from "@/components/ventas/ventas-client";
 import { llamarFuncion } from "@/lib/server-actions";
+import { Status } from "@/models/status";
 import { VentaResponse, VentaExpandida, transformarVentaResponse } from "@/models/venta";
+import { getBCV } from "@/lib/bcv";
 
 /**
  * Página de ventas (Server Component)
@@ -17,11 +19,15 @@ export default async function VentasPage() {
    * Utiliza la función server action llamarFuncion para ejecutar fn_get_ventas()
    */
   let ventasExpandidas: VentaExpandida[] = [];
+  let status: Status[] = [];
+  let bcv: any = null;
 
   try {
     // Llamar la función PostgreSQL fn_get_ventas()
     const ventasData: VentaResponse[] = await llamarFuncion<VentaResponse>("fn_get_ventas");
-
+    const statusData: Status[] = await llamarFuncion<Status>("fn_get_status");
+    bcv = await getBCV();
+    console.log(bcv);
     /**
      * Procesamiento y transformación de datos en el servidor
      * Convertimos VentaResponse[] a VentaExpandida[] para la interfaz
@@ -38,14 +44,18 @@ export default async function VentasPage() {
       });
 
       ventasExpandidas = ventasValidas;
+      status = statusData;
     }
   } catch (error: any) {
     // Manejo básico de errores - log para debugging en desarrollo
     console.error("❌ Error al obtener datos de ventas:", error.message);
+    console.error("❌ Error al obtener datos de status:", error.message);
 
     // En caso de error, mantener array vacío
     ventasExpandidas = [];
+    status = [];
   }
+
 
   return (
     <main id="ventas-page" className="min-h-screen">
@@ -54,7 +64,7 @@ export default async function VentasPage() {
         de ventas y las interacciones del usuario.
         Se pasan los datos ya procesados y validados desde el servidor.
       */}
-      <VentasClient ventasExpandidas={ventasExpandidas} />
+      <VentasClient ventasExpandidas={ventasExpandidas} status={status} />
     </main>
   );
 }
