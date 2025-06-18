@@ -49,6 +49,8 @@ BEGIN
         lti.fk_inventario_2 = i.fk_presentacion_cerveza_2 AND 
         lti.fk_inventario_3 = i.fk_almacen
     WHERE tf.id = p_id_tienda_fisica
-    AND (COALESCE(i.cantidad_almacen, 0) + COALESCE(lti.cantidad, 0)) as stock_total >= 1;
+    -- Stock total debe ser mayor o igual a 1
+    AND (COALESCE(i.cantidad_almacen, 0) + COALESCE(lti.cantidad, 0)) >= 1
+    ORDER BY 2; -- Ordenar por nombre_presentacion_cerveza
 END;
 $$;
