@@ -15,94 +15,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DateRangePicker } from "@/components/date-range-picker";
+import { VentaExpandida } from "@/models/venta";
 
 /**
- * Datos de ejemplo para ventas
+ * Propiedades del componente VentasClient
  */
-const salesData = [
-  {
-    id: "FAC-2023-001",
-    date: "2023-04-15",
-    client: "Supermercados ABC",
-    channel: "Web",
-    amount: 1250.75,
-    currency: "Bs",
-    status: "Entregado",
-    points: 125,
-  },
-  {
-    id: "FAC-2023-002",
-    date: "2023-04-16",
-    client: "Distribuidora XYZ",
-    channel: "Tienda",
-    amount: 3450.0,
-    currency: "Bs",
-    status: "Entregado",
-    points: 345,
-  },
-  {
-    id: "FAC-2023-003",
-    date: "2023-04-17",
-    client: "Comercial 123",
-    channel: "Tienda",
-    amount: 875.5,
-    currency: "Bs",
-    status: "Entregado",
-    points: 87,
-  },
-  {
-    id: "FAC-2023-004",
-    date: "2023-04-18",
-    client: "Tiendas DEF",
-    channel: "Web",
-    amount: 2100.25,
-    currency: "Bs",
-    status: "Entregado",
-    points: 210,
-  },
-  {
-    id: "FAC-2023-005",
-    date: "2023-04-19",
-    client: "Mayorista GHI",
-    channel: "Tienda",
-    amount: 5600.0,
-    currency: "Bs",
-    status: "Entregado",
-    points: 0,
-  },
-  {
-    id: "FAC-2023-006",
-    date: "2023-04-20",
-    client: "Minorista JKL",
-    channel: "Tienda",
-    amount: 950.75,
-    currency: "Bs",
-    status: "Entregado",
-    points: 95,
-  },
-  {
-    id: "FAC-2023-007",
-    date: "2023-04-21",
-    client: "Corporación MNO",
-    channel: "Web",
-    amount: 4200.5,
-    currency: "Bs",
-    status: "En proceso",
-    points: 420,
-  },
-  {
-    id: "FAC-2023-008",
-    date: "2023-04-22",
-    client: "Empresa PQR",
-    channel: "Tienda",
-    amount: 1875.25,
-    currency: "Bs",
-    status: "Entregado",
-    points: 187,
-  },
-];
+interface VentasClientProps {
+  /** Datos de ventas ya procesados y validados desde el servidor */
+  ventasExpandidas: VentaExpandida[];
+}
 
 /**
  * Datos para el gráfico de ventas por canal
@@ -126,8 +48,9 @@ const chartData = {
 /**
  * Componente cliente para la gestión de ventas
  * Maneja toda la interfaz de usuario y los estados locales
+ * Recibe datos ya procesados y validados desde el servidor
  */
-export default function VentasClient() {
+export default function VentasClient({ ventasExpandidas }: VentasClientProps) {
   const router = useRouter();
 
   // Estados para filtros y búsqueda
@@ -139,9 +62,16 @@ export default function VentasClient() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
   /**
+   * Log simple de los datos recibidos en el cliente
+   */
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+    console.log("📊 Ventas cargadas:", ventasExpandidas.length);
+  }
+
+  /**
    * Función para navegar al detalle de la venta
    */
-  const handleRowClick = (id: string) => {
+  const handleRowClick = (id: string | number) => {
     router.push(`/dashboard/finanzas/ventas/${id}`);
   };
 
@@ -189,19 +119,19 @@ export default function VentasClient() {
     }
   };
 
-  // Filtrar datos según la búsqueda
-  const filteredData = salesData.filter(
-    (sale) =>
-      sale.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.client.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar datos según la búsqueda usando los datos ya procesados
+  const filteredData = ventasExpandidas.filter((sale) => {
+    const busquedaId = sale.id.toString().toLowerCase().includes(searchTerm.toLowerCase());
+    const busquedaCliente = sale.nombre_cliente.toLowerCase().includes(searchTerm.toLowerCase());
+    return busquedaId || busquedaCliente;
+  });
 
-  // Calcular totales por canal
-  const webSales = filteredData.filter((sale) => sale.channel === "Web");
-  const storeSales = filteredData.filter((sale) => sale.channel === "Tienda");
+  // Calcular totales por canal usando datos reales
+  const webSales = filteredData.filter((sale) => sale.canal_venta === "Web");
+  const storeSales = filteredData.filter((sale) => sale.canal_venta === "Tienda");
 
-  const totalWebSales = webSales.reduce((sum, sale) => sum + sale.amount, 0);
-  const totalStoreSales = storeSales.reduce((sum, sale) => sum + sale.amount, 0);
+  const totalWebSales = webSales.reduce((sum, sale) => sum + sale.monto_total, 0);
+  const totalStoreSales = storeSales.reduce((sum, sale) => sum + sale.monto_total, 0);
   const totalSales = totalWebSales + totalStoreSales;
   const totalTransactions = filteredData.length;
 
@@ -389,26 +319,26 @@ export default function VentasClient() {
                   onClick={() => handleRowClick(sale.id)}
                 >
                   <TableCell className="font-medium">{sale.id}</TableCell>
-                  <TableCell>{formatDate(sale.date)}</TableCell>
-                  <TableCell>{sale.client}</TableCell>
+                  <TableCell>{sale.fecha_venta ? formatDate(sale.fecha_venta) : "N/A"}</TableCell>
+                  <TableCell>{sale.nombre_cliente}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      {getChannelIcon(sale.channel)}
-                      {sale.channel}
+                      {getChannelIcon(sale.canal_venta)}
+                      {sale.canal_venta}
                     </div>
                   </TableCell>
                   <TableCell>
-                    {sale.amount.toLocaleString("es-ES", {
+                    {sale.monto_total.toLocaleString("es-ES", {
                       style: "currency",
                       currency: currency === "Bs" ? "VES" : "USD",
                     })}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={getStatusColor(sale.status)}>
-                      {sale.status}
+                    <Badge variant="outline" className={getStatusColor(sale.estado || "Pendiente")}>
+                      {sale.estado || "Pendiente"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{sale.points}</TableCell>
+                  <TableCell>{sale.puntos || 0}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
