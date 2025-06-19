@@ -38,7 +38,7 @@ INSERT INTO venta (monto_total, dirección_entrega, observación, fk_usuario, fk
 (18.00, 'Calle Miranda #123', 'Entrega express', 16, 369, NULL, NULL, NULL, 3),                     /** Venta en tienda web con usuario */
 (59.00, NULL, 'Venta promocional', NULL, NULL, 4, NULL, 2, NULL),       /** Venta en tienda física con cliente jurídico */
 
-/** Ventas adicionales para clientes naturales - 2 ventas por cada cliente natural (40 ventas) */
+/** Ventas adicionales para clientes naturales - 2 ventas por cada cliente natural  (40 ventas) */
 (39.00, NULL, 'Primera compra del cliente', NULL, NULL, NULL, 1, 1, NULL),            /** Venta 11: Cliente natural 1 - primera venta */
 (14.00, NULL, 'Segunda compra del mes', NULL, NULL, NULL, 1, 2, NULL),               /** Venta 12: Cliente natural 1 - segunda venta */
 (49.00, NULL, 'Pedido regular', NULL, NULL, NULL, 2, 3, NULL),                     /** Venta 13: Cliente natural 2 - primera venta */

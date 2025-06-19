@@ -5,106 +5,99 @@ TRUNCATE TABLE metodo_pago RESTART IDENTITY CASCADE;
 -- Insert data into método_pago
 -- 100 Points for the first 10 natural clients (10 points each)
 INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, número_cheque, fecha_adquisicion, fecha_canjeo) VALUES
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-01', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-02', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-03', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-04', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-05', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-06', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-07', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-08', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-09', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-10', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-11', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-12', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-13', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-14', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-15', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-16', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-17', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-18', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-19', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-20', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-21', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-22', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-23', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-24', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-25', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-26', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-27', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-28', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-29', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-30', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-31', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-01', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-02', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-03', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-04', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-05', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-06', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-07', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-08', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-09', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-10', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-11', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-12', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-13', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-14', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-15', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-16', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-17', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-18', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-19', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-20', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-21', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-22', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-23', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-24', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-25', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-26', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-27', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-02-28', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-01', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-02', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-03', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-04', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-05', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-06', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-07', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-08', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-09', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-10', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-11', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-12', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-13', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-14', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-15', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-16', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-17', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-18', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-19', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-20', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-21', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-22', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-23', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-24', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-25', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-26', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-27', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-28', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-29', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-30', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-31', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-01', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-02', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-03', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-04', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-05', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-06', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-07', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-08', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-09', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, '2023-04-10', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
 -- Original Payment Methods (Cards, Cash, etc.) starting from ID 101
 ('tarjeta_credito', NULL, 'Visa', 1234567890, 'Banco Mercantil', '2025-12-31', NULL, NULL, NULL),
 ('tarjeta_credito', NULL, 'MasterCard', 2345678901, 'Banesco', '2024-11-30', NULL, NULL, NULL),
@@ -115,7 +108,45 @@ INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fech
 ('efectivo', '1 USD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('efectivo', '5 USD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('efectivo', '20 USD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-('efectivo', '100 USD', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+('efectivo', '100 USD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+
+/** Tarjetas adicionales para completar 40 clientes distintos (tipos: VARCHAR, INTEGER, DATE) */
+('tarjeta_credito', NULL, 'Visa', 5678901234, 'Banco Activo', '2025-03-31', NULL, NULL, NULL),          /** Tarjeta 5 - Visa */
+('tarjeta_debito', NULL, NULL, 6789012345, 'Banco del Tesoro', '2026-01-31', NULL, NULL, NULL),        /** Tarjeta 6 - Débito */
+('tarjeta_credito', NULL, 'MasterCard', 7890123456, 'BOD', '2025-07-31', NULL, NULL, NULL),           /** Tarjeta 7 - MasterCard */
+('tarjeta_debito', NULL, NULL, 8901234567, 'Bicentenario', '2024-12-31', NULL, NULL, NULL),           /** Tarjeta 8 - Débito */
+('tarjeta_credito', NULL, 'American Express', 9012345678, 'Exterior', '2026-05-31', NULL, NULL, NULL), /** Tarjeta 9 - American Express */
+('tarjeta_debito', NULL, NULL, 1123456789, 'Sofitasa', '2025-09-30', NULL, NULL, NULL),               /** Tarjeta 10 - Débito */
+('tarjeta_credito', NULL, 'Visa', 2234567890, 'Plaza', '2025-11-30', NULL, NULL, NULL),               /** Tarjeta 11 - Visa */
+('tarjeta_debito', NULL, NULL, 3345678901, 'Mi Banco', '2026-02-28', NULL, NULL, NULL),               /** Tarjeta 12 - Débito */
+('tarjeta_credito', NULL, 'MasterCard', 4456789012, 'Venezolano de Crédito', '2025-04-30', NULL, NULL, NULL), /** Tarjeta 13 - MasterCard */
+('tarjeta_debito', NULL, NULL, 5567890123, 'Caroni', '2026-07-31', NULL, NULL, NULL),                 /** Tarjeta 14 - Débito */
+('tarjeta_credito', NULL, 'Visa', 6678901234, 'Nacional de Crédito', '2025-08-31', NULL, NULL, NULL), /** Tarjeta 15 - Visa */
+('tarjeta_debito', NULL, NULL, 7789012345, 'Federal', '2024-10-31', NULL, NULL, NULL),                /** Tarjeta 16 - Débito */
+('tarjeta_credito', NULL, 'MasterCard', 8890123456, 'Fondo Común', '2026-03-31', NULL, NULL, NULL),   /** Tarjeta 17 - MasterCard */
+('tarjeta_debito', NULL, NULL, 9901234567, 'BFC', '2025-12-31', NULL, NULL, NULL),                    /** Tarjeta 18 - Débito */
+('tarjeta_credito', NULL, 'American Express', 1012345678, 'Bancrecer', '2025-01-31', NULL, NULL, NULL), /** Tarjeta 19 - American Express */
+('tarjeta_debito', NULL, NULL, 2123456789, 'Banplus', '2026-06-30', NULL, NULL, NULL),                /** Tarjeta 20 - Débito */
+('tarjeta_credito', NULL, 'Visa', 3234567890, 'BBVA Provincial', '2025-10-31', NULL, NULL, NULL),     /** Tarjeta 21 - Visa */
+('tarjeta_debito', NULL, NULL, 4345678901, 'Banco Mercantil', '2026-04-30', NULL, NULL, NULL),        /** Tarjeta 22 - Débito */
+('tarjeta_credito', NULL, 'MasterCard', 5456789012, 'Banesco', '2025-02-28', NULL, NULL, NULL),       /** Tarjeta 23 - MasterCard */
+('tarjeta_debito', NULL, NULL, 6567890123, 'Banco de Venezuela', '2026-08-31', NULL, NULL, NULL),     /** Tarjeta 24 - Débito */
+('tarjeta_credito', NULL, 'Visa', 7678901234, 'Banco Activo', '2025-05-31', NULL, NULL, NULL),        /** Tarjeta 25 - Visa */
+('tarjeta_debito', NULL, NULL, 8789012345, 'Banco del Tesoro', '2024-11-30', NULL, NULL, NULL),       /** Tarjeta 26 - Débito */
+('tarjeta_credito', NULL, 'MasterCard', 9890123456, 'BOD', '2026-09-30', NULL, NULL, NULL),           /** Tarjeta 27 - MasterCard */
+('tarjeta_debito', NULL, NULL, 1901234567, 'Bicentenario', '2025-06-30', NULL, NULL, NULL),           /** Tarjeta 28 - Débito */
+('tarjeta_credito', NULL, 'American Express', 2012345678, 'Exterior', '2026-10-31', NULL, NULL, NULL), /** Tarjeta 29 - American Express */
+('tarjeta_debito', NULL, NULL, 3123456789, 'Sofitasa', '2025-03-31', NULL, NULL, NULL),               /** Tarjeta 30 - Débito */
+('tarjeta_credito', NULL, 'Visa', 4234567890, 'Plaza', '2026-11-30', NULL, NULL, NULL),               /** Tarjeta 31 - Visa */
+('tarjeta_debito', NULL, NULL, 5345678901, 'Mi Banco', '2025-07-31', NULL, NULL, NULL),               /** Tarjeta 32 - Débito */
+('tarjeta_credito', NULL, 'MasterCard', 6456789012, 'Venezolano de Crédito', '2026-12-31', NULL, NULL, NULL), /** Tarjeta 33 - MasterCard */
+('tarjeta_debito', NULL, NULL, 7567890123, 'Caroni', '2025-04-30', NULL, NULL, NULL),                 /** Tarjeta 34 - Débito */
+('tarjeta_credito', NULL, 'Visa', 8678901234, 'Nacional de Crédito', '2026-01-31', NULL, NULL, NULL), /** Tarjeta 35 - Visa */
+('tarjeta_debito', NULL, NULL, 9789012345, 'Federal', '2025-08-31', NULL, NULL, NULL),                /** Tarjeta 36 - Débito */
+('tarjeta_credito', NULL, 'MasterCard', 1890123456, 'Fondo Común', '2026-05-31', NULL, NULL, NULL),   /** Tarjeta 37 - MasterCard */
+('tarjeta_debito', NULL, NULL, 2901234567, 'BFC', '2025-09-30', NULL, NULL, NULL),                    /** Tarjeta 38 - Débito */
+('tarjeta_credito', NULL, 'American Express', 3012345678, 'Bancrecer', '2026-02-28', NULL, NULL, NULL), /** Tarjeta 39 - American Express */
+('tarjeta_debito', NULL, NULL, 4123456789, 'Banplus', '2025-10-31', NULL, NULL, NULL);                /** Tarjeta 40 - Débito */
 
 -- Insert data into cliente_método_pago
 INSERT INTO cliente_metodo_pago (fk_metodo_pago, fk_cliente_natural, fk_cliente_juridico) VALUES
@@ -129,16 +160,50 @@ INSERT INTO cliente_metodo_pago (fk_metodo_pago, fk_cliente_natural, fk_cliente_
 (71, 8, NULL), (72, 8, NULL), (73, 8, NULL), (74, 8, NULL), (75, 8, NULL), (76, 8, NULL), (77, 8, NULL), (78, 8, NULL), (79, 8, NULL), (80, 8, NULL),
 (81, 9, NULL), (82, 9, NULL), (83, 9, NULL), (84, 9, NULL), (85, 9, NULL), (86, 9, NULL), (87, 9, NULL), (88, 9, NULL), (89, 9, NULL), (90, 9, NULL),
 (91, 10, NULL), (92, 10, NULL), (93, 10, NULL), (94, 10, NULL), (95, 10, NULL), (96, 10, NULL), (97, 10, NULL), (98, 10, NULL), (99, 10, NULL), (100, 10, NULL),
-(101, 1, NULL),
-(102, 2, NULL),
-(103, 3, NULL),
-(104, 4, NULL),
-(105, 5, NULL),
-(106, NULL, 1),
-(107, NULL, 2),
-(108, NULL, 3),
-(109, NULL, 4),
-(110, NULL, 5);
+(101, 1, NULL),   /** Cliente natural 1 - Tarjeta crédito Visa */
+(102, 2, NULL),   /** Cliente natural 2 - Tarjeta crédito MasterCard */
+(103, 3, NULL),   /** Cliente natural 3 - Tarjeta débito */
+(104, 4, NULL),   /** Cliente natural 4 - Tarjeta débito */
+(105, 5, NULL),   /** Cliente natural 5 - Cheque */
+(106, NULL, 1),   /** Cliente jurídico 1 - Cheque */
+(107, NULL, 2),   /** Cliente jurídico 2 - Efectivo 1 USD */
+(108, NULL, 3),   /** Cliente jurídico 3 - Efectivo 5 USD */
+(109, NULL, 4),   /** Cliente jurídico 4 - Efectivo 20 USD */
+(110, NULL, 5),   /** Cliente jurídico 5 - Efectivo 100 USD */
+
+/** Asignación de tarjetas adicionales a clientes naturales (6-20) */
+(111, 6, NULL),   /** Cliente natural 6 - Tarjeta crédito Visa */
+(112, 7, NULL),   /** Cliente natural 7 - Tarjeta débito */
+(113, 8, NULL),   /** Cliente natural 8 - Tarjeta crédito MasterCard */
+(114, 9, NULL),   /** Cliente natural 9 - Tarjeta débito */
+(115, 10, NULL),  /** Cliente natural 10 - Tarjeta crédito American Express */
+(116, 11, NULL),  /** Cliente natural 11 - Tarjeta débito */
+(117, 12, NULL),  /** Cliente natural 12 - Tarjeta crédito Visa */
+(118, 13, NULL),  /** Cliente natural 13 - Tarjeta débito */
+(119, 14, NULL),  /** Cliente natural 14 - Tarjeta crédito MasterCard */
+(120, 15, NULL),  /** Cliente natural 15 - Tarjeta débito */
+(121, 16, NULL),  /** Cliente natural 16 - Tarjeta crédito Visa */
+(122, 17, NULL),  /** Cliente natural 17 - Tarjeta débito */
+(123, 18, NULL),  /** Cliente natural 18 - Tarjeta crédito MasterCard */
+(124, 19, NULL),  /** Cliente natural 19 - Tarjeta débito */
+(125, 20, NULL),  /** Cliente natural 20 - Tarjeta crédito American Express */
+
+/** Asignación de tarjetas adicionales a clientes jurídicos (6-20) */
+(126, NULL, 6),   /** Cliente jurídico 6 - Tarjeta débito */
+(127, NULL, 7),   /** Cliente jurídico 7 - Tarjeta crédito Visa */
+(128, NULL, 8),   /** Cliente jurídico 8 - Tarjeta débito */
+(129, NULL, 9),   /** Cliente jurídico 9 - Tarjeta crédito MasterCard */
+(130, NULL, 10),  /** Cliente jurídico 10 - Tarjeta débito */
+(131, NULL, 11),  /** Cliente jurídico 11 - Tarjeta crédito Visa */
+(132, NULL, 12),  /** Cliente jurídico 12 - Tarjeta débito */
+(133, NULL, 13),  /** Cliente jurídico 13 - Tarjeta crédito MasterCard */
+(134, NULL, 14),  /** Cliente jurídico 14 - Tarjeta débito */
+(135, NULL, 15),  /** Cliente jurídico 15 - Tarjeta crédito American Express */
+(136, NULL, 16),  /** Cliente jurídico 16 - Tarjeta débito */
+(137, NULL, 17),  /** Cliente jurídico 17 - Tarjeta crédito Visa */
+(138, NULL, 18),  /** Cliente jurídico 18 - Tarjeta débito */
+(139, NULL, 19),  /** Cliente jurídico 19 - Tarjeta crédito MasterCard */
+(140, NULL, 20);  /** Cliente jurídico 20 - Tarjeta débito */
 
 -- Insert data into tasa
 -- NOTA: En producción, las tasas del USD serán actualizadas automáticamente por el cron job del BCV
@@ -199,9 +264,12 @@ VALUES
 
 
 /**
- * Inserts para la tabla pago
- * Incluye pagos tanto de mensualidades de miembros como de compras de clientes
- * Cada pago debe tener o método de pago de miembro o de cliente, no ambos
+ * Inserts para la tabla pago - PAGOS CON TARJETAS PARA LAS 90 VENTAS
+ * Cada pago corresponde exactamente a una venta con:
+ * - Monto igual al monto_total de la venta
+ * - Fecha igual a la fecha de finalización de la venta (status_venta)
+ * - Cliente igual al cliente de la venta  
+ * - Solo métodos de pago con TARJETAS (crédito/débito)
  */
 INSERT INTO pago (
     monto,
@@ -218,26 +286,100 @@ INSERT INTO pago (
     fk_miembro_metodo_pago_1,
     fk_cliente_metodo_pago_1
 ) VALUES
-    -- Pagos de mensualidades de miembros
-    (150.00, '2024-01-15', 1, 1, 123456789, 'J', 1, 1, 1, 123456789, 'J', 1, NULL),
-    (150.00, '2024-01-16', 1, 2, 987654321, 'V', 2, 2, 2, 987654321, 'V', 2, NULL),
-    (150.00, '2024-01-17', 1, 3, 234567890, 'J', 3, 3, 3, 234567890, 'J', 3, NULL),
-    (150.00, '2024-01-18', 1, 4, 345678901, 'V', 4, 4, 4, 345678901, 'V', 7, NULL),
-    (150.00, '2024-01-19', 1, 5, 456789012, 'J', 5, 5, 5, 456789012, 'J', 8, NULL),
-    (150.00, '2024-01-20', 1, 6, 567890123, 'V', 6, 6, 6, 567890123, 'V', 9, NULL),
-    (150.00, '2024-01-21', 1, 7, 678901234, 'J', 7, 7, 7, 123456789, 'J', 4, NULL),
-    (150.00, '2024-01-22', 1, 8, 789012345, 'V', 8, 8, 8, 987654321, 'V', 5, NULL),
-    (150.00, '2024-01-23', 1, 9, 890123456, 'J', 9, 9, 9, 234567890, 'J', 6, NULL),
-    (150.00, '2024-01-24', 1, 10, 901234567, 'V', 10, 10, 10, 345678901, 'V', 10, NULL),
+    /** VENTAS 1-10: Ventas iniciales con clientes mixtos */
+    (10.00, CURRENT_DATE - INTERVAL '30 days' + TIME '09:20:00', 1, 1, 123456789, 'J', 1, 1, 1, NULL, NULL, NULL, 126),  /** Venta 1: Cliente jurídico 1 - Tarjeta débito */
+    (18.00, CURRENT_DATE - INTERVAL '30 days' + TIME '10:35:00', 1, 2, 987654321, 'V', 2, 2, 2, NULL, NULL, NULL, 101),  /** Venta 2: Cliente natural 1 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE - INTERVAL '30 days' + TIME '14:30:00', 1, 3, 234567890, 'J', 3, 3, 3, NULL, NULL, NULL, 101),  /** Venta 3: Usuario web (cliente natural 1) - Tarjeta crédito Visa */
+    (39.00, CURRENT_DATE - INTERVAL '30 days' + TIME '12:50:00', 1, 4, 345678901, 'V', 4, 4, 4, NULL, NULL, NULL, 127),  /** Venta 4: Cliente jurídico 2 - Tarjeta crédito Visa */
+    (10.00, CURRENT_DATE - INTERVAL '30 days' + TIME '14:25:00', 1, 5, 456789012, 'J', 5, 5, 5, NULL, NULL, NULL, 102),  /** Venta 5: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (32.00, CURRENT_DATE - INTERVAL '29 days' + TIME '12:00:00', 1, 6, 567890123, 'V', 6, 6, 6, NULL, NULL, NULL, 102),  /** Venta 6: Usuario web (cliente natural 2) - Tarjeta crédito MasterCard */
+    (49.00, CURRENT_DATE - INTERVAL '29 days' + TIME '09:50:00', 1, 7, 678901234, 'J', 7, 7, 7, NULL, NULL, NULL, 128),  /** Venta 7: Cliente jurídico 3 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '29 days' + TIME '10:20:00', 1, 8, 789012345, 'V', 8, 8, 8, NULL, NULL, NULL, 103),  /** Venta 8: Cliente natural 3 - Tarjeta débito */
+    (18.00, CURRENT_DATE - INTERVAL '29 days' + TIME '15:00:00', 1, 9, 890123456, 'J', 9, 9, 9, NULL, NULL, NULL, 103),  /** Venta 9: Usuario web (cliente natural 3) - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '29 days' + TIME '13:05:00', 1, 10, 901234567, 'V', 10, 10, 10, NULL, NULL, NULL, 129), /** Venta 10: Cliente jurídico 4 - Tarjeta crédito MasterCard */
 
-    -- Pagos de compras de clientes
-    (450.00, '2024-01-25', 1, 1, 123456789, 'J', 11, 1, 1, NULL, NULL, NULL, 1),
-    (280.50, '2024-01-26', 1, 2, 987654321, 'V', 12, 2, 2, NULL, NULL, NULL, 2),
-    (650.75, '2024-01-27', 1, 3, 234567890, 'J', 13, 3, 3, NULL, NULL, NULL, 3),
-    (320.25, '2024-01-28', 1, 4, 345678901, 'V', 14, 4, 4, NULL, NULL, NULL, 4),
-    (890.00, '2024-01-29', 1, 5, 456789012, 'J', 15, 5, 5, NULL, NULL, NULL, 5),
-    (150.00, '2024-01-30', 1, 6, 567890123, 'V', 16, 6, 6, NULL, NULL, NULL, 6),
-    (750.50, '2024-01-31', 1, 7, 678901234, 'J', 17, 7, 7, NULL, NULL, NULL, 7),
-    (420.75, '2024-02-01', 1, 8, 789012345, 'V', 18, 8, 8, NULL, NULL, NULL, 8),
-    (580.25, '2024-02-02', 1, 9, 890123456, 'J', 19, 9, 9, NULL, NULL, NULL, 9),
-    (290.00, '2024-02-03', 1, 10, 901234567, 'V', 20, 10, 10, NULL, NULL, NULL, 10);
+    /** VENTAS 11-50: Clientes naturales (2 ventas por cada cliente natural 1-20) */
+    (39.00, CURRENT_DATE - INTERVAL '28 days' + TIME '09:05:00', 1, 1, 123456789, 'J', 11, 11, 11, NULL, NULL, NULL, 101), /** Venta 11: Cliente natural 1 - Tarjeta crédito Visa */
+    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '13:50:00', 1, 2, 987654321, 'V', 12, 12, 12, NULL, NULL, NULL, 101), /** Venta 12: Cliente natural 1 - Tarjeta crédito Visa */
+    (49.00, CURRENT_DATE - INTERVAL '28 days' + TIME '11:50:00', 1, 3, 234567890, 'J', 13, 13, 13, NULL, NULL, NULL, 102), /** Venta 13: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (29.00, CURRENT_DATE - INTERVAL '28 days' + TIME '14:35:00', 1, 4, 345678901, 'V', 14, 14, 14, NULL, NULL, NULL, 102), /** Venta 14: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '18:30:00', 1, 5, 456789012, 'J', 15, 15, 15, NULL, NULL, NULL, 103), /** Venta 15: Cliente natural 3 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '25 days' + TIME '08:20:00', 1, 6, 567890123, 'V', 16, 16, 16, NULL, NULL, NULL, 103), /** Venta 16: Cliente natural 3 - Tarjeta débito */
+    (27.00, CURRENT_DATE - INTERVAL '25 days' + TIME '09:35:00', 1, 7, 678901234, 'J', 17, 17, 17, NULL, NULL, NULL, 104), /** Venta 17: Cliente natural 4 - Tarjeta débito */
+    (10.00, CURRENT_DATE - INTERVAL '25 days' + TIME '13:30:00', 1, 8, 789012345, 'V', 18, 18, 18, NULL, NULL, NULL, 104), /** Venta 18: Cliente natural 4 - Tarjeta débito */
+    (39.00, CURRENT_DATE - INTERVAL '25 days' + TIME '11:20:00', 1, 9, 890123456, 'J', 19, 19, 19, NULL, NULL, NULL, 111), /** Venta 19: Cliente natural 5 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE - INTERVAL '25 days' + TIME '14:05:00', 1, 10, 901234567, 'V', 20, 20, 20, NULL, NULL, NULL, 111), /** Venta 20: Cliente natural 5 - Tarjeta crédito Visa */
+    (18.00, CURRENT_DATE - INTERVAL '20 days' + TIME '13:15:00', 1, 1, 123456789, 'J', 21, 21, 21, NULL, NULL, NULL, 112), /** Venta 21: Cliente natural 6 - Tarjeta débito */
+    (19.00, CURRENT_DATE - INTERVAL '20 days' + TIME '10:35:00', 1, 2, 987654321, 'V', 22, 22, 22, NULL, NULL, NULL, 112), /** Venta 22: Cliente natural 6 - Tarjeta débito */
+    (53.00, CURRENT_DATE - INTERVAL '20 days' + TIME '11:05:00', 1, 3, 234567890, 'J', 23, 23, 23, NULL, NULL, NULL, 113), /** Venta 23: Cliente natural 7 - Tarjeta crédito MasterCard */
+    (10.00, CURRENT_DATE - INTERVAL '20 days' + TIME '15:45:00', 1, 4, 345678901, 'V', 24, 24, 24, NULL, NULL, NULL, 113), /** Venta 24: Cliente natural 7 - Tarjeta crédito MasterCard */
+    (37.00, CURRENT_DATE - INTERVAL '20 days' + TIME '13:35:00', 1, 5, 456789012, 'J', 25, 25, 25, NULL, NULL, NULL, 114), /** Venta 25: Cliente natural 8 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '15 days' + TIME '08:05:00', 1, 6, 567890123, 'V', 26, 26, 26, NULL, NULL, NULL, 114), /** Venta 26: Cliente natural 8 - Tarjeta débito */
+    (14.00, CURRENT_DATE - INTERVAL '15 days' + TIME '12:45:00', 1, 7, 678901234, 'J', 27, 27, 27, NULL, NULL, NULL, 115), /** Venta 27: Cliente natural 9 - Tarjeta crédito American Express */
+    (19.00, CURRENT_DATE - INTERVAL '15 days' + TIME '10:35:00', 1, 8, 789012345, 'V', 28, 28, 28, NULL, NULL, NULL, 115), /** Venta 28: Cliente natural 9 - Tarjeta crédito American Express */
+    (43.00, CURRENT_DATE - INTERVAL '15 days' + TIME '11:50:00', 1, 9, 890123456, 'J', 29, 29, 29, NULL, NULL, NULL, 116), /** Venta 29: Cliente natural 10 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '15 days' + TIME '17:30:00', 1, 10, 901234567, 'V', 30, 30, 30, NULL, NULL, NULL, 116), /** Venta 30: Cliente natural 10 - Tarjeta débito */
+    (49.00, CURRENT_DATE - INTERVAL '10 days' + TIME '09:05:00', 1, 1, 123456789, 'J', 31, 31, 31, NULL, NULL, NULL, 117), /** Venta 31: Cliente natural 11 - Tarjeta crédito Visa */
+    (14.00, CURRENT_DATE - INTERVAL '10 days' + TIME '10:20:00', 1, 2, 987654321, 'V', 32, 32, 32, NULL, NULL, NULL, 117), /** Venta 32: Cliente natural 11 - Tarjeta crédito Visa */
+    (19.00, CURRENT_DATE - INTERVAL '10 days' + TIME '15:00:00', 1, 3, 234567890, 'J', 33, 33, 33, NULL, NULL, NULL, 118), /** Venta 33: Cliente natural 12 - Tarjeta débito */
+    (67.00, CURRENT_DATE - INTERVAL '10 days' + TIME '12:50:00', 1, 4, 345678901, 'V', 34, 34, 34, NULL, NULL, NULL, 118), /** Venta 34: Cliente natural 12 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '10 days' + TIME '14:05:00', 1, 5, 456789012, 'J', 35, 35, 35, NULL, NULL, NULL, 119), /** Venta 35: Cliente natural 13 - Tarjeta crédito MasterCard */
+    (10.00, CURRENT_DATE - INTERVAL '7 days' + TIME '12:00:00', 1, 6, 567890123, 'V', 36, 36, 36, NULL, NULL, NULL, 119), /** Venta 36: Cliente natural 13 - Tarjeta crédito MasterCard */
+    (57.00, CURRENT_DATE - INTERVAL '7 days' + TIME '09:50:00', 1, 7, 678901234, 'J', 37, 37, 37, NULL, NULL, NULL, 120), /** Venta 37: Cliente natural 14 - Tarjeta débito */
+    (19.00, CURRENT_DATE - INTERVAL '7 days' + TIME '10:05:00', 1, 8, 789012345, 'V', 38, 38, 38, NULL, NULL, NULL, 120), /** Venta 38: Cliente natural 14 - Tarjeta débito */
+    (43.00, CURRENT_DATE - INTERVAL '7 days' + TIME '14:45:00', 1, 9, 890123456, 'J', 39, 39, 39, NULL, NULL, NULL, 121), /** Venta 39: Cliente natural 15 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE - INTERVAL '7 days' + TIME '13:05:00', 1, 10, 901234567, 'V', 40, 40, 40, NULL, NULL, NULL, 121), /** Venta 40: Cliente natural 15 - Tarjeta crédito Visa */
+    (18.00, CURRENT_DATE - INTERVAL '5 days' + TIME '09:05:00', 1, 1, 123456789, 'J', 41, 41, 41, NULL, NULL, NULL, 122), /** Venta 41: Cliente natural 16 - Tarjeta débito */
+    (10.00, CURRENT_DATE - INTERVAL '5 days' + TIME '14:00:00', 1, 2, 987654321, 'V', 42, 42, 42, NULL, NULL, NULL, 122), /** Venta 42: Cliente natural 16 - Tarjeta débito */
+    (43.00, CURRENT_DATE - INTERVAL '5 days' + TIME '11:50:00', 1, 3, 234567890, 'J', 43, 43, 43, NULL, NULL, NULL, 123), /** Venta 43: Cliente natural 17 - Tarjeta crédito MasterCard */
+    (29.00, CURRENT_DATE - INTERVAL '5 days' + TIME '13:05:00', 1, 4, 345678901, 'V', 44, 44, 44, NULL, NULL, NULL, 123), /** Venta 44: Cliente natural 17 - Tarjeta crédito MasterCard */
+    (57.00, CURRENT_DATE - INTERVAL '5 days' + TIME '18:00:00', 1, 5, 456789012, 'J', 45, 45, 45, NULL, NULL, NULL, 124), /** Venta 45: Cliente natural 18 - Tarjeta débito */
+    (19.00, CURRENT_DATE - INTERVAL '3 days' + TIME '08:20:00', 1, 6, 567890123, 'V', 46, 46, 46, NULL, NULL, NULL, 124), /** Venta 46: Cliente natural 18 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '3 days' + TIME '09:35:00', 1, 7, 678901234, 'J', 47, 47, 47, NULL, NULL, NULL, 125), /** Venta 47: Cliente natural 19 - Tarjeta crédito American Express */
+    (18.00, CURRENT_DATE - INTERVAL '3 days' + TIME '13:30:00', 1, 8, 789012345, 'V', 48, 48, 48, NULL, NULL, NULL, 125), /** Venta 48: Cliente natural 19 - Tarjeta crédito American Express */
+    (29.00, CURRENT_DATE - INTERVAL '3 days' + TIME '11:20:00', 1, 9, 890123456, 'J', 49, 49, 49, NULL, NULL, NULL, 126), /** Venta 49: Cliente natural 20 - Tarjeta débito */
+    (10.00, CURRENT_DATE - INTERVAL '3 days' + TIME '14:05:00', 1, 10, 901234567, 'V', 50, 50, 50, NULL, NULL, NULL, 126), /** Venta 50: Cliente natural 20 - Tarjeta débito */
+
+    /** VENTAS 51-90: Clientes jurídicos (2 ventas por cada cliente jurídico 1-20) */
+    (47.00, CURRENT_DATE - INTERVAL '1 day' + TIME '12:00:00', 1, 1, 123456789, 'J', 51, 51, 51, NULL, NULL, NULL, 127), /** Venta 51: Cliente jurídico 1 - Tarjeta crédito Visa */
+    (19.00, CURRENT_DATE - INTERVAL '1 day' + TIME '09:05:00', 1, 2, 987654321, 'V', 52, 52, 52, NULL, NULL, NULL, 127), /** Venta 52: Cliente jurídico 1 - Tarjeta crédito Visa */
+    (53.00, CURRENT_DATE - INTERVAL '1 day' + TIME '09:50:00', 1, 3, 234567890, 'J', 53, 53, 53, NULL, NULL, NULL, 128), /** Venta 53: Cliente jurídico 2 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '1 day' + TIME '13:45:00', 1, 4, 345678901, 'V', 54, 54, 54, NULL, NULL, NULL, 128), /** Venta 54: Cliente jurídico 2 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '1 day' + TIME '11:05:00', 1, 5, 456789012, 'J', 55, 55, 55, NULL, NULL, NULL, 129), /** Venta 55: Cliente jurídico 3 - Tarjeta crédito MasterCard */
+    (14.00, CURRENT_DATE - INTERVAL '1 day' + TIME '11:35:00', 1, 6, 567890123, 'V', 56, 56, 56, NULL, NULL, NULL, 129), /** Venta 56: Cliente jurídico 3 - Tarjeta crédito MasterCard */
+    (23.00, CURRENT_DATE - INTERVAL '1 day' + TIME '15:30:00', 1, 7, 678901234, 'J', 57, 57, 57, NULL, NULL, NULL, 130), /** Venta 57: Cliente jurídico 4 - Tarjeta débito */
+    (39.00, CURRENT_DATE - INTERVAL '1 day' + TIME '13:20:00', 1, 8, 789012345, 'V', 58, 58, 58, NULL, NULL, NULL, 130), /** Venta 58: Cliente jurídico 4 - Tarjeta débito */
+    (33.00, CURRENT_DATE - INTERVAL '1 day' + TIME '14:05:00', 1, 9, 890123456, 'J', 59, 59, 59, NULL, NULL, NULL, 131), /** Venta 59: Cliente jurídico 5 - Tarjeta crédito Visa */
+    (49.00, CURRENT_DATE - INTERVAL '1 day' + TIME '18:00:00', 1, 10, 901234567, 'V', 60, 60, 60, NULL, NULL, NULL, 131), /** Venta 60: Cliente jurídico 5 - Tarjeta crédito Visa */
+    (10.00, CURRENT_DATE + TIME '08:05:00', 1, 1, 123456789, 'J', 61, 61, 61, NULL, NULL, NULL, 132), /** Venta 61: Cliente jurídico 6 - Tarjeta débito */
+    (27.00, CURRENT_DATE + TIME '08:35:00', 1, 2, 987654321, 'V', 62, 62, 62, NULL, NULL, NULL, 132), /** Venta 62: Cliente jurídico 6 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '12:30:00', 1, 3, 234567890, 'J', 63, 63, 63, NULL, NULL, NULL, 133), /** Venta 63: Cliente jurídico 7 - Tarjeta crédito MasterCard */
+    (33.00, CURRENT_DATE + TIME '09:20:00', 1, 4, 345678901, 'V', 64, 64, 64, NULL, NULL, NULL, 133), /** Venta 64: Cliente jurídico 7 - Tarjeta crédito MasterCard */
+    (39.00, CURRENT_DATE + TIME '09:50:00', 1, 5, 456789012, 'J', 65, 65, 65, NULL, NULL, NULL, 134), /** Venta 65: Cliente jurídico 8 - Tarjeta débito */
+    (19.00, CURRENT_DATE + TIME '13:30:00', 1, 6, 567890123, 'V', 66, 66, 66, NULL, NULL, NULL, 134), /** Venta 66: Cliente jurídico 8 - Tarjeta débito */
+    (57.00, CURRENT_DATE + TIME '10:35:00', 1, 7, 678901234, 'J', 67, 67, 67, NULL, NULL, NULL, 135), /** Venta 67: Cliente jurídico 9 - Tarjeta crédito American Express */
+    (29.00, CURRENT_DATE + TIME '11:05:00', 1, 8, 789012345, 'V', 68, 68, 68, NULL, NULL, NULL, 135), /** Venta 68: Cliente jurídico 9 - Tarjeta crédito American Express */
+    (43.00, CURRENT_DATE + TIME '14:45:00', 1, 9, 890123456, 'J', 69, 69, 69, NULL, NULL, NULL, 136), /** Venta 69: Cliente jurídico 10 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '11:50:00', 1, 10, 901234567, 'V', 70, 70, 70, NULL, NULL, NULL, 136), /** Venta 70: Cliente jurídico 10 - Tarjeta débito */
+    (19.00, CURRENT_DATE + TIME '12:05:00', 1, 1, 123456789, 'J', 71, 71, 71, NULL, NULL, NULL, 137), /** Venta 71: Cliente jurídico 11 - Tarjeta crédito Visa */
+    (18.00, CURRENT_DATE + TIME '16:00:00', 1, 2, 987654321, 'V', 72, 72, 72, NULL, NULL, NULL, 137), /** Venta 72: Cliente jurídico 11 - Tarjeta crédito Visa */
+    (68.00, CURRENT_DATE + TIME '13:05:00', 1, 3, 234567890, 'J', 73, 73, 73, NULL, NULL, NULL, 138), /** Venta 73: Cliente jurídico 12 - Tarjeta débito */
+    (14.00, CURRENT_DATE + TIME '13:35:00', 1, 4, 345678901, 'V', 74, 74, 74, NULL, NULL, NULL, 138), /** Venta 74: Cliente jurídico 12 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '17:30:00', 1, 5, 456789012, 'J', 75, 75, 75, NULL, NULL, NULL, 139), /** Venta 75: Cliente jurídico 13 - Tarjeta crédito MasterCard */
+    (19.00, CURRENT_DATE + TIME '14:20:00', 1, 6, 567890123, 'V', 76, 76, 76, NULL, NULL, NULL, 139), /** Venta 76: Cliente jurídico 13 - Tarjeta crédito MasterCard */
+    (47.00, CURRENT_DATE + TIME '14:50:00', 1, 7, 678901234, 'J', 77, 77, 77, NULL, NULL, NULL, 140), /** Venta 77: Cliente jurídico 14 - Tarjeta débito */
+    (29.00, CURRENT_DATE + TIME '18:30:00', 1, 8, 789012345, 'V', 78, 78, 78, NULL, NULL, NULL, 140), /** Venta 78: Cliente jurídico 14 - Tarjeta débito */
+    (49.00, CURRENT_DATE + TIME '15:35:00', 1, 9, 890123456, 'J', 79, 79, 79, NULL, NULL, NULL, 126), /** Venta 79: Cliente jurídico 15 - Tarjeta débito */
+    (27.00, CURRENT_DATE + TIME '16:05:00', 1, 10, 901234567, 'V', 80, 80, 80, NULL, NULL, NULL, 126), /** Venta 80: Cliente jurídico 15 - Tarjeta débito */
+    
+    /** VENTAS 81-90: Ventas pendientes aún en proceso */
+    (59.00, CURRENT_DATE + TIME '16:30:00', 1, 1, 123456789, 'J', 81, 81, 81, NULL, NULL, NULL, 127), /** Venta 81: Cliente jurídico 16 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE + TIME '17:00:00', 1, 2, 987654321, 'V', 82, 82, 82, NULL, NULL, NULL, 127), /** Venta 82: Cliente jurídico 16 - Tarjeta crédito Visa */
+    (43.00, CURRENT_DATE + TIME '17:15:00', 1, 3, 234567890, 'J', 83, 83, 83, NULL, NULL, NULL, 128), /** Venta 83: Cliente jurídico 17 - Tarjeta débito */
+    (19.00, CURRENT_DATE + TIME '17:30:00', 1, 4, 345678901, 'V', 84, 84, 84, NULL, NULL, NULL, 128), /** Venta 84: Cliente jurídico 17 - Tarjeta débito */
+    (57.00, CURRENT_DATE + TIME '17:45:00', 1, 5, 456789012, 'J', 85, 85, 85, NULL, NULL, NULL, 129), /** Venta 85: Cliente jurídico 18 - Tarjeta crédito MasterCard */
+    (10.00, CURRENT_DATE + TIME '18:00:00', 1, 6, 567890123, 'V', 86, 86, 86, NULL, NULL, NULL, 129), /** Venta 86: Cliente jurídico 18 - Tarjeta crédito MasterCard */
+    (33.00, CURRENT_DATE + TIME '18:15:00', 1, 7, 678901234, 'J', 87, 87, 87, NULL, NULL, NULL, 130), /** Venta 87: Cliente jurídico 19 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '18:30:00', 1, 8, 789012345, 'V', 88, 88, 88, NULL, NULL, NULL, 130), /** Venta 88: Cliente jurídico 19 - Tarjeta débito */
+    (23.00, CURRENT_DATE + TIME '18:45:00', 1, 9, 890123456, 'J', 89, 89, 89, NULL, NULL, NULL, 131), /** Venta 89: Cliente jurídico 20 - Tarjeta crédito Visa */
+    (39.00, CURRENT_DATE + TIME '19:00:00', 1, 10, 901234567, 'V', 90, 90, 90, NULL, NULL, NULL, 131); /** Venta 90: Cliente jurídico 20 - Tarjeta crédito Visa */
