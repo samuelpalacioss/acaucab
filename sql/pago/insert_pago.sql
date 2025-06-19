@@ -82,19 +82,53 @@ INSERT INTO cliente_metodo_pago (fk_metodo_pago, fk_cliente_natural, fk_cliente_
 -- \i sql/pago/insert/08_insert_tasa_inicial.sql
 
 /**
- * Insertar historial de tasas para testing (opcional)
+ * Insertar historial de tasas del BCV para los últimos 30 días
  * Simula el comportamiento del cron job con datos históricos
+ * Las tasas reflejan una evolución realista del tipo de cambio USD/Bs
  */
 INSERT INTO tasa (moneda, monto_equivalencia, fecha_inicio, fecha_fin)
 VALUES 
-    -- Semana anterior
-    ('USD', 100.20, CURRENT_DATE - INTERVAL '7 days', CURRENT_DATE - INTERVAL '6 days'),
-    ('USD', 101.25, CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE - INTERVAL '5 days'),
-    ('USD', 101.30, CURRENT_DATE - INTERVAL '5 days', CURRENT_DATE - INTERVAL '4 days'),
-    ('USD', 101.35, CURRENT_DATE - INTERVAL '4 days', CURRENT_DATE - INTERVAL '3 days'),
-    ('USD', 101.40, CURRENT_DATE - INTERVAL '3 days', CURRENT_DATE - INTERVAL '2 days'),
-    ('USD', 101.45, CURRENT_DATE - INTERVAL '2 days', CURRENT_DATE - INTERVAL '1 day'),
-    ('USD', 101.48, CURRENT_DATE - INTERVAL '1 day', CURRENT_DATE);
+    -- Hace 30 días hasta hace 25 días
+    ('USD', 95.20, CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE - INTERVAL '29 days'),
+    ('USD', 95.45, CURRENT_DATE - INTERVAL '29 days', CURRENT_DATE - INTERVAL '28 days'),
+    ('USD', 95.68, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '27 days'),
+    ('USD', 95.90, CURRENT_DATE - INTERVAL '27 days', CURRENT_DATE - INTERVAL '26 days'),
+    ('USD', 96.12, CURRENT_DATE - INTERVAL '26 days', CURRENT_DATE - INTERVAL '25 days'),
+    ('USD', 96.35, CURRENT_DATE - INTERVAL '25 days', CURRENT_DATE - INTERVAL '24 days'),
+    
+    -- Hace 24 días hasta hace 20 días
+    ('USD', 96.58, CURRENT_DATE - INTERVAL '24 days', CURRENT_DATE - INTERVAL '23 days'),
+    ('USD', 96.80, CURRENT_DATE - INTERVAL '23 days', CURRENT_DATE - INTERVAL '22 days'),
+    ('USD', 97.02, CURRENT_DATE - INTERVAL '22 days', CURRENT_DATE - INTERVAL '21 days'),
+    ('USD', 97.25, CURRENT_DATE - INTERVAL '21 days', CURRENT_DATE - INTERVAL '20 days'),
+    ('USD', 97.48, CURRENT_DATE - INTERVAL '20 days', CURRENT_DATE - INTERVAL '19 days'),
+    
+    -- Hace 19 días hasta hace 15 días
+    ('USD', 97.70, CURRENT_DATE - INTERVAL '19 days', CURRENT_DATE - INTERVAL '18 days'),
+    ('USD', 97.92, CURRENT_DATE - INTERVAL '18 days', CURRENT_DATE - INTERVAL '17 days'),
+    ('USD', 98.15, CURRENT_DATE - INTERVAL '17 days', CURRENT_DATE - INTERVAL '16 days'),
+    ('USD', 98.38, CURRENT_DATE - INTERVAL '16 days', CURRENT_DATE - INTERVAL '15 days'),
+    ('USD', 98.60, CURRENT_DATE - INTERVAL '15 days', CURRENT_DATE - INTERVAL '14 days'),
+    
+    -- Hace 14 días hasta hace 10 días
+    ('USD', 98.82, CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE - INTERVAL '13 days'),
+    ('USD', 99.05, CURRENT_DATE - INTERVAL '13 days', CURRENT_DATE - INTERVAL '12 days'),
+    ('USD', 99.28, CURRENT_DATE - INTERVAL '12 days', CURRENT_DATE - INTERVAL '11 days'),
+    ('USD', 99.50, CURRENT_DATE - INTERVAL '11 days', CURRENT_DATE - INTERVAL '10 days'),
+    ('USD', 99.72, CURRENT_DATE - INTERVAL '10 days', CURRENT_DATE - INTERVAL '9 days'),
+    
+    -- Hace 9 días hasta hace 5 días
+    ('USD', 99.95, CURRENT_DATE - INTERVAL '9 days', CURRENT_DATE - INTERVAL '8 days'),
+    ('USD', 100.18, CURRENT_DATE - INTERVAL '8 days', CURRENT_DATE - INTERVAL '7 days'),
+    ('USD', 100.40, CURRENT_DATE - INTERVAL '7 days', CURRENT_DATE - INTERVAL '6 days'),
+    ('USD', 100.62, CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE - INTERVAL '5 days'),
+    ('USD', 100.85, CURRENT_DATE - INTERVAL '5 days', CURRENT_DATE - INTERVAL '4 days'),
+    
+    -- Últimos 4 días
+    ('USD', 101.08, CURRENT_DATE - INTERVAL '4 days', CURRENT_DATE - INTERVAL '3 days'),
+    ('USD', 101.30, CURRENT_DATE - INTERVAL '3 days', CURRENT_DATE - INTERVAL '2 days'),
+    ('USD', 101.52, CURRENT_DATE - INTERVAL '2 days', CURRENT_DATE - INTERVAL '1 day'),
+    ('USD', 101.75, CURRENT_DATE - INTERVAL '1 day', CURRENT_DATE);
 
 
 /**

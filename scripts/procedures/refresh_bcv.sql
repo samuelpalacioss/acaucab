@@ -61,3 +61,39 @@ EXCEPTION
         RAISE WARNING 'Error inesperado: %', sqlerrm;
 END;
 $$;
+
+
+-- =====================================================
+-- 3. CONFIGURAR CRON JOBS
+-- =====================================================
+-- ---------------------------------------------------------------------
+-- Job principal: se ejecuta todos los días a las 11:59 PM (UTC).
+-- NOTA IMPORTANTE: Supabase pg_cron se ejecuta en UTC.
+-- '59 23 * * *' es 11:59 PM UTC. Si tu hora de Venezuela es UTC-4,
+-- 11:59 PM VET sería 03:59 AM UTC del día siguiente.
+-- Ajusta el cron expression según necesites.
+--
+-- Ejemplo para 11:59 PM VET (UTC-4): '59 3 * * *'
+-- ---------------------------------------------------------------------
+SELECT cron.schedule(
+    'refresh-bcv-daily',
+    '59 3 * * *',  -- Cron expression en UTC (ejemplo para 11:59 PM VET)
+    'SELECT refresh_bcv_rates()'
+);
+
+-- ---------------------------------------------------------------------
+-- Job de respaldo: se ejecuta a las 6:00 AM UTC (2:00 AM VET)
+-- solo si no hay tasa registrada para el día actual.
+-- ---------------------------------------------------------------------
+SELECT cron.schedule(
+    'refresh-bcv-morning-backup',
+    '0 6 * * *', -- Cron expression en UTC (6:00 AM UTC)
+    $$
+    SELECT refresh_bcv_rates()
+    WHERE NOT EXISTS (
+        SELECT 1 FROM tasa
+        WHERE moneda = 'USD'
+          AND fecha_inicio = CURRENT_DATE
+    )
+    $$
+);
