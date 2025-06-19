@@ -102,14 +102,11 @@ CREATE TABLE cerveza_caracteristica (
     CONSTRAINT chk_arc_cerveza_caracteristica CHECK (
         (fk_cerveza IS NOT NULL AND fk_tipo_cerveza IS NULL) OR
         (fk_cerveza IS NULL AND fk_tipo_cerveza IS NOT NULL)
-    ),
-
-    -- Constraint que garantiza que si el tipo de característica es 'numerica', 
-    -- entonces la descripción debe ser NULL
-    CONSTRAINT chk_descripcion_caracteristica_numerica CHECK (
-        (SELECT tipo FROM caracteristica WHERE id = fk_caracteristica) != 'numerica' 
-        OR descripcion IS NULL
     )
+
+    -- NOTA: La validación de que características numéricas no tengan descripción
+    -- debe manejarse a nivel de aplicación, ya que PostgreSQL no permite
+    -- subqueries en check constraints
 );
 
 /**

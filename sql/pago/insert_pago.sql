@@ -98,6 +98,8 @@ INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fech
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '25 days', NULL),
+
 -- Original Payment Methods (Cards, Cash, etc.) starting from ID 101
 ('tarjeta_credito', NULL, 'Visa', 1234567890, 'Banco Mercantil', '2025-12-31', NULL, NULL, NULL),
 ('tarjeta_credito', NULL, 'MasterCard', 2345678901, 'Banesco', '2024-11-30', NULL, NULL, NULL),
@@ -205,9 +207,6 @@ INSERT INTO cliente_metodo_pago (fk_metodo_pago, fk_cliente_natural, fk_cliente_
 (139, NULL, 19),  /** Cliente jurídico 19 - Tarjeta crédito MasterCard */
 (140, NULL, 20);  /** Cliente jurídico 20 - Tarjeta débito */
 
--- Insert data into tasa
--- NOTA: En producción, las tasas del USD serán actualizadas automáticamente por el cron job del BCV
--- Ver: scripts/procedures/refresh_bcv.sql y scripts/procedures/README_BCV_CRON.md
 
 -- Datos de ejemplo para desarrollo (se puede ejecutar el script específico)
 -- \i sql/pago/insert/08_insert_tasa_inicial.sql
@@ -287,99 +286,99 @@ INSERT INTO pago (
     fk_cliente_metodo_pago_1
 ) VALUES
     /** VENTAS 1-10: Ventas iniciales con clientes mixtos */
-    (10.00, CURRENT_DATE - INTERVAL '30 days' + TIME '09:20:00', 1, 1, 123456789, 'J', 1, 1, 1, NULL, NULL, NULL, 126),  /** Venta 1: Cliente jurídico 1 - Tarjeta débito */
-    (18.00, CURRENT_DATE - INTERVAL '30 days' + TIME '10:35:00', 1, 2, 987654321, 'V', 2, 2, 2, NULL, NULL, NULL, 101),  /** Venta 2: Cliente natural 1 - Tarjeta crédito Visa */
-    (29.00, CURRENT_DATE - INTERVAL '30 days' + TIME '14:30:00', 1, 3, 234567890, 'J', 3, 3, 3, NULL, NULL, NULL, 101),  /** Venta 3: Usuario web (cliente natural 1) - Tarjeta crédito Visa */
-    (39.00, CURRENT_DATE - INTERVAL '30 days' + TIME '12:50:00', 1, 4, 345678901, 'V', 4, 4, 4, NULL, NULL, NULL, 127),  /** Venta 4: Cliente jurídico 2 - Tarjeta crédito Visa */
-    (10.00, CURRENT_DATE - INTERVAL '30 days' + TIME '14:25:00', 1, 5, 456789012, 'J', 5, 5, 5, NULL, NULL, NULL, 102),  /** Venta 5: Cliente natural 2 - Tarjeta crédito MasterCard */
-    (32.00, CURRENT_DATE - INTERVAL '29 days' + TIME '12:00:00', 1, 6, 567890123, 'V', 6, 6, 6, NULL, NULL, NULL, 102),  /** Venta 6: Usuario web (cliente natural 2) - Tarjeta crédito MasterCard */
-    (49.00, CURRENT_DATE - INTERVAL '29 days' + TIME '09:50:00', 1, 7, 678901234, 'J', 7, 7, 7, NULL, NULL, NULL, 128),  /** Venta 7: Cliente jurídico 3 - Tarjeta débito */
-    (29.00, CURRENT_DATE - INTERVAL '29 days' + TIME '10:20:00', 1, 8, 789012345, 'V', 8, 8, 8, NULL, NULL, NULL, 103),  /** Venta 8: Cliente natural 3 - Tarjeta débito */
-    (18.00, CURRENT_DATE - INTERVAL '29 days' + TIME '15:00:00', 1, 9, 890123456, 'J', 9, 9, 9, NULL, NULL, NULL, 103),  /** Venta 9: Usuario web (cliente natural 3) - Tarjeta débito */
-    (59.00, CURRENT_DATE - INTERVAL '29 days' + TIME '13:05:00', 1, 10, 901234567, 'V', 10, 10, 10, NULL, NULL, NULL, 129), /** Venta 10: Cliente jurídico 4 - Tarjeta crédito MasterCard */
+    (10.00, CURRENT_DATE - INTERVAL '30 days' + TIME '09:20:00', 2, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, 126),  /** Venta 1: Cliente jurídico 1 - Tarjeta débito */
+    (18.00, CURRENT_DATE - INTERVAL '30 days' + TIME '10:35:00', 2, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, 101),  /** Venta 2: Cliente natural 1 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE - INTERVAL '30 days' + TIME '14:30:00', 2, NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL, NULL, 101),  /** Venta 3: Usuario web (cliente natural 1) - Tarjeta crédito Visa */
+    (39.00, CURRENT_DATE - INTERVAL '30 days' + TIME '12:50:00', 2, NULL, NULL, NULL, 4, NULL, NULL, NULL, NULL, NULL, 127),  /** Venta 4: Cliente jurídico 2 - Tarjeta crédito Visa */
+    (10.00, CURRENT_DATE - INTERVAL '30 days' + TIME '14:25:00', 2, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL, NULL, 102),  /** Venta 5: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (32.00, CURRENT_DATE - INTERVAL '29 days' + TIME '12:00:00', 3, NULL, NULL, NULL, 6, NULL, NULL, NULL, NULL, NULL, 102),  /** Venta 6: Usuario web (cliente natural 2) - Tarjeta crédito MasterCard */
+    (49.00, CURRENT_DATE - INTERVAL '29 days' + TIME '09:50:00', 3, NULL, NULL, NULL, 7, NULL, NULL, NULL, NULL, NULL, 128),  /** Venta 7: Cliente jurídico 3 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '29 days' + TIME '10:20:00', 3, NULL, NULL, NULL, 8, NULL, NULL, NULL, NULL, NULL, 103),  /** Venta 8: Cliente natural 3 - Tarjeta débito */
+    (18.00, CURRENT_DATE - INTERVAL '29 days' + TIME '15:00:00', 3, NULL, NULL, NULL, 9, NULL, NULL, NULL, NULL, NULL, 103),  /** Venta 9: Usuario web (cliente natural 3) - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '29 days' + TIME '13:05:00', 3, NULL, NULL, NULL, 10, NULL, NULL, NULL, NULL, NULL, 129), /** Venta 10: Cliente jurídico 4 - Tarjeta crédito MasterCard */
 
     /** VENTAS 11-50: Clientes naturales (2 ventas por cada cliente natural 1-20) */
-    (39.00, CURRENT_DATE - INTERVAL '28 days' + TIME '09:05:00', 1, 1, 123456789, 'J', 11, 11, 11, NULL, NULL, NULL, 101), /** Venta 11: Cliente natural 1 - Tarjeta crédito Visa */
-    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '13:50:00', 1, 2, 987654321, 'V', 12, 12, 12, NULL, NULL, NULL, 101), /** Venta 12: Cliente natural 1 - Tarjeta crédito Visa */
-    (49.00, CURRENT_DATE - INTERVAL '28 days' + TIME '11:50:00', 1, 3, 234567890, 'J', 13, 13, 13, NULL, NULL, NULL, 102), /** Venta 13: Cliente natural 2 - Tarjeta crédito MasterCard */
-    (29.00, CURRENT_DATE - INTERVAL '28 days' + TIME '14:35:00', 1, 4, 345678901, 'V', 14, 14, 14, NULL, NULL, NULL, 102), /** Venta 14: Cliente natural 2 - Tarjeta crédito MasterCard */
-    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '18:30:00', 1, 5, 456789012, 'J', 15, 15, 15, NULL, NULL, NULL, 103), /** Venta 15: Cliente natural 3 - Tarjeta débito */
-    (59.00, CURRENT_DATE - INTERVAL '25 days' + TIME '08:20:00', 1, 6, 567890123, 'V', 16, 16, 16, NULL, NULL, NULL, 103), /** Venta 16: Cliente natural 3 - Tarjeta débito */
-    (27.00, CURRENT_DATE - INTERVAL '25 days' + TIME '09:35:00', 1, 7, 678901234, 'J', 17, 17, 17, NULL, NULL, NULL, 104), /** Venta 17: Cliente natural 4 - Tarjeta débito */
-    (10.00, CURRENT_DATE - INTERVAL '25 days' + TIME '13:30:00', 1, 8, 789012345, 'V', 18, 18, 18, NULL, NULL, NULL, 104), /** Venta 18: Cliente natural 4 - Tarjeta débito */
-    (39.00, CURRENT_DATE - INTERVAL '25 days' + TIME '11:20:00', 1, 9, 890123456, 'J', 19, 19, 19, NULL, NULL, NULL, 111), /** Venta 19: Cliente natural 5 - Tarjeta crédito Visa */
-    (29.00, CURRENT_DATE - INTERVAL '25 days' + TIME '14:05:00', 1, 10, 901234567, 'V', 20, 20, 20, NULL, NULL, NULL, 111), /** Venta 20: Cliente natural 5 - Tarjeta crédito Visa */
-    (18.00, CURRENT_DATE - INTERVAL '20 days' + TIME '13:15:00', 1, 1, 123456789, 'J', 21, 21, 21, NULL, NULL, NULL, 112), /** Venta 21: Cliente natural 6 - Tarjeta débito */
-    (19.00, CURRENT_DATE - INTERVAL '20 days' + TIME '10:35:00', 1, 2, 987654321, 'V', 22, 22, 22, NULL, NULL, NULL, 112), /** Venta 22: Cliente natural 6 - Tarjeta débito */
-    (53.00, CURRENT_DATE - INTERVAL '20 days' + TIME '11:05:00', 1, 3, 234567890, 'J', 23, 23, 23, NULL, NULL, NULL, 113), /** Venta 23: Cliente natural 7 - Tarjeta crédito MasterCard */
-    (10.00, CURRENT_DATE - INTERVAL '20 days' + TIME '15:45:00', 1, 4, 345678901, 'V', 24, 24, 24, NULL, NULL, NULL, 113), /** Venta 24: Cliente natural 7 - Tarjeta crédito MasterCard */
-    (37.00, CURRENT_DATE - INTERVAL '20 days' + TIME '13:35:00', 1, 5, 456789012, 'J', 25, 25, 25, NULL, NULL, NULL, 114), /** Venta 25: Cliente natural 8 - Tarjeta débito */
-    (59.00, CURRENT_DATE - INTERVAL '15 days' + TIME '08:05:00', 1, 6, 567890123, 'V', 26, 26, 26, NULL, NULL, NULL, 114), /** Venta 26: Cliente natural 8 - Tarjeta débito */
-    (14.00, CURRENT_DATE - INTERVAL '15 days' + TIME '12:45:00', 1, 7, 678901234, 'J', 27, 27, 27, NULL, NULL, NULL, 115), /** Venta 27: Cliente natural 9 - Tarjeta crédito American Express */
-    (19.00, CURRENT_DATE - INTERVAL '15 days' + TIME '10:35:00', 1, 8, 789012345, 'V', 28, 28, 28, NULL, NULL, NULL, 115), /** Venta 28: Cliente natural 9 - Tarjeta crédito American Express */
-    (43.00, CURRENT_DATE - INTERVAL '15 days' + TIME '11:50:00', 1, 9, 890123456, 'J', 29, 29, 29, NULL, NULL, NULL, 116), /** Venta 29: Cliente natural 10 - Tarjeta débito */
-    (29.00, CURRENT_DATE - INTERVAL '15 days' + TIME '17:30:00', 1, 10, 901234567, 'V', 30, 30, 30, NULL, NULL, NULL, 116), /** Venta 30: Cliente natural 10 - Tarjeta débito */
-    (49.00, CURRENT_DATE - INTERVAL '10 days' + TIME '09:05:00', 1, 1, 123456789, 'J', 31, 31, 31, NULL, NULL, NULL, 117), /** Venta 31: Cliente natural 11 - Tarjeta crédito Visa */
-    (14.00, CURRENT_DATE - INTERVAL '10 days' + TIME '10:20:00', 1, 2, 987654321, 'V', 32, 32, 32, NULL, NULL, NULL, 117), /** Venta 32: Cliente natural 11 - Tarjeta crédito Visa */
-    (19.00, CURRENT_DATE - INTERVAL '10 days' + TIME '15:00:00', 1, 3, 234567890, 'J', 33, 33, 33, NULL, NULL, NULL, 118), /** Venta 33: Cliente natural 12 - Tarjeta débito */
-    (67.00, CURRENT_DATE - INTERVAL '10 days' + TIME '12:50:00', 1, 4, 345678901, 'V', 34, 34, 34, NULL, NULL, NULL, 118), /** Venta 34: Cliente natural 12 - Tarjeta débito */
-    (29.00, CURRENT_DATE - INTERVAL '10 days' + TIME '14:05:00', 1, 5, 456789012, 'J', 35, 35, 35, NULL, NULL, NULL, 119), /** Venta 35: Cliente natural 13 - Tarjeta crédito MasterCard */
-    (10.00, CURRENT_DATE - INTERVAL '7 days' + TIME '12:00:00', 1, 6, 567890123, 'V', 36, 36, 36, NULL, NULL, NULL, 119), /** Venta 36: Cliente natural 13 - Tarjeta crédito MasterCard */
-    (57.00, CURRENT_DATE - INTERVAL '7 days' + TIME '09:50:00', 1, 7, 678901234, 'J', 37, 37, 37, NULL, NULL, NULL, 120), /** Venta 37: Cliente natural 14 - Tarjeta débito */
-    (19.00, CURRENT_DATE - INTERVAL '7 days' + TIME '10:05:00', 1, 8, 789012345, 'V', 38, 38, 38, NULL, NULL, NULL, 120), /** Venta 38: Cliente natural 14 - Tarjeta débito */
-    (43.00, CURRENT_DATE - INTERVAL '7 days' + TIME '14:45:00', 1, 9, 890123456, 'J', 39, 39, 39, NULL, NULL, NULL, 121), /** Venta 39: Cliente natural 15 - Tarjeta crédito Visa */
-    (29.00, CURRENT_DATE - INTERVAL '7 days' + TIME '13:05:00', 1, 10, 901234567, 'V', 40, 40, 40, NULL, NULL, NULL, 121), /** Venta 40: Cliente natural 15 - Tarjeta crédito Visa */
-    (18.00, CURRENT_DATE - INTERVAL '5 days' + TIME '09:05:00', 1, 1, 123456789, 'J', 41, 41, 41, NULL, NULL, NULL, 122), /** Venta 41: Cliente natural 16 - Tarjeta débito */
-    (10.00, CURRENT_DATE - INTERVAL '5 days' + TIME '14:00:00', 1, 2, 987654321, 'V', 42, 42, 42, NULL, NULL, NULL, 122), /** Venta 42: Cliente natural 16 - Tarjeta débito */
-    (43.00, CURRENT_DATE - INTERVAL '5 days' + TIME '11:50:00', 1, 3, 234567890, 'J', 43, 43, 43, NULL, NULL, NULL, 123), /** Venta 43: Cliente natural 17 - Tarjeta crédito MasterCard */
-    (29.00, CURRENT_DATE - INTERVAL '5 days' + TIME '13:05:00', 1, 4, 345678901, 'V', 44, 44, 44, NULL, NULL, NULL, 123), /** Venta 44: Cliente natural 17 - Tarjeta crédito MasterCard */
-    (57.00, CURRENT_DATE - INTERVAL '5 days' + TIME '18:00:00', 1, 5, 456789012, 'J', 45, 45, 45, NULL, NULL, NULL, 124), /** Venta 45: Cliente natural 18 - Tarjeta débito */
-    (19.00, CURRENT_DATE - INTERVAL '3 days' + TIME '08:20:00', 1, 6, 567890123, 'V', 46, 46, 46, NULL, NULL, NULL, 124), /** Venta 46: Cliente natural 18 - Tarjeta débito */
-    (59.00, CURRENT_DATE - INTERVAL '3 days' + TIME '09:35:00', 1, 7, 678901234, 'J', 47, 47, 47, NULL, NULL, NULL, 125), /** Venta 47: Cliente natural 19 - Tarjeta crédito American Express */
-    (18.00, CURRENT_DATE - INTERVAL '3 days' + TIME '13:30:00', 1, 8, 789012345, 'V', 48, 48, 48, NULL, NULL, NULL, 125), /** Venta 48: Cliente natural 19 - Tarjeta crédito American Express */
-    (29.00, CURRENT_DATE - INTERVAL '3 days' + TIME '11:20:00', 1, 9, 890123456, 'J', 49, 49, 49, NULL, NULL, NULL, 126), /** Venta 49: Cliente natural 20 - Tarjeta débito */
-    (10.00, CURRENT_DATE - INTERVAL '3 days' + TIME '14:05:00', 1, 10, 901234567, 'V', 50, 50, 50, NULL, NULL, NULL, 126), /** Venta 50: Cliente natural 20 - Tarjeta débito */
+    (39.00, CURRENT_DATE - INTERVAL '28 days' + TIME '09:05:00', 4, NULL, NULL, NULL, 11, NULL, NULL, NULL, NULL, NULL, 101), /** Venta 11: Cliente natural 1 - Tarjeta crédito Visa */
+    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '13:50:00', 4, NULL, NULL, NULL, 12, NULL, NULL, NULL, NULL, NULL, 101), /** Venta 12: Cliente natural 1 - Tarjeta crédito Visa */
+    (49.00, CURRENT_DATE - INTERVAL '28 days' + TIME '11:50:00', 4, NULL, NULL, NULL, 13, NULL, NULL, NULL, NULL, NULL, 102), /** Venta 13: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (29.00, CURRENT_DATE - INTERVAL '28 days' + TIME '14:35:00', 4, NULL, NULL, NULL, 14, NULL, NULL, NULL, NULL, NULL, 102), /** Venta 14: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '18:30:00', 4, NULL, NULL, NULL, 15, NULL, NULL, NULL, NULL, NULL, 103), /** Venta 15: Cliente natural 3 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '25 days' + TIME '08:20:00', 7, NULL, NULL, NULL, 16, NULL, NULL, NULL, NULL, NULL, 103), /** Venta 16: Cliente natural 3 - Tarjeta débito */
+    (27.00, CURRENT_DATE - INTERVAL '25 days' + TIME '09:35:00', 7, NULL, NULL, NULL, 17, NULL, NULL, NULL, NULL, NULL, 104), /** Venta 17: Cliente natural 4 - Tarjeta débito */
+    (10.00, CURRENT_DATE - INTERVAL '25 days' + TIME '13:30:00', 7, NULL, NULL, NULL, 18, NULL, NULL, NULL, NULL, NULL, 104), /** Venta 18: Cliente natural 4 - Tarjeta débito */
+    (39.00, CURRENT_DATE - INTERVAL '25 days' + TIME '11:20:00', 7, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, NULL, 111), /** Venta 19: Cliente natural 5 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE - INTERVAL '25 days' + TIME '14:05:00', 7, NULL, NULL, NULL, 20, NULL, NULL, NULL, NULL, NULL, 111), /** Venta 20: Cliente natural 5 - Tarjeta crédito Visa */
+    (18.00, CURRENT_DATE - INTERVAL '20 days' + TIME '13:15:00', 12, NULL, NULL, NULL, 21, NULL, NULL, NULL, NULL, NULL, 112), /** Venta 21: Cliente natural 6 - Tarjeta débito */
+    (19.00, CURRENT_DATE - INTERVAL '20 days' + TIME '10:35:00', 12, NULL, NULL, NULL, 22, NULL, NULL, NULL, NULL, NULL, 112), /** Venta 22: Cliente natural 6 - Tarjeta débito */
+    (53.00, CURRENT_DATE - INTERVAL '20 days' + TIME '11:05:00', 12, NULL, NULL, NULL, 23, NULL, NULL, NULL, NULL, NULL, 113), /** Venta 23: Cliente natural 7 - Tarjeta crédito MasterCard */
+    (10.00, CURRENT_DATE - INTERVAL '20 days' + TIME '15:45:00', 12, NULL, NULL, NULL, 24, NULL, NULL, NULL, NULL, NULL, 113), /** Venta 24: Cliente natural 7 - Tarjeta crédito MasterCard */
+    (37.00, CURRENT_DATE - INTERVAL '20 days' + TIME '13:35:00', 12, NULL, NULL, NULL, 25, NULL, NULL, NULL, NULL, NULL, 114), /** Venta 25: Cliente natural 8 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '15 days' + TIME '08:05:00', 17, NULL, NULL, NULL, 26, NULL, NULL, NULL, NULL, NULL, 114), /** Venta 26: Cliente natural 8 - Tarjeta débito */
+    (14.00, CURRENT_DATE - INTERVAL '15 days' + TIME '12:45:00', 17, NULL, NULL, NULL, 27, NULL, NULL, NULL, NULL, NULL, 115), /** Venta 27: Cliente natural 9 - Tarjeta crédito American Express */
+    (19.00, CURRENT_DATE - INTERVAL '15 days' + TIME '10:35:00', 17, NULL, NULL, NULL, 28, NULL, NULL, NULL, NULL, NULL, 115), /** Venta 28: Cliente natural 9 - Tarjeta crédito American Express */
+    (43.00, CURRENT_DATE - INTERVAL '15 days' + TIME '11:50:00', 17, NULL, NULL, NULL, 29, NULL, NULL, NULL, NULL, NULL, 116), /** Venta 29: Cliente natural 10 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '15 days' + TIME '17:30:00', 17, NULL, NULL, NULL, 30, NULL, NULL, NULL, NULL, NULL, 116), /** Venta 30: Cliente natural 10 - Tarjeta débito */
+    (49.00, CURRENT_DATE - INTERVAL '10 days' + TIME '09:05:00', 22, NULL, NULL, NULL, 31, NULL, NULL, NULL, NULL, NULL, 117), /** Venta 31: Cliente natural 11 - Tarjeta crédito Visa */
+    (14.00, CURRENT_DATE - INTERVAL '10 days' + TIME '10:20:00', 22, NULL, NULL, NULL, 32, NULL, NULL, NULL, NULL, NULL, 117), /** Venta 32: Cliente natural 11 - Tarjeta crédito Visa */
+    (19.00, CURRENT_DATE - INTERVAL '10 days' + TIME '15:00:00', 22, NULL, NULL, NULL, 33, NULL, NULL, NULL, NULL, NULL, 118), /** Venta 33: Cliente natural 12 - Tarjeta débito */
+    (67.00, CURRENT_DATE - INTERVAL '10 days' + TIME '12:50:00', 22, NULL, NULL, NULL, 34, NULL, NULL, NULL, NULL, NULL, 118), /** Venta 34: Cliente natural 12 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '10 days' + TIME '14:05:00', 22, NULL, NULL, NULL, 35, NULL, NULL, NULL, NULL, NULL, 119), /** Venta 35: Cliente natural 13 - Tarjeta crédito MasterCard */
+    (10.00, CURRENT_DATE - INTERVAL '7 days' + TIME '12:00:00', 25, NULL, NULL, NULL, 36, NULL, NULL, NULL, NULL, NULL, 119), /** Venta 36: Cliente natural 13 - Tarjeta crédito MasterCard */
+    (57.00, CURRENT_DATE - INTERVAL '7 days' + TIME '09:50:00', 25, NULL, NULL, NULL, 37, NULL, NULL, NULL, NULL, NULL, 120), /** Venta 37: Cliente natural 14 - Tarjeta débito */
+    (19.00, CURRENT_DATE - INTERVAL '7 days' + TIME '10:05:00', 25, NULL, NULL, NULL, 38, NULL, NULL, NULL, NULL, NULL, 120), /** Venta 38: Cliente natural 14 - Tarjeta débito */
+    (43.00, CURRENT_DATE - INTERVAL '7 days' + TIME '14:45:00', 25, NULL, NULL, NULL, 39, NULL, NULL, NULL, NULL, NULL, 121), /** Venta 39: Cliente natural 15 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE - INTERVAL '7 days' + TIME '13:05:00', 25, NULL, NULL, NULL, 40, NULL, NULL, NULL, NULL, NULL, 121), /** Venta 40: Cliente natural 15 - Tarjeta crédito Visa */
+    (18.00, CURRENT_DATE - INTERVAL '5 days' + TIME '09:05:00', 27, NULL, NULL, NULL, 41, NULL, NULL, NULL, NULL, NULL, 122), /** Venta 41: Cliente natural 16 - Tarjeta débito */
+    (10.00, CURRENT_DATE - INTERVAL '5 days' + TIME '14:00:00', 27, NULL, NULL, NULL, 42, NULL, NULL, NULL, NULL, NULL, 122), /** Venta 42: Cliente natural 16 - Tarjeta débito */
+    (43.00, CURRENT_DATE - INTERVAL '5 days' + TIME '11:50:00', 27, NULL, NULL, NULL, 43, NULL, NULL, NULL, NULL, NULL, 123), /** Venta 43: Cliente natural 17 - Tarjeta crédito MasterCard */
+    (29.00, CURRENT_DATE - INTERVAL '5 days' + TIME '13:05:00', 27, NULL, NULL, NULL, 44, NULL, NULL, NULL, NULL, NULL, 123), /** Venta 44: Cliente natural 17 - Tarjeta crédito MasterCard */
+    (57.00, CURRENT_DATE - INTERVAL '5 days' + TIME '18:00:00', 27, NULL, NULL, NULL, 45, NULL, NULL, NULL, NULL, NULL, 124), /** Venta 45: Cliente natural 18 - Tarjeta débito */
+    (19.00, CURRENT_DATE - INTERVAL '3 days' + TIME '08:20:00', 29, NULL, NULL, NULL, 46, NULL, NULL, NULL, NULL, NULL, 124), /** Venta 46: Cliente natural 18 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '3 days' + TIME '09:35:00', 29, NULL, NULL, NULL, 47, NULL, NULL, NULL, NULL, NULL, 125), /** Venta 47: Cliente natural 19 - Tarjeta crédito American Express */
+    (18.00, CURRENT_DATE - INTERVAL '3 days' + TIME '13:30:00', 29, NULL, NULL, NULL, 48, NULL, NULL, NULL, NULL, NULL, 125), /** Venta 48: Cliente natural 19 - Tarjeta crédito American Express */
+    (29.00, CURRENT_DATE - INTERVAL '3 days' + TIME '11:20:00', 29, NULL, NULL, NULL, 49, NULL, NULL, NULL, NULL, NULL, 126), /** Venta 49: Cliente natural 20 - Tarjeta débito */
+    (10.00, CURRENT_DATE - INTERVAL '3 days' + TIME '14:05:00', 29, NULL, NULL, NULL, 50, NULL, NULL, NULL, NULL, NULL, 126), /** Venta 50: Cliente natural 20 - Tarjeta débito */
 
     /** VENTAS 51-90: Clientes jurídicos (2 ventas por cada cliente jurídico 1-20) */
-    (47.00, CURRENT_DATE - INTERVAL '1 day' + TIME '12:00:00', 1, 1, 123456789, 'J', 51, 51, 51, NULL, NULL, NULL, 127), /** Venta 51: Cliente jurídico 1 - Tarjeta crédito Visa */
-    (19.00, CURRENT_DATE - INTERVAL '1 day' + TIME '09:05:00', 1, 2, 987654321, 'V', 52, 52, 52, NULL, NULL, NULL, 127), /** Venta 52: Cliente jurídico 1 - Tarjeta crédito Visa */
-    (53.00, CURRENT_DATE - INTERVAL '1 day' + TIME '09:50:00', 1, 3, 234567890, 'J', 53, 53, 53, NULL, NULL, NULL, 128), /** Venta 53: Cliente jurídico 2 - Tarjeta débito */
-    (29.00, CURRENT_DATE - INTERVAL '1 day' + TIME '13:45:00', 1, 4, 345678901, 'V', 54, 54, 54, NULL, NULL, NULL, 128), /** Venta 54: Cliente jurídico 2 - Tarjeta débito */
-    (59.00, CURRENT_DATE - INTERVAL '1 day' + TIME '11:05:00', 1, 5, 456789012, 'J', 55, 55, 55, NULL, NULL, NULL, 129), /** Venta 55: Cliente jurídico 3 - Tarjeta crédito MasterCard */
-    (14.00, CURRENT_DATE - INTERVAL '1 day' + TIME '11:35:00', 1, 6, 567890123, 'V', 56, 56, 56, NULL, NULL, NULL, 129), /** Venta 56: Cliente jurídico 3 - Tarjeta crédito MasterCard */
-    (23.00, CURRENT_DATE - INTERVAL '1 day' + TIME '15:30:00', 1, 7, 678901234, 'J', 57, 57, 57, NULL, NULL, NULL, 130), /** Venta 57: Cliente jurídico 4 - Tarjeta débito */
-    (39.00, CURRENT_DATE - INTERVAL '1 day' + TIME '13:20:00', 1, 8, 789012345, 'V', 58, 58, 58, NULL, NULL, NULL, 130), /** Venta 58: Cliente jurídico 4 - Tarjeta débito */
-    (33.00, CURRENT_DATE - INTERVAL '1 day' + TIME '14:05:00', 1, 9, 890123456, 'J', 59, 59, 59, NULL, NULL, NULL, 131), /** Venta 59: Cliente jurídico 5 - Tarjeta crédito Visa */
-    (49.00, CURRENT_DATE - INTERVAL '1 day' + TIME '18:00:00', 1, 10, 901234567, 'V', 60, 60, 60, NULL, NULL, NULL, 131), /** Venta 60: Cliente jurídico 5 - Tarjeta crédito Visa */
-    (10.00, CURRENT_DATE + TIME '08:05:00', 1, 1, 123456789, 'J', 61, 61, 61, NULL, NULL, NULL, 132), /** Venta 61: Cliente jurídico 6 - Tarjeta débito */
-    (27.00, CURRENT_DATE + TIME '08:35:00', 1, 2, 987654321, 'V', 62, 62, 62, NULL, NULL, NULL, 132), /** Venta 62: Cliente jurídico 6 - Tarjeta débito */
-    (59.00, CURRENT_DATE + TIME '12:30:00', 1, 3, 234567890, 'J', 63, 63, 63, NULL, NULL, NULL, 133), /** Venta 63: Cliente jurídico 7 - Tarjeta crédito MasterCard */
-    (33.00, CURRENT_DATE + TIME '09:20:00', 1, 4, 345678901, 'V', 64, 64, 64, NULL, NULL, NULL, 133), /** Venta 64: Cliente jurídico 7 - Tarjeta crédito MasterCard */
-    (39.00, CURRENT_DATE + TIME '09:50:00', 1, 5, 456789012, 'J', 65, 65, 65, NULL, NULL, NULL, 134), /** Venta 65: Cliente jurídico 8 - Tarjeta débito */
-    (19.00, CURRENT_DATE + TIME '13:30:00', 1, 6, 567890123, 'V', 66, 66, 66, NULL, NULL, NULL, 134), /** Venta 66: Cliente jurídico 8 - Tarjeta débito */
-    (57.00, CURRENT_DATE + TIME '10:35:00', 1, 7, 678901234, 'J', 67, 67, 67, NULL, NULL, NULL, 135), /** Venta 67: Cliente jurídico 9 - Tarjeta crédito American Express */
-    (29.00, CURRENT_DATE + TIME '11:05:00', 1, 8, 789012345, 'V', 68, 68, 68, NULL, NULL, NULL, 135), /** Venta 68: Cliente jurídico 9 - Tarjeta crédito American Express */
-    (43.00, CURRENT_DATE + TIME '14:45:00', 1, 9, 890123456, 'J', 69, 69, 69, NULL, NULL, NULL, 136), /** Venta 69: Cliente jurídico 10 - Tarjeta débito */
-    (59.00, CURRENT_DATE + TIME '11:50:00', 1, 10, 901234567, 'V', 70, 70, 70, NULL, NULL, NULL, 136), /** Venta 70: Cliente jurídico 10 - Tarjeta débito */
-    (19.00, CURRENT_DATE + TIME '12:05:00', 1, 1, 123456789, 'J', 71, 71, 71, NULL, NULL, NULL, 137), /** Venta 71: Cliente jurídico 11 - Tarjeta crédito Visa */
-    (18.00, CURRENT_DATE + TIME '16:00:00', 1, 2, 987654321, 'V', 72, 72, 72, NULL, NULL, NULL, 137), /** Venta 72: Cliente jurídico 11 - Tarjeta crédito Visa */
-    (68.00, CURRENT_DATE + TIME '13:05:00', 1, 3, 234567890, 'J', 73, 73, 73, NULL, NULL, NULL, 138), /** Venta 73: Cliente jurídico 12 - Tarjeta débito */
-    (14.00, CURRENT_DATE + TIME '13:35:00', 1, 4, 345678901, 'V', 74, 74, 74, NULL, NULL, NULL, 138), /** Venta 74: Cliente jurídico 12 - Tarjeta débito */
-    (59.00, CURRENT_DATE + TIME '17:30:00', 1, 5, 456789012, 'J', 75, 75, 75, NULL, NULL, NULL, 139), /** Venta 75: Cliente jurídico 13 - Tarjeta crédito MasterCard */
-    (19.00, CURRENT_DATE + TIME '14:20:00', 1, 6, 567890123, 'V', 76, 76, 76, NULL, NULL, NULL, 139), /** Venta 76: Cliente jurídico 13 - Tarjeta crédito MasterCard */
-    (47.00, CURRENT_DATE + TIME '14:50:00', 1, 7, 678901234, 'J', 77, 77, 77, NULL, NULL, NULL, 140), /** Venta 77: Cliente jurídico 14 - Tarjeta débito */
-    (29.00, CURRENT_DATE + TIME '18:30:00', 1, 8, 789012345, 'V', 78, 78, 78, NULL, NULL, NULL, 140), /** Venta 78: Cliente jurídico 14 - Tarjeta débito */
-    (49.00, CURRENT_DATE + TIME '15:35:00', 1, 9, 890123456, 'J', 79, 79, 79, NULL, NULL, NULL, 126), /** Venta 79: Cliente jurídico 15 - Tarjeta débito */
-    (27.00, CURRENT_DATE + TIME '16:05:00', 1, 10, 901234567, 'V', 80, 80, 80, NULL, NULL, NULL, 126), /** Venta 80: Cliente jurídico 15 - Tarjeta débito */
+    (47.00, CURRENT_DATE - INTERVAL '1 day' + TIME '12:00:00', 31, NULL, NULL, NULL, 51, NULL, NULL, NULL, NULL, NULL, 127), /** Venta 51: Cliente jurídico 1 - Tarjeta crédito Visa */
+    (19.00, CURRENT_DATE - INTERVAL '1 day' + TIME '09:05:00', 31, NULL, NULL, NULL, 52, NULL, NULL, NULL, NULL, NULL, 127), /** Venta 52: Cliente jurídico 1 - Tarjeta crédito Visa */
+    (53.00, CURRENT_DATE - INTERVAL '1 day' + TIME '09:50:00', 31, NULL, NULL, NULL, 53, NULL, NULL, NULL, NULL, NULL, 128), /** Venta 53: Cliente jurídico 2 - Tarjeta débito */
+    (29.00, CURRENT_DATE - INTERVAL '1 day' + TIME '13:45:00', 31, NULL, NULL, NULL, 54, NULL, NULL, NULL, NULL, NULL, 128), /** Venta 54: Cliente jurídico 2 - Tarjeta débito */
+    (59.00, CURRENT_DATE - INTERVAL '1 day' + TIME '11:05:00', 31, NULL, NULL, NULL, 55, NULL, NULL, NULL, NULL, NULL, 129), /** Venta 55: Cliente jurídico 3 - Tarjeta crédito MasterCard */
+    (14.00, CURRENT_DATE - INTERVAL '1 day' + TIME '11:35:00', 31, NULL, NULL, NULL, 56, NULL, NULL, NULL, NULL, NULL, 129), /** Venta 56: Cliente jurídico 3 - Tarjeta crédito MasterCard */
+    (23.00, CURRENT_DATE - INTERVAL '1 day' + TIME '15:30:00', 31, NULL, NULL, NULL, 57, NULL, NULL, NULL, NULL, NULL, 130), /** Venta 57: Cliente jurídico 4 - Tarjeta débito */
+    (39.00, CURRENT_DATE - INTERVAL '1 day' + TIME '13:20:00', 31, NULL, NULL, NULL, 58, NULL, NULL, NULL, NULL, NULL, 130), /** Venta 58: Cliente jurídico 4 - Tarjeta débito */
+    (33.00, CURRENT_DATE - INTERVAL '1 day' + TIME '14:05:00', 31, NULL, NULL, NULL, 59, NULL, NULL, NULL, NULL, NULL, 131), /** Venta 59: Cliente jurídico 5 - Tarjeta crédito Visa */
+    (49.00, CURRENT_DATE - INTERVAL '1 day' + TIME '18:00:00', 31, NULL, NULL, NULL, 60, NULL, NULL, NULL, NULL, NULL, 131), /** Venta 60: Cliente jurídico 5 - Tarjeta crédito Visa */
+    (10.00, CURRENT_DATE + TIME '08:05:00', 31, NULL, NULL, NULL, 61, NULL, NULL, NULL, NULL, NULL, 132), /** Venta 61: Cliente jurídico 6 - Tarjeta débito */
+    (27.00, CURRENT_DATE + TIME '08:35:00', 31, NULL, NULL, NULL, 62, NULL, NULL, NULL, NULL, NULL, 132), /** Venta 62: Cliente jurídico 6 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '12:30:00', 31, NULL, NULL, NULL, 63, NULL, NULL, NULL, NULL, NULL, 133), /** Venta 63: Cliente jurídico 7 - Tarjeta crédito MasterCard */
+    (33.00, CURRENT_DATE + TIME '09:20:00', 31, NULL, NULL, NULL, 64, NULL, NULL, NULL, NULL, NULL, 133), /** Venta 64: Cliente jurídico 7 - Tarjeta crédito MasterCard */
+    (39.00, CURRENT_DATE + TIME '09:50:00', 31, NULL, NULL, NULL, 65, NULL, NULL, NULL, NULL, NULL, 134), /** Venta 65: Cliente jurídico 8 - Tarjeta débito */
+    (19.00, CURRENT_DATE + TIME '13:30:00', 31, NULL, NULL, NULL, 66, NULL, NULL, NULL, NULL, NULL, 134), /** Venta 66: Cliente jurídico 8 - Tarjeta débito */
+    (57.00, CURRENT_DATE + TIME '10:35:00', 31, NULL, NULL, NULL, 67, NULL, NULL, NULL, NULL, NULL, 135), /** Venta 67: Cliente jurídico 9 - Tarjeta crédito American Express */
+    (29.00, CURRENT_DATE + TIME '11:05:00', 31, NULL, NULL, NULL, 68, NULL, NULL, NULL, NULL, NULL, 135), /** Venta 68: Cliente jurídico 9 - Tarjeta crédito American Express */
+    (43.00, CURRENT_DATE + TIME '14:45:00', 31, NULL, NULL, NULL, 69, NULL, NULL, NULL, NULL, NULL, 136), /** Venta 69: Cliente jurídico 10 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '11:50:00', 31, NULL, NULL, NULL, 70, NULL, NULL, NULL, NULL, NULL, 136), /** Venta 70: Cliente jurídico 10 - Tarjeta débito */
+    (19.00, CURRENT_DATE + TIME '12:05:00', 31, NULL, NULL, NULL, 71, NULL, NULL, NULL, NULL, NULL, 137), /** Venta 71: Cliente jurídico 11 - Tarjeta crédito Visa */
+    (18.00, CURRENT_DATE + TIME '16:00:00', 31, NULL, NULL, NULL, 72, NULL, NULL, NULL, NULL, NULL, 137), /** Venta 72: Cliente jurídico 11 - Tarjeta crédito Visa */
+    (68.00, CURRENT_DATE + TIME '13:05:00', 31, NULL, NULL, NULL, 73, NULL, NULL, NULL, NULL, NULL, 138), /** Venta 73: Cliente jurídico 12 - Tarjeta débito */
+    (14.00, CURRENT_DATE + TIME '13:35:00', 31, NULL, NULL, NULL, 74, NULL, NULL, NULL, NULL, NULL, 138), /** Venta 74: Cliente jurídico 12 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '17:30:00', 31, NULL, NULL, NULL, 75, NULL, NULL, NULL, NULL, NULL, 139), /** Venta 75: Cliente jurídico 13 - Tarjeta crédito MasterCard */
+    (19.00, CURRENT_DATE + TIME '14:20:00', 31, NULL, NULL, NULL, 76, NULL, NULL, NULL, NULL, NULL, 139), /** Venta 76: Cliente jurídico 13 - Tarjeta crédito MasterCard */
+    (47.00, CURRENT_DATE + TIME '14:50:00', 31, NULL, NULL, NULL, 77, NULL, NULL, NULL, NULL, NULL, 140), /** Venta 77: Cliente jurídico 14 - Tarjeta débito */
+    (29.00, CURRENT_DATE + TIME '18:30:00', 31, NULL, NULL, NULL, 78, NULL, NULL, NULL, NULL, NULL, 140), /** Venta 78: Cliente jurídico 14 - Tarjeta débito */
+    (49.00, CURRENT_DATE + TIME '15:35:00', 31, NULL, NULL, NULL, 79, NULL, NULL, NULL, NULL, NULL, 126), /** Venta 79: Cliente jurídico 15 - Tarjeta débito */
+    (27.00, CURRENT_DATE + TIME '16:05:00', 31, NULL, NULL, NULL, 80, NULL, NULL, NULL, NULL, NULL, 126), /** Venta 80: Cliente jurídico 15 - Tarjeta débito */
     
     /** VENTAS 81-90: Ventas pendientes aún en proceso */
-    (59.00, CURRENT_DATE + TIME '16:30:00', 1, 1, 123456789, 'J', 81, 81, 81, NULL, NULL, NULL, 127), /** Venta 81: Cliente jurídico 16 - Tarjeta crédito Visa */
-    (29.00, CURRENT_DATE + TIME '17:00:00', 1, 2, 987654321, 'V', 82, 82, 82, NULL, NULL, NULL, 127), /** Venta 82: Cliente jurídico 16 - Tarjeta crédito Visa */
-    (43.00, CURRENT_DATE + TIME '17:15:00', 1, 3, 234567890, 'J', 83, 83, 83, NULL, NULL, NULL, 128), /** Venta 83: Cliente jurídico 17 - Tarjeta débito */
-    (19.00, CURRENT_DATE + TIME '17:30:00', 1, 4, 345678901, 'V', 84, 84, 84, NULL, NULL, NULL, 128), /** Venta 84: Cliente jurídico 17 - Tarjeta débito */
-    (57.00, CURRENT_DATE + TIME '17:45:00', 1, 5, 456789012, 'J', 85, 85, 85, NULL, NULL, NULL, 129), /** Venta 85: Cliente jurídico 18 - Tarjeta crédito MasterCard */
-    (10.00, CURRENT_DATE + TIME '18:00:00', 1, 6, 567890123, 'V', 86, 86, 86, NULL, NULL, NULL, 129), /** Venta 86: Cliente jurídico 18 - Tarjeta crédito MasterCard */
-    (33.00, CURRENT_DATE + TIME '18:15:00', 1, 7, 678901234, 'J', 87, 87, 87, NULL, NULL, NULL, 130), /** Venta 87: Cliente jurídico 19 - Tarjeta débito */
-    (59.00, CURRENT_DATE + TIME '18:30:00', 1, 8, 789012345, 'V', 88, 88, 88, NULL, NULL, NULL, 130), /** Venta 88: Cliente jurídico 19 - Tarjeta débito */
-    (23.00, CURRENT_DATE + TIME '18:45:00', 1, 9, 890123456, 'J', 89, 89, 89, NULL, NULL, NULL, 131), /** Venta 89: Cliente jurídico 20 - Tarjeta crédito Visa */
-    (39.00, CURRENT_DATE + TIME '19:00:00', 1, 10, 901234567, 'V', 90, 90, 90, NULL, NULL, NULL, 131); /** Venta 90: Cliente jurídico 20 - Tarjeta crédito Visa */
+    (59.00, CURRENT_DATE + TIME '16:30:00', 31, NULL, NULL, NULL, 81, NULL, NULL, NULL, NULL, NULL, 127), /** Venta 81: Cliente jurídico 16 - Tarjeta crédito Visa */
+    (29.00, CURRENT_DATE + TIME '17:00:00', 31, NULL, NULL, NULL, 82, NULL, NULL, NULL, NULL, NULL, 127), /** Venta 82: Cliente jurídico 16 - Tarjeta crédito Visa */
+    (43.00, CURRENT_DATE + TIME '17:15:00', 31, NULL, NULL, NULL, 83, NULL, NULL, NULL, NULL, NULL, 128), /** Venta 83: Cliente jurídico 17 - Tarjeta débito */
+    (19.00, CURRENT_DATE + TIME '17:30:00', 31, NULL, NULL, NULL, 84, NULL, NULL, NULL, NULL, NULL, 128), /** Venta 84: Cliente jurídico 17 - Tarjeta débito */
+    (57.00, CURRENT_DATE + TIME '17:45:00', 31, NULL, NULL, NULL, 85, NULL, NULL, NULL, NULL, NULL, 129), /** Venta 85: Cliente jurídico 18 - Tarjeta crédito MasterCard */
+    (10.00, CURRENT_DATE + TIME '18:00:00', 31, NULL, NULL, NULL, 86, NULL, NULL, NULL, NULL, NULL, 129), /** Venta 86: Cliente jurídico 18 - Tarjeta crédito MasterCard */
+    (33.00, CURRENT_DATE + TIME '18:15:00', 31, NULL, NULL, NULL, 87, NULL, NULL, NULL, NULL, NULL, 130), /** Venta 87: Cliente jurídico 19 - Tarjeta débito */
+    (59.00, CURRENT_DATE + TIME '18:30:00', 31, NULL, NULL, NULL, 88, NULL, NULL, NULL, NULL, NULL, 130), /** Venta 88: Cliente jurídico 19 - Tarjeta débito */
+    (23.00, CURRENT_DATE + TIME '18:45:00', 31, NULL, NULL, NULL, 89, NULL, NULL, NULL, NULL, NULL, 131), /** Venta 89: Cliente jurídico 20 - Tarjeta crédito Visa */
+    (39.00, CURRENT_DATE + TIME '19:00:00', 31, NULL, NULL, NULL, 90, NULL, NULL, NULL, NULL, NULL, 131); /** Venta 90: Cliente jurídico 20 - Tarjeta crédito Visa */

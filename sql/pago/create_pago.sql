@@ -16,10 +16,10 @@ CREATE TABLE metodo_pago (
     tipo              VARCHAR(50) NOT NULL CHECK (tipo IN ('efectivo', 'tarjeta_credito', 'punto', 'cheque', 'tarjeta_debito')),
     denominación      VARCHAR(50),
     tipo_tarjeta      VARCHAR(50),
-    número            INTEGER UNIQUE,
+    número            BIGINT UNIQUE,
     banco             VARCHAR(50),
     fecha_vencimiento DATE,
-    número_cheque     INTEGER UNIQUE,
+    número_cheque     BIGINT UNIQUE,
     fecha_adquisicion DATE,
     fecha_canjeo      DATE,
     CONSTRAINT metodo_pago_pk PRIMARY KEY (id),
@@ -176,12 +176,12 @@ CREATE TABLE pago (
     monto                    DECIMAL(10,2) NOT NULL,
     fecha_pago               TIMESTAMP NOT NULL,
     fk_tasa                  INTEGER NOT NULL,
-    fk_mensualidad_1         INTEGER NOT NULL,
-    fk_mensualidad_2         INTEGER NOT NULL,
-    fk_mensualidad_3         CHAR(1) NOT NULL,
-    fk_venta                 INTEGER NOT NULL,
-    fk_orden_de_compra       INTEGER NOT NULL,
-    fk_venta_evento          INTEGER NOT NULL,
+    fk_mensualidad_1         INTEGER,
+    fk_mensualidad_2         INTEGER,
+    fk_mensualidad_3         CHAR(1),
+    fk_venta                 INTEGER,
+    fk_orden_de_compra       INTEGER,
+    fk_venta_evento          INTEGER,
     fk_miembro_metodo_pago_3 INTEGER,
     fk_miembro_metodo_pago_2 CHAR(1),
     fk_miembro_metodo_pago_1 INTEGER,
@@ -189,6 +189,21 @@ CREATE TABLE pago (
 
     
     CONSTRAINT pago_pk PRIMARY KEY (id),
+    /** Constraint que asegura que solo un tipo de transacción esté presente por pago */
+    CONSTRAINT chk_arc_tipo_transaccion CHECK (
+        ((fk_mensualidad_1 IS NOT NULL AND fk_mensualidad_2 IS NOT NULL AND fk_mensualidad_3 IS NOT NULL AND 
+          fk_venta IS NULL AND fk_orden_de_compra IS NULL AND fk_venta_evento IS NULL) OR
+         (fk_venta IS NOT NULL AND 
+          fk_mensualidad_1 IS NULL AND fk_mensualidad_2 IS NULL AND fk_mensualidad_3 IS NULL AND 
+          fk_orden_de_compra IS NULL AND fk_venta_evento IS NULL) OR
+         (fk_orden_de_compra IS NOT NULL AND 
+          fk_mensualidad_1 IS NULL AND fk_mensualidad_2 IS NULL AND fk_mensualidad_3 IS NULL AND 
+          fk_venta IS NULL AND fk_venta_evento IS NULL) OR
+         (fk_venta_evento IS NOT NULL AND 
+          fk_mensualidad_1 IS NULL AND fk_mensualidad_2 IS NULL AND fk_mensualidad_3 IS NULL AND 
+          fk_venta IS NULL AND fk_orden_de_compra IS NULL))
+    ),
+    /** Constraint que asegura que solo un tipo de método de pago esté presente por pago */
     CONSTRAINT chk_arc_pago CHECK (
         ((fk_miembro_metodo_pago_3 IS NOT NULL AND 
           fk_miembro_metodo_pago_2 IS NOT NULL AND 
