@@ -60,39 +60,39 @@ INSERT INTO periodo_descuento (fecha_inicio, fecha_fin) VALUES
 ('2025-09-01', '2025-09-10'),
 ('2025-10-01', '2025-10-10');
 
-INSERT INTO presentacion (sku, nombre, descripcion, monto) VALUES
-('B330', 'Botella 330ml', 'Botella individual de 330ml', 3),
-('B500', 'Botella 500ml', 'Botella individual de 500ml', 5),
-('L330', 'Lata 330ml', 'Lata individual de 330ml', 2),
-('SP330', 'Six-pack 330ml', 'Paquete de 6 botellas 330ml', 15),
-('C24330', 'Caja 24 unidades 330ml', 'Caja completa con 24 unidades', 50),
-('B20', 'Barril 20L', 'Barril metálico de 20 litros', 70),
-('B30', 'Barril 30L', 'Barril metálico de 30 litros', 100),
-('B50', 'Barril 50L', 'Barril metálico de 50 litros', 160),
-('G1L', 'Growler 1L', 'Envase rellenable 1 litro', 10),
-('C12500', 'Caja 12 unidades 500ml', 'Caja con 12 botellas de 500ml', 45);
+INSERT INTO presentacion (sku, nombre, descripcion, unidades) VALUES
+('B330', 'Botella 330ml', 'Botella individual de 330ml', 1),
+('B500', 'Botella 500ml', 'Botella individual de 500ml', 1),
+('L330', 'Lata 330ml', 'Lata individual de 330ml', 1),
+('SP330', 'Six-pack 330ml', 'Paquete de 6 botellas 330ml', 6),
+('C24330', 'Caja 24 unidades 330ml', 'Caja completa con 24 unidades', 24),
+('B20', 'Barril 20L', 'Barril metálico de 20 litros', 53),
+('B30', 'Barril 30L', 'Barril metálico de 30 litros', 72),
+('B50', 'Barril 50L', 'Barril metálico de 50 litros', 120),
+('G1L', 'Growler 1L', 'Envase rellenable 1 litro', 3),
+('C12500', 'Caja 12 unidades 500ml', 'Caja con 12 botellas de 500ml', 12);
 
 /** Inserción de relaciones presentación-cerveza para todas las cervezas **/
-INSERT INTO presentacion_cerveza (unidades, fk_presentacion, fk_cerveza) VALUES
+INSERT INTO presentacion_cerveza (precio, fk_presentacion, fk_cerveza) VALUES
 /** Distribución cíclica de las 10 presentaciones para las 18 cervezas **/
-(1, 'B330', 1),      /** Destilo - Botella 330ml **/
-(1, 'B500', 2),      /** Dos Leones - Botella 500ml **/
-(1, 'L330', 3),      /** Benitz Pale Ale - Lata 330ml **/
-(6, 'SP330', 4),     /** Candileja de Abadía - Six-pack 330ml **/
-(24, 'C24330', 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
-(1, 'B20', 6),       /** Barricas Saison Belga - Barril 20L **/
-(1, 'B30', 7),       /** Aldarra Mantuana - Barril 30L **/
-(1, 'B50', 8),       /** Tröegs HopBack Amber - Barril 50L **/
-(1, 'G1L', 9),       /** Full Sail Amber - Growler 1L **/
-(12, 'C12500', 10),  /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
-(1, 'B330', 11),     /** Rogue American Amber - Botella 330ml **/
-(1, 'B500', 12),     /** La Chouffe - Botella 500ml **/
-(1, 'L330', 13),     /** Orval - Lata 330ml **/
-(6, 'SP330', 14),    /** Chimay - Six-pack 330ml **/
-(24, 'C24330', 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
-(1, 'B20', 16),      /** Hoegaarden - Barril 20L **/
-(1, 'B30', 17),      /** Pilsner Urquell - Barril 30L **/
-(1, 'B50', 18);      /** Samuel Adams - Barril 50L **/
+(1.00, 'B330', 1),      /** Destilo - Botella 330ml **/
+(1.00, 'B500', 2),      /** Dos Leones - Botella 500ml **/
+(1.00, 'L330', 3),      /** Benitz Pale Ale - Lata 330ml **/
+(5.00, 'SP330', 4),     /** Candileja de Abadía - Six-pack 330ml **/
+(20.00, 'C24330', 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
+(30.00, 'B20', 6),       /** Barricas Saison Belga - Barril 20L **/
+(40.00, 'B30', 7),       /** Aldarra Mantuana - Barril 30L **/
+(50.00, 'B50', 8),       /** Tröegs HopBack Amber - Barril 50L **/
+(1.00, 'G1L', 9),       /** Full Sail Amber - Growler 1L **/
+(10.00, 'C12500', 10),  /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
+(1.00, 'B330', 11),     /** Rogue American Amber - Botella 330ml **/
+(1.00, 'B500', 12),     /** La Chouffe - Botella 500ml **/
+(1.00, 'L330', 13),     /** Orval - Lata 330ml **/
+(5.00, 'SP330', 14),    /** Chimay - Six-pack 330ml **/
+(20.00, 'C24330', 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
+(30.00, 'B20', 16),      /** Hoegaarden - Barril 20L **/
+(40.00, 'B30', 17),      /** Pilsner Urquell - Barril 30L **/
+(50.00, 'B50', 18);      /** Samuel Adams - Barril 50L **/
  
 
 

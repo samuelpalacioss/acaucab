@@ -74,20 +74,21 @@ CREATE TABLE venta (
 /** 
  * Tabla detalle_presentación
  * Almacena los detalles de las presentaciones de productos en cada venta
- * Incluye cantidad, precio unitario y referencias a inventario y venta
+ * Incluye cantidad, precio unitario y referencias a presentación_cerveza y venta
  */
 CREATE TABLE detalle_presentacion (
     cantidad        INTEGER NOT NULL,                    /** Cantidad de productos vendidos (tipo: INTEGER) */
     precio_unitario DECIMAL(10,2),                      /** Precio por unidad del producto (tipo: DECIMAL) */
-    fk_presentacion VARCHAR(20) NOT NULL,                   /** Primera clave foránea del inventario (tipo: INTEGER) */
+    fk_presentacion VARCHAR(20) NOT NULL,               /** Primera clave foránea de presentación_cerveza - SKU (tipo: VARCHAR) */
+    fk_cerveza      INTEGER NOT NULL,                   /** Segunda clave foránea de presentación_cerveza - ID cerveza (tipo: INTEGER) */
     fk_venta        INTEGER NOT NULL,                   /** Clave foránea que referencia la venta (tipo: INTEGER) */
     
     /** Definición de clave primaria compuesta */
-    CONSTRAINT detalle_presentacion_pk PRIMARY KEY (fk_presentacion, fk_venta),
+    CONSTRAINT detalle_presentacion_pk PRIMARY KEY (fk_presentacion, fk_cerveza, fk_venta),
     
-    /** Clave foránea que referencia la tabla inventario */
-    CONSTRAINT detalle_presentacion_fk_presentacion FOREIGN KEY (fk_presentacion) 
-        REFERENCES presentacion (sku),
+    /** Clave foránea que referencia la tabla presentacion_cerveza */
+    CONSTRAINT detalle_presentacion_fk_presentacion_cerveza FOREIGN KEY (fk_presentacion, fk_cerveza) 
+        REFERENCES presentacion_cerveza (fk_presentacion, fk_cerveza),
     
     /** Clave foránea que referencia la tabla venta */
     CONSTRAINT detalle_presentacion_fk_venta FOREIGN KEY (fk_venta) 

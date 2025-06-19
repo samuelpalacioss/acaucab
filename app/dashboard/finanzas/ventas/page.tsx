@@ -27,7 +27,6 @@ export default async function VentasPage() {
     const ventasData: VentaResponse[] = await llamarFuncion<VentaResponse>("fn_get_ventas");
     const statusData: Status[] = await llamarFuncion<Status>("fn_get_status");
     bcv = await getBCV();
-    console.log(bcv);
     /**
      * Procesamiento y transformación de datos en el servidor
      * Convertimos VentaResponse[] a VentaExpandida[] para la interfaz

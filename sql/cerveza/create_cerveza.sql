@@ -151,7 +151,7 @@ CREATE TABLE presentacion (
     sku         VARCHAR(20),
     nombre      VARCHAR(50) NOT NULL,
     descripcion TEXT NOT NULL,
-    monto       INTEGER NOT NULL,
+    unidades    INTEGER NOT NULL,
     CONSTRAINT presentacion_pk PRIMARY KEY (sku)
 );
 
@@ -162,7 +162,7 @@ CREATE TABLE presentacion (
  * @param fk_cerveza - ID de la cerveza
  */
 CREATE TABLE presentacion_cerveza (
-    unidades        INTEGER NOT NULL,
+    precio        DECIMAL(10,2) NOT NULL,
     fk_presentacion VARCHAR(20) NOT NULL,
     fk_cerveza      INTEGER NOT NULL,
     CONSTRAINT presentacion_cerveza_pk PRIMARY KEY (fk_presentacion, fk_cerveza),

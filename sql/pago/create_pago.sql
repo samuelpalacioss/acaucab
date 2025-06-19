@@ -186,16 +186,15 @@ CREATE TABLE pago (
     fk_miembro_metodo_pago_2 CHAR(1),
     fk_miembro_metodo_pago_1 INTEGER,
     fk_cliente_metodo_pago_1 INTEGER,
-    fk_cliente_metodo_pago_2 INTEGER,
+
+    
     CONSTRAINT pago_pk PRIMARY KEY (id),
     CONSTRAINT chk_arc_pago CHECK (
         ((fk_miembro_metodo_pago_3 IS NOT NULL AND 
           fk_miembro_metodo_pago_2 IS NOT NULL AND 
           fk_miembro_metodo_pago_1 IS NOT NULL AND 
-          fk_cliente_metodo_pago_1 IS NULL AND 
-          fk_cliente_metodo_pago_2 IS NULL) OR
+          fk_cliente_metodo_pago_1 IS NULL) OR
          (fk_cliente_metodo_pago_1 IS NOT NULL AND 
-          fk_cliente_metodo_pago_2 IS NOT NULL AND 
           fk_miembro_metodo_pago_3 IS NULL AND 
           fk_miembro_metodo_pago_2 IS NULL AND 
           fk_miembro_metodo_pago_1 IS NULL))
