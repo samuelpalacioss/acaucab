@@ -4,9 +4,9 @@
 DROP TABLE descuento CASCADE;
 
 /**
- * Elimina la tabla de relación entre presentaciones y cervezas
+ * Elimina la tabla de relación entre tipos de cerveza e ingredientes
  */
-DROP TABLE presentacion_cerveza CASCADE;
+DROP TABLE tipo_cerveza_ingrediente CASCADE;
 
 /**
  * Elimina la tabla de relación entre cervezas y características
@@ -14,9 +14,9 @@ DROP TABLE presentacion_cerveza CASCADE;
 DROP TABLE cerveza_caracteristica CASCADE;
 
 /**
- * Elimina la tabla de relación entre tipos de cerveza e ingredientes
+ * Elimina la tabla de relación entre presentaciones y cervezas
  */
-DROP TABLE tipo_cerveza_ingrediente CASCADE;
+DROP TABLE presentacion_cerveza CASCADE;
 
 /**
  * Elimina la tabla de cervezas
