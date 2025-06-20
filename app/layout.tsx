@@ -3,9 +3,9 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.dev",
+  title: "ACAUCAB",
+  description: "ACAUCAB, Tu Asociación de Cervezas",
+  generator: "ACAUCAB",
 };
 
 export default function RootLayout({

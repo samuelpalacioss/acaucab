@@ -40,11 +40,11 @@ export default function ProductList({
     return (
       <div className="text-center py-8 text-gray-500">
         {searchQuery ? (
-          <p>No products found matching "{searchQuery}"</p>
+          <p>No se encontraron productos que coincidan con "{searchQuery}"</p>
         ) : selectedCategory ? (
-          <p>No products found in the {selectedCategory} category</p>
+          <p>No se encontraron productos en la categoría {selectedCategory}</p>
         ) : (
-          <p>No products available</p>
+          <p>No hay productos disponibles</p>
         )}
       </div>
     );

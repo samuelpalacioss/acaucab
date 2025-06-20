@@ -29,14 +29,14 @@ export default function Cart({
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold flex items-center">
           <ShoppingCart className="mr-2 h-5 w-5" />
-          Cart{" "}
+          Carrito{" "}
           {itemCount > 0 && (
             <span className="ml-2 text-sm bg-gray-100 px-2 py-0.5 rounded-full">{itemCount}</span>
           )}
         </h2>
         {items.length > 0 && (
           <Button variant="outline" size="sm" onClick={onClearCart}>
-            Clear
+            Borrar
           </Button>
         )}
       </div>

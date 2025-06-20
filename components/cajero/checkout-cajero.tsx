@@ -114,7 +114,7 @@ export default function CheckoutCajero({
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Buscar productos..."
+                placeholder="Buscar productos"
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
