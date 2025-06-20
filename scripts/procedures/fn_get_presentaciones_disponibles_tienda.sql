@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION fn_get_presentaciones_disponibles_tienda(
 RETURNS TABLE (
     sku VARCHAR,              -- SKU de la presentación
     nombre_presentacion_cerveza VARCHAR,   -- Nombre de la cerveza (nombre de la presentación)
-    monto FLOAT,            -- Precio de la presentación
+    precio DECIMAL,            -- Precio de la presentación
     tipo_cerveza VARCHAR,     -- Tipo de cerveza
     stock_total INTEGER,      -- Stock total (almacén + lugares de la tienda física)
     marca VARCHAR            -- Marca (denominación comercial del miembro)
@@ -16,9 +16,9 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        pr.sku, -- SKU de la presentación
+        pc.sku, -- SKU de la presentación
         (c.nombre || ' (' || pr.nombre || ')')::VARCHAR, -- Nombre de la cerveza (nombre de la presentación)
-        pr.monto::FLOAT, -- Precio de la presentación
+        pc.precio::DECIMAL, -- Precio de la presentación
         tc.nombre, -- Tipo de cerveza
         -- Stock individual de producto: cantidad en almacén + cantidad en tienda
         COALESCE(i.cantidad_almacen, 0) + COALESCE(lti.cantidad, 0) AS stock_total,
@@ -32,7 +32,7 @@ BEGIN
     JOIN presentacion_cerveza pc ON i.fk_presentacion_cerveza_1 = pc.fk_presentacion 
     AND i.fk_presentacion_cerveza_2 = pc.fk_cerveza
     -- Unir presentacion
-    JOIN presentacion pr ON pc.fk_presentacion = pr.sku
+    JOIN presentacion pr ON pc.fk_presentacion = pr.id
     -- Unir cerveza
     JOIN cerveza c ON pc.fk_cerveza = c.id
     -- Unir tipo_cerveza
