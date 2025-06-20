@@ -8,8 +8,6 @@
 /**
  * Estado de la venta
  */
-export type EstadoVenta = 'Pendiente' | 'En proceso' | 'Entregado' | 'Cancelado';
-
 /**
  * Canal de venta
  */
@@ -82,7 +80,7 @@ export interface VentaExpandida extends Venta {
   canal_venta: CanalVenta;
   
   /** Estado de la venta */
-  estado?: EstadoVenta;
+  estado?: string;
   
   /** Lista de productos/presentaciones en la venta */
   detalles_presentacion?: DetallePresentacion[];
@@ -112,6 +110,56 @@ export interface VentaResponse {
 }
 
 /**
+ * Interface para la respuesta de la función PostgreSQL fn_get_venta_by_id()
+ * Representa una fila de la respuesta, que incluye detalles del producto.
+ */
+export interface VentaByIdResponse {
+  id: number;
+  monto_total: number;
+  direccion_entrega?: string;
+  observacion?: string;
+  tipo_cliente: string;
+  nombre_cliente: string;
+  tipo_tienda: string;
+  lugar_entrega?: string;
+  estado_entrega?: string;
+  fecha_ultimo_estado?: string;
+  producto_nombre: string;
+  producto_cantidad: number;
+  producto_precio_unitario: number;
+  pagos?: PagoDetalle[];
+}
+
+/**
+ * Interface para representar el detalle de un producto en una venta.
+ */
+export interface ProductoDetalle {
+  nombre: string;
+  cantidad: number;
+  precio_unitario: number;
+}
+
+/**
+ * Interface para representar el detalle de un pago en una venta.
+ */
+export interface PagoDetalle {
+  monto: number;
+  fecha_pago: string;
+  metodo_pago: string;
+  referencia: string;
+  tasa_bcv?: number;
+}
+
+/**
+ * Interface para la Venta con sus detalles de productos, ideal para la UI.
+ * Extiende VentaExpandida y añade la lista de productos.
+ */
+export interface VentaDetalleExpansida extends VentaExpandida {
+  productos: ProductoDetalle[];
+  pagos: PagoDetalle[];
+}
+
+/**
  * Interface para filtros de búsqueda de ventas
  */
 export interface FiltrosVenta {
@@ -122,7 +170,7 @@ export interface FiltrosVenta {
   canal?: CanalVenta;
   
   /** Filtro por estado */
-  estado?: EstadoVenta;
+  estado?: string;
   
   /** Filtro por tipo de cliente */
   tipo_cliente?: TipoCliente;
@@ -155,7 +203,7 @@ export function transformarVentaResponse(ventaResponse: VentaResponse): VentaExp
     nombre_cliente: ventaResponse.nombre_cliente,
     tipo_cliente: ventaResponse.tipo_cliente as TipoCliente,
     canal_venta: ventaResponse.tipo_tienda === 'Física' ? 'Tienda' : 'Web', // Mapear tipo_tienda a canal_venta
-    estado: ventaResponse.estado_entrega as EstadoVenta,
+    estado: ventaResponse.estado_entrega as string,
     puntos: 0, // No viene en la función SQL, asignar valor por defecto
     moneda: 'Bs', // No viene en la función SQL, asignar valor por defecto
     // Las FK no vienen en la función SQL, se pueden omitir o asignar undefined
@@ -165,6 +213,51 @@ export function transformarVentaResponse(ventaResponse: VentaResponse): VentaExp
     fk_cliente_natural: undefined,
     fk_tienda_fisica: undefined,
     fk_tienda_web: undefined,
+  };
+}
+
+/**
+ * Transforma la respuesta de fn_get_venta_by_id (un array de filas)
+ * en un único objeto de venta con un array de productos.
+ *
+ * @param ventaResponse - Array de la respuesta de PostgreSQL
+ * @returns VentaDetalleExpansida - Objeto de venta formateado para la UI, o null si no hay datos.
+ */
+export function transformarVentaByIdResponse(
+  ventaResponse: VentaByIdResponse[]
+): VentaDetalleExpansida | null {
+  if (!ventaResponse || ventaResponse.length === 0) {
+    return null;
+  }
+
+  // La información general de la venta es la misma en todas las filas.
+  const firstRow = ventaResponse[0];
+
+  // Reutilizamos la transformación base para la información general de la venta.
+  const ventaBase = transformarVentaResponse({
+    id: firstRow.id,
+    monto_total: firstRow.monto_total,
+    direccion_entrega: firstRow.direccion_entrega,
+    observacion: firstRow.observacion,
+    tipo_cliente: firstRow.tipo_cliente,
+    nombre_cliente: firstRow.nombre_cliente,
+    tipo_tienda: firstRow.tipo_tienda,
+    lugar_entrega: firstRow.lugar_entrega,
+    estado_entrega: firstRow.estado_entrega,
+    fecha_ultimo_estado: firstRow.fecha_ultimo_estado,
+  });
+
+  // Mapeamos cada fila a un objeto de detalle de producto.
+  const productos: ProductoDetalle[] = ventaResponse.map((row) => ({
+    nombre: row.producto_nombre,
+    cantidad: row.producto_cantidad,
+    precio_unitario: Number(row.producto_precio_unitario),
+  }));
+
+  return {
+    ...ventaBase,
+    productos: productos,
+    pagos: firstRow.pagos || [],
   };
 }
 

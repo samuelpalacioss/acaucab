@@ -1,3 +1,98 @@
+INSERT INTO color (srm, cod_hexadecimal) VALUES
+(2, '#F3F993'),   -- Pale lager, Witbier, Pilsener, Berliner Weisse
+(3, '#F5F75C'),   -- Maibock, Blonde Ale
+(4, '#F6F513'),   -- Weissbier
+(6, '#EAE615'),   -- American Pale Ale, India Pale Ale
+(8, '#E0D01B'),   -- Weissbier, Saison
+(10, '#D5BC26'),  -- English Bitter, ESB
+(13, '#CDAA37'),  -- Bière de Garde, Double IPA
+(17, '#C1963C'),  -- Dark lager, Vienna lager, Märzen, Amber Ale
+(20, '#BE8C3A'),  -- Brown Ale, Bock, Dunkel, Dunkelweizen
+(24, '#BE823A'),  -- Irish Dry Stout, Doppelbock, Porter
+(29, '#8B4513'),  -- Stout
+(35, '#654321'),  -- Foreign Stout, Baltic Porter
+(40, '#2F1B14');  -- Imperial Stout
+
+INSERT INTO tipo_cerveza (id,nombre,fk_tipo_cerveza,fk_color_superior,fk_color_inferior) VALUES
+(1,'Lager',NULL,8,2),
+(2,'Ale',NULL,13,2),
+(3,'Pilsner',1,3,2),
+(4,'Spezial',1,4,2),
+(5,'Dortmunster',1,NULL,3),
+(6,'Schwarzbier',1,NULL,8),
+(7,'Vienna',1,8,6),
+(8,'Bock',1,10,4),
+(9,'Bohemian Pilsener',1,NULL,3),
+(10,'Munich Helles',1,4,2),
+(11,'Oktoberfest-Marzen',1,NULL,8),
+(12,'Pale Ale',2,6,3),
+(13,'IPA',2,8,4),
+(14,'Amber Ale',2,8,6),
+(15,'Brown Ale',2,10,8),
+(16,'Golden Ale',2,NULL,2),
+(17,'Stout',2,13,10),
+(18,'Porter',2,NULL,NULL),
+(19,'Belgian Dubbel',2,10,8),
+(20,'Belgian Golden Strong',2,NULL,2),
+(21,'Belgian Specialty Ale',2,NULL,2),
+(22,'Wheat Beer',2,NULL,4),
+(23,'Blonde Ale',2,NULL,2),
+(24,'Barley Wine',2,10,6),
+(25,'American Pale Ale',12,6,3),
+(26,'English Pale Ale',12,6,3),
+(27,'American IPA',13,8,4),
+(28,'Imperial IPA',13,NULL,NULL),
+(29,'India Pale Ale',13,8,4),
+(30,'American Amber Ale',14,8,6),
+(31,'Irish Red Ale',14,8,6),
+(32,'Red Ale',14,8,6),
+(33,'Dry Stout',17,NULL,10),
+(34,'Imperial Stout',17,NULL,13),
+(35,'Sweet Stout',17,NULL,10),
+(36,'Artisanal Amber',21,8,6),
+(37,'Artisanal Blond',21,NULL,4),
+(38,'Artisanal Brown',21,10,8),
+(39,'Belgian Barleywine',21,NULL,10),
+(40,'Belgian IPA',21,NULL,8),
+(41,'Belgian Spiced Christmas Beer',21,NULL,4),
+(42,'Belgian Stout',21,NULL,NULL),
+(43,'Fruit Lambic',21,NULL,3),
+(44,'Spice, Herb o Vegetable',21,NULL,4),
+(45,'Flanders Red/Brown',21,NULL,NULL),
+(46,'Weizen-Weissbier',22,NULL,3),
+(47,'Witbier',22,NULL,2),
+(48,'Düsseldorf Altbier',2,8,6),
+(49,'Extra-Strong Bitter',12,NULL,NULL);
+
+
+/** Inserción de cervezas específicas con tipos correctos según nueva numeración **/
+INSERT INTO cerveza (nombre, fk_tipo_cerveza) VALUES
+/** Cervezas artesanales venezolanas específicas **/
+('Destilo', 30), -- American Amber Ale (ID 30)
+('Dos Leones', 21), -- Belgian Specialty Ale (ID 21)
+('Benitz Pale Ale', 25), -- American Pale Ale (ID 25)
+('Candileja de Abadía', 19), -- Belgian Dubbel (ID 19)
+('Ángel o Demonio', 20), -- Belgian Golden Strong (ID 20)
+('Barricas Saison Belga', 21), -- Belgian Specialty Ale (ID 21)
+('Aldarra Mantuana', 23), -- Blonde Ale (ID 23)
+
+/** Cervezas americanas específicas **/
+('Tröegs HopBack Amber', 30), -- American Amber Ale (ID 30)
+('Full Sail Amber', 30), -- American Amber Ale (ID 30)
+('Deschutes Cinder Cone', 30), -- American Amber Ale (ID 30)  
+('Rogue American Amber', 30), -- American Amber Ale (ID 30)
+
+/** Cervezas belgas específicas **/
+('La Chouffe', 21), -- Belgian Specialty Ale (ID 21)
+('Orval', 21), -- Belgian Specialty Ale (ID 21)
+('Chimay', 19), -- Belgian Dubbel (ID 19)
+('Leffe Blonde', 23), -- Blonde Ale (ID 23)
+('Hoegaarden', 47), -- Witbier (ID 47)
+
+/** Cervezas específicas por estilo **/
+('Pilsner Urquell', 3), -- Pilsner (ID 3)
+('Samuel Adams', 9); -- Bohemian Pilsener (ID 9)
+
 /** Inserción de características de cerveza - tipos: numerica o textual */
 INSERT INTO caracteristica (nombre, tipo) VALUES
 ('Amargor', 'numerica'),          /** Característica numérica: medida en IBU (International Bitterness Units) */
@@ -60,54 +155,54 @@ INSERT INTO periodo_descuento (fecha_inicio, fecha_fin) VALUES
 ('2025-09-01', '2025-09-10'),
 ('2025-10-01', '2025-10-10');
 
-INSERT INTO presentacion (sku, nombre, descripcion, monto) VALUES
-('B330', 'Botella 330ml', 'Botella individual de 330ml', 3),
-('B500', 'Botella 500ml', 'Botella individual de 500ml', 5),
-('L330', 'Lata 330ml', 'Lata individual de 330ml', 2),
-('SP330', 'Six-pack 330ml', 'Paquete de 6 botellas 330ml', 15),
-('C24330', 'Caja 24 unidades 330ml', 'Caja completa con 24 unidades', 50),
-('B20', 'Barril 20L', 'Barril metálico de 20 litros', 70),
-('B30', 'Barril 30L', 'Barril metálico de 30 litros', 100),
-('B50', 'Barril 50L', 'Barril metálico de 50 litros', 160),
-('G1L', 'Growler 1L', 'Envase rellenable 1 litro', 10),
-('C12500', 'Caja 12 unidades 500ml', 'Caja con 12 botellas de 500ml', 45);
+INSERT INTO presentacion (id, nombre, descripcion, unidades) VALUES
+(1, 'Botella 330ml', 'Botella individual de 330ml', 1),
+(2, 'Botella 500ml', 'Botella individual de 500ml', 1),
+(3, 'Lata 330ml', 'Lata individual de 330ml', 1),
+(4, 'Six-pack 330ml', 'Paquete de 6 botellas 330ml', 6),
+(5, 'Caja 24 unidades 330ml', 'Caja completa con 24 unidades', 24),
+(6, 'Barril 20L', 'Barril metálico de 20 litros', 53),
+(7, 'Barril 30L', 'Barril metálico de 30 litros', 72),
+(8, 'Barril 50L', 'Barril metálico de 50 litros', 120),
+(9, 'Growler 1L', 'Envase rellenable 1 litro', 3),
+(10, 'Caja 12 unidades 500ml', 'Caja con 12 botellas de 500ml', 12);
 
 /** Inserción de relaciones presentación-cerveza para todas las cervezas **/
-INSERT INTO presentacion_cerveza (unidades, fk_presentacion, fk_cerveza) VALUES
+INSERT INTO presentacion_cerveza (sku, precio, fk_presentacion, fk_cerveza) VALUES
 /** Distribución cíclica de las 10 presentaciones para las 18 cervezas **/
-(1, 'B330', 1),      /** Destilo - Botella 330ml **/
-(1, 'B500', 2),      /** Dos Leones - Botella 500ml **/
-(1, 'L330', 3),      /** Benitz Pale Ale - Lata 330ml **/
-(6, 'SP330', 4),     /** Candileja de Abadía - Six-pack 330ml **/
-(24, 'C24330', 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
-(1, 'B20', 6),       /** Barricas Saison Belga - Barril 20L **/
-(1, 'B30', 7),       /** Aldarra Mantuana - Barril 30L **/
-(1, 'B50', 8),       /** Tröegs HopBack Amber - Barril 50L **/
-(1, 'G1L', 9),       /** Full Sail Amber - Growler 1L **/
-(12, 'C12500', 10),  /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
-(1, 'B330', 11),     /** Rogue American Amber - Botella 330ml **/
-(1, 'B500', 12),     /** La Chouffe - Botella 500ml **/
-(1, 'L330', 13),     /** Orval - Lata 330ml **/
-(6, 'SP330', 14),    /** Chimay - Six-pack 330ml **/
-(24, 'C24330', 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
-(1, 'B20', 16),      /** Hoegaarden - Barril 20L **/
-(1, 'B30', 17),      /** Pilsner Urquell - Barril 30L **/
-(1, 'B50', 18);      /** Samuel Adams - Barril 50L **/
+('DEST-B330-01', 1.50, 1, 1),      /** Destilo - Botella 330ml **/
+('DLEO-B500-02', 2.25, 2, 2),      /** Dos Leones - Botella 500ml **/
+('BENI-L330-03', 1.80, 3, 3),      /** Benitz Pale Ale - Lata 330ml **/
+('CAND-6P330-04', 8.50, 4, 4),     /** Candileja de Abadía - Six-pack 330ml **/
+('ANGE-C24330-05', 35.00, 5, 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
+('BARR-BR20L-06', 85.00, 6, 6),    /** Barricas Saison Belga - Barril 20L **/
+('ALDA-BR30L-07', 125.00, 7, 7),   /** Aldarra Mantuana - Barril 30L **/
+('TROE-BR50L-08', 195.00, 8, 8),   /** Tröegs HopBack Amber - Barril 50L **/
+('FULL-GR1L-09', 4.50, 9, 9),      /** Full Sail Amber - Growler 1L **/
+('DESC-C12500-10', 22.00, 10, 10), /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
+('ROGU-B330-11', 1.65, 1, 11),     /** Rogue American Amber - Botella 330ml **/
+('LACH-B500-12', 2.85, 2, 12),     /** La Chouffe - Botella 500ml **/
+('ORVA-L330-13', 2.10, 3, 13),     /** Orval - Lata 330ml **/
+('CHIM-6P330-14', 12.50, 4, 14),   /** Chimay - Six-pack 330ml **/
+('LEFF-C24330-15', 42.00, 5, 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
+('HOEG-BR20L-16', 78.00, 6, 16),   /** Hoegaarden - Barril 20L **/
+('PILS-BR30L-17', 115.00, 7, 17),  /** Pilsner Urquell - Barril 30L **/
+('SAMA-BR50L-18', 175.00, 8, 18);  /** Samuel Adams - Barril 50L **/
  
 
 
 /** Inserción de descuentos con referencias correctas a SKUs de presentacion **/
 INSERT INTO descuento (monto, porcentaje, fk_descuento, fk_presentacion_cerveza_1, fk_presentacion_cerveza_2) VALUES
-(1, 10, 1, 'B330', 1),     /** Descuento $1 (10%) en periodo 1, entre Botella 330ml y 500ml **/
-(2, 15, 2, 'B500', 2),     /** Descuento $2 (15%) en periodo 2, entre Botella 500ml y Lata 330ml **/
-(1, 5, 3, 'L330', 3),     /** Descuento $1 (5%) en periodo 3, entre Lata 330ml y Six-pack 330ml **/
-(3, 20, 4, 'SP330', 4),  /** Descuento $3 (20%) en periodo 4, entre Six-pack y Caja 24 unidades **/
-(5, 25, 5, 'C24330', 5),    /** Descuento $5 (25%) en periodo 5, entre Caja 24 unidades y Barril 20L **/
-(7, 10, 6, 'B20', 6),       /** Descuento $7 (10%) en periodo 6, entre Barril 20L y 30L **/
-(10, 15, 7, 'B30', 7),      /** Descuento $10 (15%) en periodo 7, entre Barril 30L y 50L **/
-(12, 20, 8, 'B50', 8),      /** Descuento $12 (20%) en periodo 8, entre Barril 50L y Growler 1L **/
-(2, 8, 9, 'G1L', 9),     /** Descuento $2 (8%) en periodo 9, entre Growler 1L y Caja 12 unidades **/
-(4, 12, 10, 'C12500', 10);  /** Descuento $4 (12%) en periodo 10, entre Botella 330ml y Caja 12 unidades **/
+(1, 10, 1, 1, 1),     /** Descuento $1 (10%) en periodo 1, entre Botella 330ml y 500ml **/
+(2, 15, 2, 2, 2),     /** Descuento $2 (15%) en periodo 2, entre Botella 500ml y Lata 330ml **/
+(1, 5, 3, 3, 3),     /** Descuento $1 (5%) en periodo 3, entre Lata 330ml y Six-pack 330ml **/
+(3, 20, 4, 4, 4),  /** Descuento $3 (20%) en periodo 4, entre Six-pack y Caja 24 unidades **/
+(5, 25, 5, 5, 5),    /** Descuento $5 (25%) en periodo 5, entre Caja 24 unidades y Barril 20L **/
+(7, 10, 6, 6, 6),       /** Descuento $7 (10%) en periodo 6, entre Barril 20L y 30L **/
+(10, 15, 7, 7, 7),      /** Descuento $10 (15%) en periodo 7, entre Barril 30L y 50L **/
+(12, 20, 8, 8, 8),      /** Descuento $12 (20%) en periodo 8, entre Barril 50L y Growler 1L **/
+(2, 8, 9, 9, 9),     /** Descuento $2 (8%) en periodo 9, entre Growler 1L y Caja 12 unidades **/
+(4, 12, 10, 10, 10);  /** Descuento $4 (12%) en periodo 10, entre Botella 330ml y Caja 12 unidades **/
 
 /** Inserción de relaciones cerveza-característica con valores según tipo */
 INSERT INTO cerveza_caracteristica (valor_rango_inferior, valor_rango_superior, descripcion, fk_caracteristica, fk_cerveza, fk_tipo_cerveza) VALUES

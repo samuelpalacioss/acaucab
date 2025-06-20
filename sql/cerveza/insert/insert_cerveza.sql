@@ -92,26 +92,3 @@ INSERT INTO cerveza (nombre, fk_tipo_cerveza) VALUES
 /** Cervezas específicas por estilo **/
 ('Pilsner Urquell', 3), -- Pilsner (ID 3)
 ('Samuel Adams', 9); -- Bohemian Pilsener (ID 9)
-
-/** Inserción de relaciones presentación-cerveza para todas las cervezas **/
-INSERT INTO presentacion_cerveza (unidades, fk_presentacion, fk_cerveza) VALUES
-/** Distribución cíclica de las 10 presentaciones para las 18 cervezas **/
-(1, 'B330', 1),      /** Destilo - Botella 330ml **/
-(1, 'B500', 2),      /** Dos Leones - Botella 500ml **/
-(1, 'L330', 3),      /** Benitz Pale Ale - Lata 330ml **/
-(6, 'SP330', 4),     /** Candileja de Abadía - Six-pack 330ml **/
-(24, 'C24330', 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
-(1, 'B20', 6),       /** Barricas Saison Belga - Barril 20L **/
-(1, 'B30', 7),       /** Aldarra Mantuana - Barril 30L **/
-(1, 'B50', 8),       /** Tröegs HopBack Amber - Barril 50L **/
-(1, 'G1L', 9),       /** Full Sail Amber - Growler 1L **/
-(12, 'C12500', 10),  /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
-(1, 'B330', 11),     /** Rogue American Amber - Botella 330ml **/
-(1, 'B500', 12),     /** La Chouffe - Botella 500ml **/
-(1, 'L330', 13),     /** Orval - Lata 330ml **/
-(6, 'SP330', 14),    /** Chimay - Six-pack 330ml **/
-(24, 'C24330', 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
-(1, 'B20', 16),      /** Hoegaarden - Barril 20L **/
-(1, 'B30', 17),      /** Pilsner Urquell - Barril 30L **/
-(1, 'B50', 18);      /** Samuel Adams - Barril 50L **/
- 

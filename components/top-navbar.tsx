@@ -1,6 +1,6 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { Search, User } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,7 +14,17 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import Image from "next/image"
+import { getBCV } from "@/lib/bcv"
+import { useState } from "react"
+import { useEffect } from "react"
+
 export function TopNavbar() {
+  const [bcv, setBcv] = useState<number>(0);
+
+  useEffect(() => {
+    getBCV().then((data) => setBcv(data.price));
+  }, []);
+
   return (
     <header className="border-b">
       <div className="flex h-16 items-center px-4 w-full">
@@ -26,14 +36,13 @@ export function TopNavbar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                Tasa BCV: 80.02 Bs
+                Tasa BCV: {bcv} Bs
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>Seleccionar Tasa</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>BCV: 80.02 Bs</DropdownMenuItem>
-              <DropdownMenuItem>Paralelo: 100.02 Bs</DropdownMenuItem>
+              <DropdownMenuItem>BCV: {bcv} Bs</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -46,8 +55,9 @@ export function TopNavbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Avatar" />
-                  <AvatarFallback>AD</AvatarFallback>
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

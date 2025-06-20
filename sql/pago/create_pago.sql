@@ -16,10 +16,10 @@ CREATE TABLE metodo_pago (
     tipo              VARCHAR(50) NOT NULL CHECK (tipo IN ('efectivo', 'tarjeta_credito', 'punto', 'cheque', 'tarjeta_debito')),
     denominación      VARCHAR(50),
     tipo_tarjeta      VARCHAR(50),
-    número            INTEGER UNIQUE,
+    número            BIGINT UNIQUE,
     banco             VARCHAR(50),
     fecha_vencimiento DATE,
-    número_cheque     INTEGER UNIQUE,
+    número_cheque     BIGINT UNIQUE,
     fecha_adquisicion DATE,
     fecha_canjeo      DATE,
     CONSTRAINT metodo_pago_pk PRIMARY KEY (id),
@@ -91,23 +91,25 @@ CREATE TABLE mensualidad (
 
 /**
  * Tabla que almacena los metodos de pago asociados a cada miembro
- * @param rif - RIF del miembro
- * @param naturaleza_rif - Naturaleza del RIF del miembro
  * @param id - Identificador del metodo de pago
+ * @param fk_miembro_1 - Referencia a la naturaleza del RIF del miembro
+ * @param fk_miembro_2 - Referencia al RIF del miembro
+ * @param fk_metodo_pago - Referencia al metodo de pago
  */
 CREATE TABLE miembro_metodo_pago (
-    rif            INTEGER NOT NULL,
-    naturaleza_rif CHAR(1) NOT NULL,
-    id             INTEGER NOT NULL,
+    id             SERIAL,
+    fk_miembro_1      INTEGER NOT NULL,
+    fk_miembro_2      CHAR(1) NOT NULL,
+    fk_metodo_pago    INTEGER NOT NULL,
     /* Primary key Constraint */
     CONSTRAINT miembro_metodo_pago_pk 
-        PRIMARY KEY (rif, naturaleza_rif, id),
+        PRIMARY KEY (id),
     /* Foreign key Constraints */
     CONSTRAINT miembro_metodo_pago_miembro_fk 
-        FOREIGN KEY (rif, naturaleza_rif)
+        FOREIGN KEY (fk_miembro_1, fk_miembro_2)
             REFERENCES miembro (rif, naturaleza_rif),
     CONSTRAINT miembro_metodo_pago_metodo_fk 
-        FOREIGN KEY (id)
+        FOREIGN KEY (fk_metodo_pago)
             REFERENCES metodo_pago (id)
 );
 
@@ -118,10 +120,11 @@ CREATE TABLE miembro_metodo_pago (
  * @param fk_cliente_juridico - Referencia al cliente jurídico (debe ser NULL si hay cliente natural)
  */
 CREATE TABLE cliente_metodo_pago (
+    id                   SERIAL,
     fk_metodo_pago       INTEGER NOT NULL,
     fk_cliente_natural   INTEGER,
     fk_cliente_juridico  INTEGER,
-    CONSTRAINT cliente_metodo_pago_pk PRIMARY KEY (fk_metodo_pago),
+    CONSTRAINT cliente_metodo_pago_pk PRIMARY KEY (id),
     CONSTRAINT cliente_metodo_pago_metodo_fk FOREIGN KEY (fk_metodo_pago)
         REFERENCES metodo_pago(id),
     CONSTRAINT cliente_metodo_pago_natural_fk FOREIGN KEY (fk_cliente_natural)
@@ -151,6 +154,8 @@ CREATE TABLE tasa (
     CONSTRAINT tasa_pk PRIMARY KEY (id)
 );
 
+CREATE UNIQUE INDEX idx_tasa_unica_por_dia ON tasa (moneda, fecha_inicio);
+
 /**
  * Tabla que almacena los pagos realizados en el sistema
  * @param id - Identificador único del pago
@@ -171,39 +176,47 @@ CREATE TABLE tasa (
  */
 CREATE TABLE pago (
     id                       SERIAL,
-    monto                    FLOAT(2) NOT NULL,
-    fecha_pago               DATE NOT NULL,
+    monto                    DECIMAL(10,2) NOT NULL,
+    fecha_pago               TIMESTAMP NOT NULL,
     fk_tasa                  INTEGER NOT NULL,
-    fk_mensualidad_1         INTEGER NOT NULL,
-    fk_mensualidad_2         INTEGER NOT NULL,
-    fk_mensualidad_3         CHAR(1) NOT NULL,
-    fk_venta                 INTEGER NOT NULL,
-    fk_orden_de_compra       INTEGER NOT NULL,
-    fk_venta_evento          INTEGER NOT NULL,
-    fk_miembro_metodo_pago_3 INTEGER,
-    fk_miembro_metodo_pago_2 CHAR(1),
+    fk_mensualidad_1         INTEGER,
+    fk_mensualidad_2         INTEGER,
+    fk_mensualidad_3         CHAR(1),
+    fk_venta                 INTEGER,
+    fk_orden_de_compra       INTEGER,
+    fk_venta_evento          INTEGER,
     fk_miembro_metodo_pago_1 INTEGER,
     fk_cliente_metodo_pago_1 INTEGER,
-    fk_cliente_metodo_pago_2 INTEGER,
+
+    
     CONSTRAINT pago_pk PRIMARY KEY (id),
+    /** Constraint que asegura que solo un tipo de transacción esté presente por pago */
+    CONSTRAINT chk_arc_tipo_transaccion CHECK (
+        ((fk_mensualidad_1 IS NOT NULL AND fk_mensualidad_2 IS NOT NULL AND fk_mensualidad_3 IS NOT NULL AND 
+          fk_venta IS NULL AND fk_orden_de_compra IS NULL AND fk_venta_evento IS NULL) OR
+         (fk_venta IS NOT NULL AND 
+          fk_mensualidad_1 IS NULL AND fk_mensualidad_2 IS NULL AND fk_mensualidad_3 IS NULL AND 
+          fk_orden_de_compra IS NULL AND fk_venta_evento IS NULL) OR
+         (fk_orden_de_compra IS NOT NULL AND 
+          fk_mensualidad_1 IS NULL AND fk_mensualidad_2 IS NULL AND fk_mensualidad_3 IS NULL AND 
+          fk_venta IS NULL AND fk_venta_evento IS NULL) OR
+         (fk_venta_evento IS NOT NULL AND 
+          fk_mensualidad_1 IS NULL AND fk_mensualidad_2 IS NULL AND fk_mensualidad_3 IS NULL AND 
+          fk_venta IS NULL AND fk_orden_de_compra IS NULL))
+    ),
+    /** Constraint que asegura que solo un tipo de método de pago esté presente por pago */
     CONSTRAINT chk_arc_pago CHECK (
-        ((fk_miembro_metodo_pago_3 IS NOT NULL AND 
-          fk_miembro_metodo_pago_2 IS NOT NULL AND 
-          fk_miembro_metodo_pago_1 IS NOT NULL AND 
-          fk_cliente_metodo_pago_1 IS NULL AND 
-          fk_cliente_metodo_pago_2 IS NULL) OR
+        ((fk_miembro_metodo_pago_1 IS NOT NULL AND 
+          fk_cliente_metodo_pago_1 IS NULL) OR
          (fk_cliente_metodo_pago_1 IS NOT NULL AND 
-          fk_cliente_metodo_pago_2 IS NOT NULL AND 
-          fk_miembro_metodo_pago_3 IS NULL AND 
-          fk_miembro_metodo_pago_2 IS NULL AND 
           fk_miembro_metodo_pago_1 IS NULL))
     ),
     CONSTRAINT pago_fk_cliente_metodo_pago FOREIGN KEY (fk_cliente_metodo_pago_1)
-        REFERENCES cliente_metodo_pago (fk_metodo_pago),
+        REFERENCES cliente_metodo_pago (id),
     CONSTRAINT pago_fk_mensualidad FOREIGN KEY (fk_mensualidad_1, fk_mensualidad_2, fk_mensualidad_3)
         REFERENCES mensualidad (fk_afiliacion, fk_miembro_2, fk_miembro_1),
-    CONSTRAINT pago_fk_miembro_metodo_pago FOREIGN KEY (fk_miembro_metodo_pago_3, fk_miembro_metodo_pago_2, fk_miembro_metodo_pago_1)
-        REFERENCES miembro_metodo_pago (rif, naturaleza_rif, id),
+    CONSTRAINT pago_fk_miembro_metodo_pago FOREIGN KEY (fk_miembro_metodo_pago_1)
+        REFERENCES miembro_metodo_pago (id),
     CONSTRAINT pago_fk_orden_de_compra FOREIGN KEY (fk_orden_de_compra)
         REFERENCES orden_de_compra (id),
     CONSTRAINT pago_fk_tasa FOREIGN KEY (fk_tasa)
