@@ -49,7 +49,7 @@ export function MainSidebar() {
     {
       title: "Dashboard",
       icon: Home,
-      path: "/",
+      path: "/dashboard",
     },
     {
       title: "Finanzas",

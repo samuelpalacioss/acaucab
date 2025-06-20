@@ -229,7 +229,7 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
       </div>
 
       {/* KPIs principales */}
-      <div id="kpis-grid" className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div id="kpis-grid" className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card id="total-sales-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Totales</CardTitle>
@@ -272,44 +272,10 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
           </CardContent>
         </Card>
 
-        <Card id="chart-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tendencia Semanal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[80px] mt-4 text-xs text-muted-foreground">
-              <div className="flex items-end justify-between h-full">
-                {chartData.labels.map((label, index) => (
-                  <div key={label} className="relative flex flex-col items-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <div
-                        className="w-6 bg-blue-500 rounded-t"
-                        style={{
-                          height: `${
-                            (chartData.datasets[0].data[index] / Math.max(...chartData.datasets[0].data)) * 30
-                          }px`,
-                        }}
-                      />
-                      <div
-                        className="w-6 bg-green-500 rounded-t"
-                        style={{
-                          height: `${
-                            (chartData.datasets[1].data[index] / Math.max(...chartData.datasets[1].data)) * 30
-                          }px`,
-                        }}
-                      />
-                    </div>
-                    <span className="absolute -bottom-5 text-[10px] rotate-45 origin-left">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Controles de filtrado - Primera fila */}
-      <div id="primary-filters" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="primary-filters" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -431,7 +397,6 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
                 <TableHead>Canal</TableHead>
                 <TableHead>Monto neto</TableHead>
                 <TableHead>Estado entrega</TableHead>
-                <TableHead>Puntos emitidos</TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -464,7 +429,6 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
                         {sale.estado || "Pendiente"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{sale.puntos || 0}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
