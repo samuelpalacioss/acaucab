@@ -15,7 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { DateRangePicker } from "@/components/date-range-picker";
 import { VentaExpandida } from "@/models/venta";
 import {
   Pagination,

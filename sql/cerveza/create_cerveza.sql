@@ -145,11 +145,11 @@ CREATE TABLE periodo_descuento (
  * @param monto - Monto o precio de la presentación
  */
 CREATE TABLE presentacion (
-    sku         VARCHAR(20),
+    id          SERIAL,
     nombre      VARCHAR(50) NOT NULL,
     descripcion TEXT NOT NULL,
     unidades    INTEGER NOT NULL,
-    CONSTRAINT presentacion_pk PRIMARY KEY (sku)
+    CONSTRAINT presentacion_pk PRIMARY KEY (id)
 );
 
 /**
@@ -159,11 +159,12 @@ CREATE TABLE presentacion (
  * @param fk_cerveza - ID de la cerveza
  */
 CREATE TABLE presentacion_cerveza (
+    sku           VARCHAR(20) UNIQUE,
     precio        DECIMAL(10,2) NOT NULL,
-    fk_presentacion VARCHAR(20) NOT NULL,
+    fk_presentacion INTEGER NOT NULL,
     fk_cerveza      INTEGER NOT NULL,
     CONSTRAINT presentacion_cerveza_pk PRIMARY KEY (fk_presentacion, fk_cerveza),
-    CONSTRAINT presentacion_cerveza_fk_presentacion FOREIGN KEY (fk_presentacion) REFERENCES presentacion(sku),
+    CONSTRAINT presentacion_cerveza_fk_presentacion FOREIGN KEY (fk_presentacion) REFERENCES presentacion(id),
     CONSTRAINT presentacion_cerveza_fk_cerveza FOREIGN KEY (fk_cerveza) REFERENCES cerveza(id)
 );
 
@@ -179,7 +180,7 @@ CREATE TABLE descuento (
     monto       INTEGER NOT NULL,
     porcentaje  INTEGER NOT NULL,
     fk_descuento          INTEGER NOT NULL,
-    fk_presentacion_cerveza_1 VARCHAR(20) NOT NULL,
+    fk_presentacion_cerveza_1 INTEGER NOT NULL,
     fk_presentacion_cerveza_2 INTEGER NOT NULL,
     CONSTRAINT descuento_pk PRIMARY KEY (fk_descuento, fk_presentacion_cerveza_1, fk_presentacion_cerveza_2),
     CONSTRAINT descuento_fk_periodo_descuento FOREIGN KEY (fk_descuento) REFERENCES periodo_descuento(id),

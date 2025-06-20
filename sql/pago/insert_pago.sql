@@ -2,6 +2,35 @@
 TRUNCATE TABLE cliente_metodo_pago CASCADE;
 TRUNCATE TABLE metodo_pago RESTART IDENTITY CASCADE;
 
+-- Insert data into afiliacion
+INSERT INTO afiliacion (monto_mensual, fecha_inicio) VALUES
+(100.00, '2023-01-15'),
+(150.00, '2023-03-22'),
+(200.00, '2023-05-10'),
+(250.00, '2023-06-30'),
+(300.00, '2023-08-05'),
+(350.00, '2023-09-12'),
+(400.00, '2023-10-25'),
+(450.00, '2023-11-18'),
+(500.00, '2023-12-01'),
+(550.00, '2024-01-05'),
+(600.00, '2024-01-20');
+
+-- Insert data into mensualidad
+INSERT INTO mensualidad (fecha_máxima_pago, fk_afiliacion, fk_miembro_1, fk_miembro_2) VALUES
+('2024-01-31', 1, 'J', 123456789),
+('2024-01-31', 2, 'V', 987654321),
+('2024-01-31', 3, 'J', 234567890),
+('2024-01-31', 4, 'V', 345678901),
+('2024-01-31', 5, 'J', 456789012),
+('2024-01-31', 6, 'V', 567890123),
+('2024-01-31', 7, 'J', 678901234),
+('2024-01-31', 8, 'V', 789012345),
+('2024-01-31', 9, 'J', 890123456),
+('2024-01-31', 10, 'V', 901234567),
+('2024-01-31', 11, 'J', 12345678);
+
+
 -- Insert data into método_pago
 -- 100 Points for the first 10 natural clients (10 points each)
 INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, número_cheque, fecha_adquisicion, fecha_canjeo) VALUES
@@ -382,3 +411,4 @@ INSERT INTO pago (
     (59.00, CURRENT_DATE + TIME '18:30:00', 31, NULL, NULL, NULL, 88, NULL, NULL, NULL, NULL, NULL, 130), /** Venta 88: Cliente jurídico 19 - Tarjeta débito */
     (23.00, CURRENT_DATE + TIME '18:45:00', 31, NULL, NULL, NULL, 89, NULL, NULL, NULL, NULL, NULL, 131), /** Venta 89: Cliente jurídico 20 - Tarjeta crédito Visa */
     (39.00, CURRENT_DATE + TIME '19:00:00', 31, NULL, NULL, NULL, 90, NULL, NULL, NULL, NULL, NULL, 131); /** Venta 90: Cliente jurídico 20 - Tarjeta crédito Visa */
+

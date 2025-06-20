@@ -79,7 +79,7 @@ CREATE TABLE venta (
 CREATE TABLE detalle_presentacion (
     cantidad        INTEGER NOT NULL,                    /** Cantidad de productos vendidos (tipo: INTEGER) */
     precio_unitario DECIMAL(10,2),                      /** Precio por unidad del producto (tipo: DECIMAL) */
-    fk_presentacion VARCHAR(20) NOT NULL,               /** Primera clave foránea de presentación_cerveza - SKU (tipo: VARCHAR) */
+    fk_presentacion INTEGER NOT NULL,               /** Primera clave foránea de presentación_cerveza - SKU (tipo: VARCHAR) */
     fk_cerveza      INTEGER NOT NULL,                   /** Segunda clave foránea de presentación_cerveza - ID cerveza (tipo: INTEGER) */
     fk_venta        INTEGER NOT NULL,                   /** Clave foránea que referencia la venta (tipo: INTEGER) */
     
@@ -104,7 +104,7 @@ CREATE TABLE miembro_presentacion_cerveza (
     monto_proveedor           DECIMAL(10,2) NOT NULL,    /** Monto que paga el proveedor (tipo: DECIMAL) */
     fk_miembro_1              INTEGER NOT NULL,          /** Primera clave foránea del miembro - RIF (tipo: INTEGER) */
     fk_miembro_2              CHAR(1) NOT NULL,           /** Segunda clave foránea del miembro - naturaleza RIF (tipo: CHAR) */
-    fk_presentacion_cerveza_1 VARCHAR(20) NOT NULL,          /** Primera clave foránea de presentación cerveza - ID (tipo: INTEGER) */
+    fk_presentacion_cerveza_1 INTEGER NOT NULL,          /** Primera clave foránea de presentación cerveza - ID (tipo: INTEGER) */
     fk_presentacion_cerveza_2 INTEGER NOT NULL,      /** Segunda clave foránea de presentación cerveza - SKU (tipo: VARCHAR) */
     
     /** Clave primaria compuesta de la tabla de relación */

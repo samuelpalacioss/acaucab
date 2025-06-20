@@ -44,27 +44,32 @@ INSERT INTO permiso (nombre, descripción) VALUES
     
 -- Administrador gets all permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 1, id FROM permiso;
+SELECT (SELECT id FROM rol WHERE nombre = 'Administrador'), p.id 
+FROM permiso p;
 
 -- Empleado gets basic permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 2, id FROM permiso 
-WHERE nombre IN ('ver_usuarios', 'gestionar_clientes');
+SELECT (SELECT id FROM rol WHERE nombre = 'Empleado'), p.id 
+FROM permiso p
+WHERE p.nombre IN ('ver_usuarios', 'gestionar_clientes');
 
 -- Cliente gets minimal permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 3, id FROM permiso 
-WHERE nombre IN ('ver_usuarios');
+SELECT (SELECT id FROM rol WHERE nombre = 'Cliente'), p.id 
+FROM permiso p
+WHERE p.nombre IN ('ver_usuarios');
 
 -- Miembro gets member-specific permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 4, id FROM permiso 
-WHERE nombre IN ('ver_usuarios', 'gestionar_miembros');
+SELECT (SELECT id FROM rol WHERE nombre = 'Miembro'), p.id 
+FROM permiso p
+WHERE p.nombre IN ('ver_usuarios', 'gestionar_miembros');
 
 -- Jefe de Compras gets purchase management permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 5, id FROM permiso 
-WHERE nombre IN (
+SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Compras'), p.id 
+FROM permiso p
+WHERE p.nombre IN (
     'ver_usuarios',
     'aceptar_orden_compra',
     'rechazar_orden_compra',
@@ -75,8 +80,9 @@ WHERE nombre IN (
 
 -- Asistente de Compras gets limited purchase permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 6, id FROM permiso 
-WHERE nombre IN (
+SELECT (SELECT id FROM rol WHERE nombre = 'Asistente de Compras'), p.id 
+FROM permiso p
+WHERE p.nombre IN (
     'ver_usuarios',
     'ver_ordenes_compra',
     'ver_historial_compras'
@@ -84,16 +90,18 @@ WHERE nombre IN (
 
 -- Jefe de Pasillos gets aisle management permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 7, id FROM permiso 
-WHERE nombre IN (
+SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Pasillos'), p.id 
+FROM permiso p
+WHERE p.nombre IN (
     'ver_usuarios',
     'aceptar_orden_reposición'
 );
 
 -- Cajero gets sales-related permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 8, id FROM permiso 
-WHERE nombre IN (
+SELECT (SELECT id FROM rol WHERE nombre = 'Cajero'), p.id 
+FROM permiso p
+WHERE p.nombre IN (
     'ver_usuarios',
     'iniciar_venta',
     'procesar_pago',
@@ -105,16 +113,18 @@ WHERE nombre IN (
 
 -- Jefe de Logística gets logistics management permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 9, id FROM permiso 
-WHERE nombre IN (
+SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Logística'), p.id 
+FROM permiso p
+WHERE p.nombre IN (
     'ver_usuarios',
     'ver_pedidos'
 );
 
 -- Auxiliar de Logística gets limited logistics permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 10, id FROM permiso 
-WHERE nombre IN (
+SELECT (SELECT id FROM rol WHERE nombre = 'Auxiliar de Logística'), p.id 
+FROM permiso p
+WHERE p.nombre IN (
     'ver_usuarios',
     'ver_pedidos',
     'ver_ordenes_compra'
@@ -122,8 +132,9 @@ WHERE nombre IN (
 
 -- Jefe de Marketing gets marketing management permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT 11, id FROM permiso 
-WHERE nombre IN (
+SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Marketing'), p.id 
+FROM permiso p
+WHERE p.nombre IN (
     'ver_usuarios',
     'gestionar_clientes'
 ); 
@@ -167,85 +178,6 @@ INSERT INTO miembro (
     (444666888, 'J', 'Distribuidora Golf C.A.', 'Golf Dist', 'Av. El Junquito #700', 'Av. El Junquito #700', 'golfdist.com', INTERVAL '7 days', 397, 398),
     (555777999, 'V', 'Importadora Hotel S.A.', 'Hotel Imports', 'Calle El Paraíso #800', 'Calle El Paraíso #800', 'hotelimports.com', INTERVAL '15 hours', 399, 400),
     (666888000, 'J', 'Corporación India C.A.', 'India Corp', 'Av. El Recreo #900', 'Av. El Recreo #900', 'indiacorp.com', INTERVAL '6 days', 401, 402); 
-
-/**
- * Inserts for correo table
- * Contains example email addresses for members and users
- */
-
-INSERT INTO correo (
-    dirección_correo,
-    fk_miembro_1,
-    fk_miembro_2
-) VALUES
-    -- Member company emails
-    ('contacto@abc.com', 123456789, 'J'),
-    ('contacto@xyz.com', 987654321, 'V'),
-    ('distribucion@deltadistrib.com', 234567890, 'J'),
-    ('importaciones@omegaimports.com', 345678901, 'V'),
-    ('comercial@epsilontrade.com', 456789012, 'J'),
-    ('ventas@betastores.com', 567890123, 'V'),
-    ('distribucion@gammadist.com', 678901234, 'J'),
-    ('ventas@sigmacom.com', 789012345, 'V'),
-    ('importaciones@thetaimports.com', 890123456, 'J'),
-    ('ventas@lambdastores.com', 901234567, 'V'),
-    ('distribucion@zetadist.com', 012345678, 'J'),
-    ('ventas@omegacom.com', 123456780, 'V'),
-    ('omega-importaciones@omegacom.com', 123456780, 'V'),
-
-    -- Additional emails for user (not members)
-    ('admin@acaucab.com', NULL, NULL),
-    ('empleados@acaucab.com', NULL, NULL),
-    ('clientes@acaucab.com', NULL, NULL),
-    ('miembros@acaucab.com', NULL, NULL),
-    ('maria.rodriguez@acaucab.com', NULL, NULL),
-    ('pedro.garcia@acaucab.com', NULL, NULL),
-    ('ana.martinez@acaucab.com', NULL, NULL),
-    ('carlos.lopez@acaucab.com', NULL, NULL),
-    ('laura.sanchez@acaucab.com', NULL, NULL),
-    ('roberto.torres@acaucab.com', NULL, NULL),
-    ('sofia.diaz@acaucab.com', NULL, NULL),
-    ('miguel.morales@acaucab.com', NULL, NULL),
-    ('carmen.ortiz@acaucab.com', NULL, NULL);
-
-/**
- * Inserts for usuario table
- * Contains example system users
- */
-
-INSERT INTO usuario (
-    contraseña,
-    fk_rol,
-    fk_correo
-) VALUES
-    -- System users
-    ('admin123', 1, 1),  -- Admin user
-    ('emp123', 2, 2),    -- Employee user
-    ('cli123', 3, 3),    -- Client user
-    ('mem123', 4, 4),    -- Member user
-    
-    -- Member company users (all with role 4 - Miembro)
-    ('delta2024', 4, 5),     -- Delta Distrib
-    ('omega2024', 4, 6),     -- Omega Imports
-    ('epsilon2024', 4, 7),   -- Epsilon Trade
-    ('beta2024', 4, 8),      -- Beta Stores
-    ('gamma2024', 4, 9),     -- Gamma Dist
-    ('sigma2024', 4, 10),    -- Sigma Com
-    ('theta2024', 4, 11),    -- Theta Imports
-    ('lambda2024', 4, 12),   -- Lambda Stores
-    ('zeta2024', 4, 13),     -- Zeta Dist
-    ('omegacom2024', 4, 14), -- Omega Com
-
-    -- Employee users (all with role 2 - Empleado)
-    ('maria2024', 2, 15),    -- María Rodríguez
-    ('pedro2024', 2, 16),    -- Pedro García
-    ('ana2024', 2, 17),      -- Ana Martínez
-    ('carlos2024', 2, 18),   -- Carlos López
-    ('laura2024', 2, 19),    -- Laura Sánchez
-    ('roberto2024', 2, 20),  -- Roberto Torres
-    ('sofia2024', 2, 21),    -- Sofía Díaz
-    ('miguel2024', 2, 22),   -- Miguel Morales
-    ('carmen2024', 2, 23);   -- Carmen Ortiz 
 
 /**
  * Inserts for cliente_natural table
@@ -328,6 +260,123 @@ INSERT INTO cliente_juridico (
     ('Corporación India', 'Corporación India C.A.', 6800000.00, 'Av. Corporativa #900', 'corpindia.com', 999000111, 'J', 'Av. Corporativa #900', 422, 423); 
 
 /**
+ * Inserts for persona_contacto table
+ * Contains example contact persons for different entities
+ */
+
+INSERT INTO persona_contacto (
+    ci,
+    nacionalidad,
+    primer_nombre,
+    primer_apellido,
+    segundo_nombre,
+    segundo_apellido,
+    fk_miembro_1,
+    fk_miembro_2,
+    fk_cliente_juridico
+) VALUES
+    (11223344, 'V', 'Pedro', 'González', 'José', 'Martínez', 123456789, 'J', NULL),  -- Member contact
+    (44332211, 'V', 'Ana', 'López', 'María', 'Sánchez', NULL, NULL, 1),              -- Legal client contact
+    (22334455, 'V', 'Ricardo', 'Blanco', 'Alberto', 'Pérez', 234567890, 'J', NULL),  -- Delta Distrib contact
+    (33445566, 'E', 'Sofía', 'Ramírez', 'Valentina', 'Mendoza', 345678901, 'V', NULL),     -- Omega Imports contact
+    (44556677, 'V', 'Daniel', 'Suárez', 'Roberto', 'Núñez', 456789012, 'J', NULL),        -- Epsilon Trade contact
+    (55667788, 'V', 'Gabriela', 'Fernández', 'Patricia', 'Silva', NULL, NULL, 2),             -- Global Services contact
+    (66778899, 'E', 'Alejandro', 'Mendoza', 'Felipe', 'Rivas', NULL, NULL, 3),           -- Constructora Delta contact
+    (77889900, 'V', 'Valeria', 'Paredes', 'Camila', 'Brito', NULL, NULL, 4),          -- Distribuidora Omega contact
+    (88990011, 'V', 'Eduardo', 'Rivas', 'Manuel', 'Quintero', NULL, NULL, 5),       -- Legal client 5 contact
+    (99001122, 'E', 'Carolina', 'Brito', 'Daniela', 'Paredes', NULL, NULL, 6),              -- Legal client 6 contact
+    (00112233, 'V', 'Roberto', 'Quintero', 'Alberto', 'Blanco', NULL, NULL, 7),           -- Legal client 7 contact
+    (11223300, 'V', 'Daniela', 'Silva', 'Gabriela', 'Fernández', NULL, NULL, 8);               -- Legal client 8 contact 
+
+/**
+ * Inserts for correo table
+ * Contains example email addresses for members and users
+ */
+
+INSERT INTO correo (
+    dirección_correo,
+    fk_miembro_1,
+    fk_miembro_2,
+    fk_persona_contacto
+) VALUES
+    -- Member company emails
+    ('contacto@abc.com', 123456789, 'J', NULL),
+    ('contacto@xyz.com', 987654321, 'V', NULL),
+    ('distribucion@deltadistrib.com', 234567890, 'J', NULL),
+    ('importaciones@omegaimports.com', 345678901, 'V', NULL),
+    ('comercial@epsilontrade.com', 456789012, 'J', NULL),
+    ('ventas@betastores.com', 567890123, 'V', NULL),
+    ('distribucion@gammadist.com', 678901234, 'J', NULL),
+    ('ventas@sigmacom.com', 789012345, 'V', NULL),
+    ('importaciones@thetaimports.com', 890123456, 'J', NULL),
+    ('ventas@lambdastores.com', 901234567, 'V', NULL),
+    ('distribucion@zetadist.com', 012345678, 'J', NULL),
+    ('ventas@omegacom.com', 123456780, 'V', NULL),
+    ('omega-importaciones@omegacom.com', 123456780, 'V', NULL),
+
+    -- Additional emails for user (not members)
+    ('admin@acaucab.com', NULL, NULL, NULL),
+    ('empleados@acaucab.com', NULL, NULL, NULL),
+    ('clientes@acaucab.com', NULL, NULL, NULL),
+    ('miembros@acaucab.com', NULL, NULL, NULL),
+    ('maria.rodriguez@acaucab.com', NULL, NULL, NULL),
+    ('pedro.garcia@acaucab.com', NULL, NULL, NULL),
+    ('ana.martinez@acaucab.com', NULL, NULL, NULL),
+    ('carlos.lopez@acaucab.com', NULL, NULL, NULL),
+    ('laura.sanchez@acaucab.com', NULL, NULL, NULL),
+    ('roberto.torres@acaucab.com', NULL, NULL, NULL),
+    ('sofia.diaz@acaucab.com', NULL, NULL, NULL),
+    ('miguel.morales@acaucab.com', NULL, NULL, NULL),
+    ('carmen.ortiz@acaucab.com', NULL, NULL, NULL),
+    
+    -- Emails para persona_contacto
+    ('contacto@deltadistrib.com', NULL, NULL, 1),
+    ('contacto@omegaimports.com', NULL, NULL, 2),
+    ('contacto@epsilontrade.com', NULL, NULL, 3),
+    ('contacto@betastores.com', NULL, NULL, 4),
+    ('contacto@gammadist.com', NULL, NULL, 5),
+    ('contacto@sigmacom.com', NULL, NULL, 6);
+
+/**
+ * Inserts for usuario table
+ * Contains example system users
+ */
+
+INSERT INTO usuario (
+    contraseña,
+    fk_rol,
+    fk_correo
+) VALUES
+    -- System users
+    ('admin123', 1, 1),  -- Admin user
+    ('emp123', 2, 2),    -- Employee user
+    ('cli123', 3, 3),    -- Client user
+    ('mem123', 4, 4),    -- Member user
+    
+    -- Member company users (all with role 4 - Miembro)
+    ('delta2024', 4, 5),     -- Delta Distrib
+    ('omega2024', 4, 6),     -- Omega Imports
+    ('epsilon2024', 4, 7),   -- Epsilon Trade
+    ('beta2024', 4, 8),      -- Beta Stores
+    ('gamma2024', 4, 9),     -- Gamma Dist
+    ('sigma2024', 4, 10),    -- Sigma Com
+    ('theta2024', 4, 11),    -- Theta Imports
+    ('lambda2024', 4, 12),   -- Lambda Stores
+    ('zeta2024', 4, 13),     -- Zeta Dist
+    ('omegacom2024', 4, 14), -- Omega Com
+
+    -- Employee users (all with role 2 - Empleado)
+    ('maria2024', 2, 15),    -- María Rodríguez
+    ('pedro2024', 2, 16),    -- Pedro García
+    ('ana2024', 2, 17),      -- Ana Martínez
+    ('carlos2024', 2, 18),   -- Carlos López
+    ('laura2024', 2, 19),    -- Laura Sánchez
+    ('roberto2024', 2, 20),  -- Roberto Torres
+    ('sofia2024', 2, 21),    -- Sofía Díaz
+    ('miguel2024', 2, 22),   -- Miguel Morales
+    ('carmen2024', 2, 23);   -- Carmen Ortiz 
+
+/**
  * Inserts for cliente_usuario table
  * Links users with their respective clients
  */
@@ -366,61 +415,39 @@ INSERT INTO telefono (
     fk_miembro_2,
     fk_empleado,
     fk_cliente_juridico,
-    fk_cliente_natural
+    fk_cliente_natural,
+    fk_persona_contacto
 ) VALUES
-    (212, 5551234, 123456789, 'J', NULL, NULL, NULL),    -- Member phone
-    (212, 5555678, NULL, NULL, NULL, 1, NULL),           -- Legal client phone
-    (212, 5559012, NULL, NULL, NULL, NULL, 1),           -- Natural client phone
-    (212, 5553456, NULL, NULL, 1, NULL, NULL),           -- Employee phone
+    (212, 5551234, 123456789, 'J', NULL, NULL, NULL, NULL),    -- Member phone
+    (212, 5555678, NULL, NULL, NULL, 1, NULL, NULL),           -- Legal client phone
+    (212, 5559012, NULL, NULL, NULL, NULL, 1, NULL),           -- Natural client phone
+    (212, 5553456, NULL, NULL, 1, NULL, NULL, NULL),           -- Employee phone
     
-    (412, 1234567, 234567890, 'J', NULL, NULL, NULL),    -- Delta Distrib
-    (414, 2345678, 345678901, 'V', NULL, NULL, NULL),    -- Omega Imports
-    (424, 3456789, 456789012, 'J', NULL, NULL, NULL),    -- Epsilon Trade
+    (412, 1234567, 234567890, 'J', NULL, NULL, NULL, NULL),    -- Delta Distrib
+    (414, 2345678, 345678901, 'V', NULL, NULL, NULL, NULL),    -- Omega Imports
+    (424, 3456789, 456789012, 'J', NULL, NULL, NULL, NULL),    -- Epsilon Trade
     
-    (412, 4567890, NULL, NULL, NULL, 2, NULL),           -- Global Services
-    (414, 5678901, NULL, NULL, NULL, 3, NULL),           -- Constructora Delta
-    (424, 6789012, NULL, NULL, NULL, 4, NULL),           -- Distribuidora Omega
+    (412, 4567890, NULL, NULL, NULL, 2, NULL, NULL),           -- Global Services
+    (414, 5678901, NULL, NULL, NULL, 3, NULL, NULL),           -- Constructora Delta
+    (424, 6789012, NULL, NULL, NULL, 4, NULL, NULL),           -- Distribuidora Omega
     
     
-    (412, 7890123, NULL, NULL, NULL, NULL, 2),           -- Natural client 2
-    (414, 8901234, NULL, NULL, NULL, NULL, 3),           -- Natural client 3
-    (424, 9012345, NULL, NULL, NULL, NULL, 4),           -- Natural client 4
+    (412, 7890123, NULL, NULL, NULL, NULL, 2, NULL),           -- Natural client 2
+    (414, 8901234, NULL, NULL, NULL, NULL, 3, NULL),           -- Natural client 3
+    (424, 9012345, NULL, NULL, NULL, NULL, 4, NULL),           -- Natural client 4
  
-    (412, 0123456, NULL, NULL, 2, NULL, NULL),           -- Employee 2
-    (414, 1234567, NULL, NULL, 3, NULL, NULL),           -- Employee 3
-    (424, 2345678, NULL, NULL, 4, NULL, NULL),           -- Employee 4
-    (412, 3456789, NULL, NULL, 5, NULL, NULL);           -- Employee 5 
+    (412, 0123456, NULL, NULL, 2, NULL, NULL, NULL),           -- Employee 2
+    (414, 1234567, NULL, NULL, 3, NULL, NULL, NULL),           -- Employee 3
+    (424, 2345678, NULL, NULL, 4, NULL, NULL, NULL),           -- Employee 4
+    (412, 3456789, NULL, NULL, 5, NULL, NULL, NULL),           -- Employee 5 
 
-/**
- * Inserts for persona_contacto table
- * Contains example contact persons for different entities
- */
-
-INSERT INTO persona_contacto (
-    ci,
-    nacionalidad,
-    primer_nombre,
-    primer_apellido,
-    segundo_nombre,
-    segundo_apellido,
-    fk_miembro_1,
-    fk_miembro_2,
-    fk_telefono,
-    fk_correo,
-    fk_cliente_juridico
-) VALUES
-    (11223344, 'V', 'Pedro', 'González', 'José', 'Martínez', 123456789, 'J', 1, 1, NULL),  -- Member contact
-    (44332211, 'V', 'Ana', 'López', 'María', 'Sánchez', NULL, NULL, 2, 3, 1),              -- Legal client contact
-    (22334455, 'V', 'Ricardo', 'Blanco', 'Alberto', 'Pérez', 234567890, 'J', 5, 5, NULL),  -- Delta Distrib contact
-    (33445566, 'E', 'Sofía', 'Ramírez', 'Valentina', 'Mendoza', 345678901, 'V', 6, 6, NULL),     -- Omega Imports contact
-    (44556677, 'V', 'Daniel', 'Suárez', 'Roberto', 'Núñez', 456789012, 'J', 7, 7, NULL),        -- Epsilon Trade contact
-    (55667788, 'V', 'Gabriela', 'Fernández', 'Patricia', 'Silva', NULL, NULL, 8, 8, 2),             -- Global Services contact
-    (66778899, 'E', 'Alejandro', 'Mendoza', 'Felipe', 'Rivas', NULL, NULL, 9, 9, 3),           -- Constructora Delta contact
-    (77889900, 'V', 'Valeria', 'Paredes', 'Camila', 'Brito', NULL, NULL, 10, 10, 4),          -- Distribuidora Omega contact
-    (88990011, 'V', 'Eduardo', 'Rivas', 'Manuel', 'Quintero', NULL, NULL, 11, 11, 5),       -- Legal client 5 contact
-    (99001122, 'E', 'Carolina', 'Brito', 'Daniela', 'Paredes', NULL, NULL, 12, 12, 6),              -- Legal client 6 contact
-    (00112233, 'V', 'Roberto', 'Quintero', 'Alberto', 'Blanco', NULL, NULL, 13, 13, 7),           -- Legal client 7 contact
-    (11223300, 'V', 'Daniela', 'Silva', 'Gabriela', 'Fernández', NULL, NULL, 14, 14, 8);               -- Legal client 8 contact 
+    -- Telefonos para persona_contacto
+    (212, 5559876, NULL, NULL, NULL, NULL, NULL, 1),
+    (212, 5558765, NULL, NULL, NULL, NULL, NULL, 2),
+    (212, 5557654, NULL, NULL, NULL, NULL, NULL, 3),
+    (212, 5556543, NULL, NULL, NULL, NULL, NULL, 4),
+    (412, 9876543, NULL, NULL, NULL, NULL, NULL, 5),
+    (414, 8765432, NULL, NULL, NULL, NULL, NULL, 6);
 
 /**
  * Inserts for miembro_usuario table

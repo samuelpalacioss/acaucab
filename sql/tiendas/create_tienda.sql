@@ -57,7 +57,7 @@ CREATE TABLE almacen (
  */
 CREATE TABLE inventario (
     cantidad_almacen INTEGER NOT NULL,
-    fk_presentacion_cerveza_1 VARCHAR(20) NOT NULL,
+    fk_presentacion_cerveza_1 INTEGER NOT NULL,
     fk_presentacion_cerveza_2 INTEGER NOT NULL,
     fk_almacen INTEGER NOT NULL,
     CONSTRAINT inventario_pk PRIMARY KEY (fk_presentacion_cerveza_1, fk_presentacion_cerveza_2, fk_almacen),
@@ -101,7 +101,7 @@ CREATE TABLE lugar_tienda_inventario (
     cantidad INTEGER NOT NULL,
     fk_lugar_tienda_1 INTEGER NOT NULL,
     fk_lugar_tienda_2 INTEGER NOT NULL,
-    fk_inventario_1 VARCHAR(20) NOT NULL,
+    fk_inventario_1 INTEGER NOT NULL,
     fk_inventario_2 INTEGER NOT NULL,
     fk_inventario_3 INTEGER NOT NULL,
     CONSTRAINT lugar_tienda_inventario_pk PRIMARY KEY (fk_lugar_tienda_1, fk_lugar_tienda_2, fk_inventario_1, fk_inventario_2, fk_inventario_3),
@@ -131,7 +131,7 @@ CREATE TABLE orden_de_reposicion (
     unidades        INTEGER NOT NULL,
     fk_lugar_tienda_1 INTEGER NOT NULL,
     fk_lugar_tienda_2 INTEGER NOT NULL,
-    fk_inventario_1   VARCHAR(20) NOT NULL,
+    fk_inventario_1   INTEGER NOT NULL,
     fk_inventario_2   INTEGER NOT NULL,
     fk_inventario_3   INTEGER NOT NULL,
     fk_empleado     INTEGER,

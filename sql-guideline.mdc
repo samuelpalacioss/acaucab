@@ -103,7 +103,7 @@ CREATE TABLE orders (
     user_id INT,
     order_date TIMESTAMP,
     total_amount DECIMAL(10,2),
-    status VARCHAR(20),
+    status INTEGER,
     
     -- Primary Key
     CONSTRAINT pk_orders PRIMARY KEY (order_id),

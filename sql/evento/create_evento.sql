@@ -126,7 +126,7 @@ CREATE TABLE stock_miembro (
     fk_miembro_1              INTEGER NOT NULL,
     fk_miembro_2              CHAR(1) NOT NULL,
     fk_evento                 INTEGER NOT NULL,
-    fk_presentacion_cerveza_1 VARCHAR(20) NOT NULL,
+    fk_presentacion_cerveza_1 INTEGER NOT NULL,
     fk_presentacion_cerveza_2 INTEGER NOT NULL,
     CONSTRAINT stock_miembro_pk PRIMARY KEY (
         fk_evento,

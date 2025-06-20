@@ -40,7 +40,7 @@ CREATE TABLE detalle_evento (
     fk_stock_miembro_2 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 2 */
     fk_stock_miembro_3 CHAR(1) NOT NULL,                   /** Referencia al stock del miembro - campo 3 */
     fk_venta_evento    INTEGER NOT NULL,                   /** Referencia a la venta del evento */
-    fk_stock_miembro_4 VARCHAR(20) NOT NULL,                   /** Referencia al stock del miembro - campo 4 */
+    fk_stock_miembro_4 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 4 */
     fk_stock_miembro_5 INTEGER NOT NULL,               /** Referencia al stock del miembro - campo 5 */
     
     /** Constraint de clave primaria compuesta */
@@ -83,7 +83,7 @@ CREATE TABLE orden_de_compra (
     fecha_entrega             DATE,                         /** Fecha estimada/real de entrega */
     observacion               VARCHAR(255),                 /** Observaciones adicionales de la orden */
     fk_empleado               INTEGER,                      /** Referencia al empleado que hace la orden */
-    fk_presentacion_cerveza_1 VARCHAR(20) NOT NULL,             /** Referencia a presentación cerveza - campo 1 */
+    fk_presentacion_cerveza_1 INTEGER NOT NULL,             /** Referencia a presentación cerveza - campo 1 */
     fk_presentacion_cerveza_2 INTEGER NOT NULL,         /** Referencia a presentación cerveza - campo 2 */
     unidades                  INTEGER NOT NULL,             /** Cantidad de unidades a ordenar */
     

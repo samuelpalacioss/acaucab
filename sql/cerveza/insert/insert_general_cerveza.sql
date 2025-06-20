@@ -155,54 +155,54 @@ INSERT INTO periodo_descuento (fecha_inicio, fecha_fin) VALUES
 ('2025-09-01', '2025-09-10'),
 ('2025-10-01', '2025-10-10');
 
-INSERT INTO presentacion (sku, nombre, descripcion, unidades) VALUES
-('B330', 'Botella 330ml', 'Botella individual de 330ml', 1),
-('B500', 'Botella 500ml', 'Botella individual de 500ml', 1),
-('L330', 'Lata 330ml', 'Lata individual de 330ml', 1),
-('SP330', 'Six-pack 330ml', 'Paquete de 6 botellas 330ml', 6),
-('C24330', 'Caja 24 unidades 330ml', 'Caja completa con 24 unidades', 24),
-('B20', 'Barril 20L', 'Barril metálico de 20 litros', 53),
-('B30', 'Barril 30L', 'Barril metálico de 30 litros', 72),
-('B50', 'Barril 50L', 'Barril metálico de 50 litros', 120),
-('G1L', 'Growler 1L', 'Envase rellenable 1 litro', 3),
-('C12500', 'Caja 12 unidades 500ml', 'Caja con 12 botellas de 500ml', 12);
+INSERT INTO presentacion (id, nombre, descripcion, unidades) VALUES
+(1, 'Botella 330ml', 'Botella individual de 330ml', 1),
+(2, 'Botella 500ml', 'Botella individual de 500ml', 1),
+(3, 'Lata 330ml', 'Lata individual de 330ml', 1),
+(4, 'Six-pack 330ml', 'Paquete de 6 botellas 330ml', 6),
+(5, 'Caja 24 unidades 330ml', 'Caja completa con 24 unidades', 24),
+(6, 'Barril 20L', 'Barril metálico de 20 litros', 53),
+(7, 'Barril 30L', 'Barril metálico de 30 litros', 72),
+(8, 'Barril 50L', 'Barril metálico de 50 litros', 120),
+(9, 'Growler 1L', 'Envase rellenable 1 litro', 3),
+(10, 'Caja 12 unidades 500ml', 'Caja con 12 botellas de 500ml', 12);
 
 /** Inserción de relaciones presentación-cerveza para todas las cervezas **/
-INSERT INTO presentacion_cerveza (precio, fk_presentacion, fk_cerveza) VALUES
+INSERT INTO presentacion_cerveza (sku, precio, fk_presentacion, fk_cerveza) VALUES
 /** Distribución cíclica de las 10 presentaciones para las 18 cervezas **/
-(1.00, 'B330', 1),      /** Destilo - Botella 330ml **/
-(1.00, 'B500', 2),      /** Dos Leones - Botella 500ml **/
-(1.00, 'L330', 3),      /** Benitz Pale Ale - Lata 330ml **/
-(5.00, 'SP330', 4),     /** Candileja de Abadía - Six-pack 330ml **/
-(20.00, 'C24330', 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
-(30.00, 'B20', 6),       /** Barricas Saison Belga - Barril 20L **/
-(40.00, 'B30', 7),       /** Aldarra Mantuana - Barril 30L **/
-(50.00, 'B50', 8),       /** Tröegs HopBack Amber - Barril 50L **/
-(1.00, 'G1L', 9),       /** Full Sail Amber - Growler 1L **/
-(10.00, 'C12500', 10),  /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
-(1.00, 'B330', 11),     /** Rogue American Amber - Botella 330ml **/
-(1.00, 'B500', 12),     /** La Chouffe - Botella 500ml **/
-(1.00, 'L330', 13),     /** Orval - Lata 330ml **/
-(5.00, 'SP330', 14),    /** Chimay - Six-pack 330ml **/
-(20.00, 'C24330', 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
-(30.00, 'B20', 16),      /** Hoegaarden - Barril 20L **/
-(40.00, 'B30', 17),      /** Pilsner Urquell - Barril 30L **/
-(50.00, 'B50', 18);      /** Samuel Adams - Barril 50L **/
+('DEST-B330-01', 1.50, 1, 1),      /** Destilo - Botella 330ml **/
+('DLEO-B500-02', 2.25, 2, 2),      /** Dos Leones - Botella 500ml **/
+('BENI-L330-03', 1.80, 3, 3),      /** Benitz Pale Ale - Lata 330ml **/
+('CAND-6P330-04', 8.50, 4, 4),     /** Candileja de Abadía - Six-pack 330ml **/
+('ANGE-C24330-05', 35.00, 5, 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
+('BARR-BR20L-06', 85.00, 6, 6),    /** Barricas Saison Belga - Barril 20L **/
+('ALDA-BR30L-07', 125.00, 7, 7),   /** Aldarra Mantuana - Barril 30L **/
+('TROE-BR50L-08', 195.00, 8, 8),   /** Tröegs HopBack Amber - Barril 50L **/
+('FULL-GR1L-09', 4.50, 9, 9),      /** Full Sail Amber - Growler 1L **/
+('DESC-C12500-10', 22.00, 10, 10), /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
+('ROGU-B330-11', 1.65, 1, 11),     /** Rogue American Amber - Botella 330ml **/
+('LACH-B500-12', 2.85, 2, 12),     /** La Chouffe - Botella 500ml **/
+('ORVA-L330-13', 2.10, 3, 13),     /** Orval - Lata 330ml **/
+('CHIM-6P330-14', 12.50, 4, 14),   /** Chimay - Six-pack 330ml **/
+('LEFF-C24330-15', 42.00, 5, 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
+('HOEG-BR20L-16', 78.00, 6, 16),   /** Hoegaarden - Barril 20L **/
+('PILS-BR30L-17', 115.00, 7, 17),  /** Pilsner Urquell - Barril 30L **/
+('SAMA-BR50L-18', 175.00, 8, 18);  /** Samuel Adams - Barril 50L **/
  
 
 
 /** Inserción de descuentos con referencias correctas a SKUs de presentacion **/
 INSERT INTO descuento (monto, porcentaje, fk_descuento, fk_presentacion_cerveza_1, fk_presentacion_cerveza_2) VALUES
-(1, 10, 1, 'B330', 1),     /** Descuento $1 (10%) en periodo 1, entre Botella 330ml y 500ml **/
-(2, 15, 2, 'B500', 2),     /** Descuento $2 (15%) en periodo 2, entre Botella 500ml y Lata 330ml **/
-(1, 5, 3, 'L330', 3),     /** Descuento $1 (5%) en periodo 3, entre Lata 330ml y Six-pack 330ml **/
-(3, 20, 4, 'SP330', 4),  /** Descuento $3 (20%) en periodo 4, entre Six-pack y Caja 24 unidades **/
-(5, 25, 5, 'C24330', 5),    /** Descuento $5 (25%) en periodo 5, entre Caja 24 unidades y Barril 20L **/
-(7, 10, 6, 'B20', 6),       /** Descuento $7 (10%) en periodo 6, entre Barril 20L y 30L **/
-(10, 15, 7, 'B30', 7),      /** Descuento $10 (15%) en periodo 7, entre Barril 30L y 50L **/
-(12, 20, 8, 'B50', 8),      /** Descuento $12 (20%) en periodo 8, entre Barril 50L y Growler 1L **/
-(2, 8, 9, 'G1L', 9),     /** Descuento $2 (8%) en periodo 9, entre Growler 1L y Caja 12 unidades **/
-(4, 12, 10, 'C12500', 10);  /** Descuento $4 (12%) en periodo 10, entre Botella 330ml y Caja 12 unidades **/
+(1, 10, 1, 1, 1),     /** Descuento $1 (10%) en periodo 1, entre Botella 330ml y 500ml **/
+(2, 15, 2, 2, 2),     /** Descuento $2 (15%) en periodo 2, entre Botella 500ml y Lata 330ml **/
+(1, 5, 3, 3, 3),     /** Descuento $1 (5%) en periodo 3, entre Lata 330ml y Six-pack 330ml **/
+(3, 20, 4, 4, 4),  /** Descuento $3 (20%) en periodo 4, entre Six-pack y Caja 24 unidades **/
+(5, 25, 5, 5, 5),    /** Descuento $5 (25%) en periodo 5, entre Caja 24 unidades y Barril 20L **/
+(7, 10, 6, 6, 6),       /** Descuento $7 (10%) en periodo 6, entre Barril 20L y 30L **/
+(10, 15, 7, 7, 7),      /** Descuento $10 (15%) en periodo 7, entre Barril 30L y 50L **/
+(12, 20, 8, 8, 8),      /** Descuento $12 (20%) en periodo 8, entre Barril 50L y Growler 1L **/
+(2, 8, 9, 9, 9),     /** Descuento $2 (8%) en periodo 9, entre Growler 1L y Caja 12 unidades **/
+(4, 12, 10, 10, 10);  /** Descuento $4 (12%) en periodo 10, entre Botella 330ml y Caja 12 unidades **/
 
 /** Inserción de relaciones cerveza-característica con valores según tipo */
 INSERT INTO cerveza_caracteristica (valor_rango_inferior, valor_rango_superior, descripcion, fk_caracteristica, fk_cerveza, fk_tipo_cerveza) VALUES
