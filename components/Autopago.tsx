@@ -9,8 +9,14 @@ import CategoryFilter from "@/components/cajero/category-filter";
 import CheckoutCajero from "./cajero/checkout-cajero";
 import PaymentView from "./cajero/payment-view";
 import { beers } from "@/app/(marketing)/productos/page";
+import PaymentMethodSummary from "./cajero/payment-method-summary";
 
-type PaymentMethod = "cash" | "card" | "transfer";
+type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
+
+interface Payment {
+  method: PaymentMethod;
+  details: any; // Debería ser PaymentDetails, pero lo mantenemos flexible
+}
 
 // Steps enum for better type safety
 enum Step {
@@ -18,6 +24,7 @@ enum Step {
   ID_INPUT = "id_input",
   PRODUCT_SELECTION = "product_selection",
   PAYMENT = "payment",
+  PAYMENT_SUMMARY = "payment_summary",
 }
 
 export default function Autopago() {
@@ -36,7 +43,7 @@ export default function Autopago() {
       category: beer.category,
     }))
   );
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
 
@@ -44,10 +51,13 @@ export default function Autopago() {
     ? products.filter((product) => product.category === selectedCategory)
     : products;
 
-  // Calculate total
+  // Calculate totals
   const subtotal = cart.reduce((sum, product) => sum + product.price * product.quantity, 0);
   const iva = subtotal * 0.16;
   const total = subtotal + iva;
+  const totalPaid = payments.reduce((sum, payment) => sum + (payment.details.amountPaid || 0), 0);
+  const remainingTotal = total - totalPaid;
+
   // Handle quantity changes
   const handleUpdateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -150,9 +160,33 @@ export default function Autopago() {
         return (
           <PaymentView
             items={cart}
-            total={total}
-            onComplete={() => {}}
+            total={remainingTotal > 0 ? remainingTotal : total}
+            onComplete={(method, details) => {
+              setPayments([...payments, { method, details }]);
+              // Si el pago no cubre el total, vuelve a la vista de pago.
+              // Esta lógica necesita ser más robusta, calculando si el total ha sido cubierto.
+              // Por ahora, siempre vamos al resumen.
+              setCurrentStep(Step.PAYMENT_SUMMARY);
+            }}
             onCancel={() => setCurrentStep(Step.PRODUCT_SELECTION)}
+          />
+        );
+
+      case Step.PAYMENT_SUMMARY:
+        return (
+          <PaymentMethodSummary
+            payments={payments}
+            items={cart}
+            total={total}
+            onConfirm={() => {
+              console.log("Pago completado con:", payments);
+              // Resetear el estado
+              setCurrentStep(Step.WELCOME);
+              setCart([]);
+              setCedula("");
+              setPayments([]);
+            }}
+            onBack={() => setCurrentStep(Step.PAYMENT)}
           />
         );
     }

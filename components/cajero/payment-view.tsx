@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import OrderSummaryCard from "./order-summary-card";
 
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
@@ -29,6 +30,7 @@ interface PaymentDetails {
   confirmationCode?: string;
   customerId?: string;
   pointsToUse?: number;
+  amountPaid?: number;
 }
 
 interface PaymentViewItem {
@@ -56,14 +58,12 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
   const [denomination, setDenomination] = useState<"dolares" | "euros" | "bolivares">("bolivares");
 
   // Calculate cash change
-  const cashChange =
-    Number.parseFloat(cashReceived) > 0 ? Number.parseFloat(cashReceived) - total : 0;
+  const cashReceivedNum = Number.parseFloat(cashReceived) || 0;
+  const cashChange = cashReceivedNum > total ? cashReceivedNum - total : 0;
 
   // Card payment state
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
-  const [cardName, setCardName] = useState("");
+  const [cardData, setCardData] = useState<any>({});
+  const [cardAmount, setCardAmount] = useState<number | string>("");
 
   // Mobile payment state
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -79,23 +79,33 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
     e.preventDefault();
 
     let details: PaymentDetails = {};
+    let amountPaid = 0;
 
     switch (selectedTab) {
       case "tarjeta":
-        details = { cardNumber, cardExpiry, cardName };
+        details = {
+          cardNumber: cardData.numeroTarjeta,
+          cardExpiry: cardData.fechaExpiracion,
+          cardName: cardData.nombreTitular,
+        };
+        amountPaid = typeof cardAmount === "number" ? cardAmount : total;
         break;
       case "efectivo":
-        details = { cashReceived: Number.parseFloat(cashReceived), cashChange };
+        const received = Number.parseFloat(cashReceived);
+        details = { cashReceived: received, cashChange: cashChange };
+        amountPaid = Math.min(received, total);
         break;
       case "pagoMovil":
         details = { phoneNumber, confirmationCode };
+        amountPaid = total; // Pago móvil paga el total
         break;
       case "puntos":
         details = { customerId, pointsToUse };
+        amountPaid = pointsToUse / 100; // Asumiendo 100 puntos = 1$
         break;
     }
 
-    onComplete(selectedTab, details);
+    onComplete(selectedTab, { ...details, amountPaid });
   };
 
   // Mock function to simulate fetching customer points
@@ -184,7 +194,19 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <TabsContent value="tarjeta" className="space-y-4">
-                    <TarjetaForm />
+                    <TarjetaForm onDataChange={setCardData} />
+                    <div className="space-y-2">
+                      <Label htmlFor="cardAmount">Monto a pagar</Label>
+                      <Input
+                        id="cardAmount"
+                        type="number"
+                        placeholder={total.toFixed(2)}
+                        value={cardAmount}
+                        onChange={(e) =>
+                          setCardAmount(e.target.value ? Number(e.target.value) : "")
+                        }
+                      />
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="efectivo" className="space-y-4">
@@ -300,44 +322,7 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
         </div>
 
         <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-4">Resumen de compra</h2>
-
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>Productos ({itemCount})</span>
-                  <span>{items.length} items</span>
-                </div>
-
-                <div className="max-h-[300px] overflow-y-auto space-y-2">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span>
-                        {item.name} x{item.quantity}
-                      </span>
-                      <span>${(item.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t pt-4 mt-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>IVA (16%)</span>
-                    <span>${iva.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <OrderSummaryCard items={items} total={total} />
         </div>
       </div>
     </div>

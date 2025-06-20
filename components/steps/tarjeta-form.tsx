@@ -3,9 +3,9 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { PaymentMethodsBanner } from "@/components/payment-methods-banner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useEffect } from "react";
 
 // Define the form schema
 const formSchema = z.object({
@@ -18,9 +18,10 @@ const formSchema = z.object({
 interface TarjetaFormProps {
   maxWidth?: string;
   onSubmit?: (data: z.infer<typeof formSchema>) => void;
+  onDataChange?: (data: z.infer<typeof formSchema>) => void;
 }
 
-export function TarjetaForm({ maxWidth = "max-w-2xl", onSubmit }: TarjetaFormProps) {
+export function TarjetaForm({ maxWidth = "max-w-2xl", onSubmit, onDataChange }: TarjetaFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -30,6 +31,14 @@ export function TarjetaForm({ maxWidth = "max-w-2xl", onSubmit }: TarjetaFormPro
       codigoSeguridad: "",
     },
   });
+
+  const watchedData = form.watch();
+
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(watchedData);
+    }
+  }, [watchedData, onDataChange]);
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     if (onSubmit) {
