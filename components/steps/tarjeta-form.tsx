@@ -11,7 +11,43 @@ import { useEffect } from "react";
 const formSchema = z.object({
   nombreTitular: z.string().min(1, "El nombre del titular es requerido"),
   numeroTarjeta: z.string().min(19, "El número de tarjeta debe tener 16 dígitos"),
-  fechaExpiracion: z.string().min(5, "La fecha de expiración es requerida"),
+  fechaExpiracion: z
+    .string()
+    .min(5, "La fecha de expiración es requerida")
+    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "El formato debe ser MM/AA")
+    .refine(
+      (val) => {
+        const [monthStr, yearStr] = val.split("/");
+        if (!monthStr || !yearStr) return false;
+
+        const month = parseInt(monthStr, 10);
+        const year = parseInt(yearStr, 10);
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // 1-12
+
+        const cardYear = 2000 + year;
+
+        if (cardYear < currentYear) {
+          return false; // Year en el pasado
+        }
+
+        if (cardYear === currentYear && month < currentMonth) {
+          return false; // Mes en el year actual pero mes pasado
+        }
+
+        // Validar que no sea más de 5 años en el futuro
+        if (cardYear > currentYear + 5) {
+          return false; // Más de 5 años en el futuro
+        }
+
+        return true;
+      },
+      {
+        message: "La tarjeta está expirada o la fecha es inválida",
+      }
+    ),
   codigoSeguridad: z.string().min(3, "El código de seguridad es requerido"),
 });
 
@@ -19,11 +55,18 @@ interface TarjetaFormProps {
   maxWidth?: string;
   onSubmit?: (data: z.infer<typeof formSchema>) => void;
   onDataChange?: (data: z.infer<typeof formSchema>) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
-export function TarjetaForm({ maxWidth = "max-w-2xl", onSubmit, onDataChange }: TarjetaFormProps) {
+export function TarjetaForm({
+  maxWidth = "max-w-2xl",
+  onSubmit,
+  onDataChange,
+  onValidationChange,
+}: TarjetaFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       nombreTitular: "",
       numeroTarjeta: "",
@@ -33,12 +76,19 @@ export function TarjetaForm({ maxWidth = "max-w-2xl", onSubmit, onDataChange }: 
   });
 
   const watchedData = form.watch();
+  const { isValid } = form.formState;
 
   useEffect(() => {
     if (onDataChange) {
       onDataChange(watchedData);
     }
   }, [watchedData, onDataChange]);
+
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange(isValid);
+    }
+  }, [isValid, onValidationChange]);
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     if (onSubmit) {

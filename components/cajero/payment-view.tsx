@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Banknote, Smartphone, Award, ArrowRight, ArrowLeft } from "lucide-react";
+import { CreditCard, Banknote, Smartphone, Award, ArrowRight, ArrowLeft, Eye } from "lucide-react";
 import { TarjetaForm } from "../steps/tarjeta-form";
 import {
   Select,
@@ -33,6 +33,12 @@ interface PaymentDetails {
   amountPaid?: number;
 }
 
+/** Interfaz para un pago existente */
+interface ExistingPayment {
+  method: PaymentMethod;
+  details: PaymentDetails;
+}
+
 interface PaymentViewItem {
   id: number;
   name: string;
@@ -47,11 +53,28 @@ interface PaymentViewItem {
 interface PaymentViewProps {
   items: PaymentViewItem[];
   total: number;
+  /** Total original de la compra (para mostrar correctamente en order summary) */
+  originalTotal?: number;
+  /** Monto ya pagado en transacciones anteriores */
+  amountPaid?: number;
+  /** Pagos existentes para mostrar botón condicional */
+  existingPayments?: ExistingPayment[];
   onComplete: (paymentMethod: PaymentMethod, details: PaymentDetails) => void;
   onCancel: () => void;
+  /** Callback para ir al resumen de pagos */
+  onViewSummary?: () => void;
 }
 
-export default function PaymentView({ items, total, onComplete, onCancel }: PaymentViewProps) {
+export default function PaymentView({
+  items,
+  total,
+  originalTotal,
+  amountPaid = 0,
+  existingPayments,
+  onComplete,
+  onCancel,
+  onViewSummary,
+}: PaymentViewProps) {
   const [selectedTab, setSelectedTab] = useState<PaymentMethod>("tarjeta");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("efectivo");
   const [cashReceived, setCashReceived] = useState("");
@@ -63,6 +86,7 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
 
   // Card payment state
   const [cardData, setCardData] = useState<any>({});
+  const [isCardValid, setIsCardValid] = useState(false);
   const [cardAmount, setCardAmount] = useState<number | string>("");
 
   // Mobile payment state
@@ -74,6 +98,35 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
   const [customerId, setCustomerId] = useState("");
   const [pointsAvailable, setPointsAvailable] = useState(0);
   const [pointsToUse, setPointsToUse] = useState(0);
+
+  // Validation functions
+  const isCardAmountValid = () => {
+    const amount = typeof cardAmount === "number" ? cardAmount : parseFloat(cardAmount.toString());
+    return !cardAmount || (amount > 0 && amount <= total);
+  };
+
+  const isCashAmountValid = () => {
+    return !cashReceived || (cashReceivedNum > 0 && cashReceivedNum <= total);
+  };
+
+  const isPointsAmountValid = () => {
+    //  tasa BCV
+    const pointsInDollars = pointsToUse / 100;
+    return pointsToUse === 0 || (pointsToUse > 0 && pointsInDollars <= total);
+  };
+
+  const isFormValid = () => {
+    switch (selectedTab) {
+      case "tarjeta":
+        return isCardValid && isCardAmountValid();
+      case "efectivo":
+        return isCashAmountValid() && cashReceivedNum > 0;
+      case "puntos":
+        return isPointsAmountValid() && pointsToUse > 0;
+      default:
+        return true;
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,11 +182,21 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex items-center mb-6">
-        <Button variant="ghost" onClick={onCancel} className="mr-2">
-          <ArrowLeft className="h-4 w-4 mr-2" /> Volver
-        </Button>
-        <h1 className="text-2xl font-bold">Método de pago</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button variant="ghost" onClick={onCancel} className="mr-2">
+            <ArrowLeft className="h-4 w-4 mr-2" /> Volver
+          </Button>
+          <h1 className="text-2xl font-bold">Método de pago</h1>
+        </div>
+
+        {/** Botón condicional para ver resumen de pagos si ya hay pagos existentes */}
+        {existingPayments && existingPayments.length > 0 && onViewSummary && (
+          <Button variant="ghost" onClick={onViewSummary} className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            Ver resumen de pagos ({existingPayments.length})
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -194,18 +257,27 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <TabsContent value="tarjeta" className="space-y-4">
-                    <TarjetaForm onDataChange={setCardData} />
+                    <TarjetaForm onDataChange={setCardData} onValidationChange={setIsCardValid} />
                     <div className="space-y-2">
                       <Label htmlFor="cardAmount">Monto a pagar</Label>
                       <Input
                         id="cardAmount"
                         type="number"
+                        min="0.01"
+                        max={total}
+                        step="0.01"
                         placeholder={total.toFixed(2)}
                         value={cardAmount}
                         onChange={(e) =>
                           setCardAmount(e.target.value ? Number(e.target.value) : "")
                         }
+                        className={!isCardAmountValid() ? "border-red-500" : ""}
                       />
+                      {!isCardAmountValid() && cardAmount && (
+                        <p className="text-sm text-red-500">
+                          El monto no puede ser mayor al total (${total.toFixed(2)})
+                        </p>
+                      )}
                     </div>
                   </TabsContent>
 
@@ -235,12 +307,19 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
                           id="cashReceived"
                           type="number"
                           min={0.01}
+                          max={total}
                           step="0.01"
                           placeholder={`${total.toFixed(2)}`}
                           value={cashReceived}
                           onChange={(e) => setCashReceived(e.target.value)}
+                          className={!isCashAmountValid() ? "border-red-500" : ""}
                           required
                         />
+                        {!isCashAmountValid() && cashReceived && (
+                          <p className="text-sm text-red-500">
+                            El monto no puede ser mayor al total (${total.toFixed(2)})
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -287,9 +366,16 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
                           const value = Math.min(Number(e.target.value) || 0, total * 100);
                           setPointsToUse(value);
                         }}
+                        className={!isPointsAmountValid() ? "border-red-500" : ""}
                         placeholder="Ingrese la cantidad de puntos"
                         required
                       />
+                      {!isPointsAmountValid() && pointsToUse > 0 && (
+                        <p className="text-sm text-red-500">
+                          Los puntos no pueden exceder el total (máximo {(total * 100).toFixed(0)}{" "}
+                          puntos)
+                        </p>
+                      )}
                     </div>
 
                     {pointsToUse > 0 && (
@@ -312,7 +398,7 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
                     )}
                   </TabsContent>
 
-                  <Button type="submit" className="w-full mt-6">
+                  <Button type="submit" className="w-full mt-6" disabled={!isFormValid()}>
                     Completar pago <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </form>
@@ -322,7 +408,12 @@ export default function PaymentView({ items, total, onComplete, onCancel }: Paym
         </div>
 
         <div className="lg:col-span-1">
-          <OrderSummaryCard items={items} total={total} />
+          <OrderSummaryCard
+            items={items}
+            total={total}
+            originalTotal={originalTotal}
+            amountPaid={amountPaid}
+          />
         </div>
       </div>
     </div>

@@ -161,6 +161,9 @@ export default function Autopago() {
           <PaymentView
             items={cart}
             total={remainingTotal > 0 ? remainingTotal : total}
+            originalTotal={total}
+            amountPaid={totalPaid}
+            existingPayments={payments}
             onComplete={(method, details) => {
               setPayments([...payments, { method, details }]);
               // Si el pago no cubre el total, vuelve a la vista de pago.
@@ -169,6 +172,7 @@ export default function Autopago() {
               setCurrentStep(Step.PAYMENT_SUMMARY);
             }}
             onCancel={() => setCurrentStep(Step.PRODUCT_SELECTION)}
+            onViewSummary={() => setCurrentStep(Step.PAYMENT_SUMMARY)}
           />
         );
 

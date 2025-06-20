@@ -19,6 +19,7 @@ yarn-error.log*
 # env files
 .env*
 .cursor*
+.sql-guideline.mdc
 
 # vercel
 .vercel

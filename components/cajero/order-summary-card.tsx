@@ -12,12 +12,28 @@ interface OrderSummaryItem {
 interface OrderSummaryCardProps {
   items: OrderSummaryItem[];
   total: number;
+  /** Total original de la compra (opcional, para mostrar en pagos parciales) */
+  originalTotal?: number;
+  /** Monto ya pagado (opcional, para mostrar en pagos parciales) */
+  amountPaid?: number;
 }
 
-export default function OrderSummaryCard({ items, total }: OrderSummaryCardProps) {
+export default function OrderSummaryCard({
+  items,
+  total,
+  originalTotal,
+  amountPaid,
+}: OrderSummaryCardProps) {
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = total / 1.16;
-  const iva = total - subtotal;
+
+  /** Si hay un total original, usamos ese para calcular subtotal e IVA */
+  const baseTotal = originalTotal || total;
+  const subtotal = baseTotal / 1.16;
+  const iva = baseTotal - subtotal;
+
+  /** Determinar si estamos en modo de pago parcial */
+  const isPartialPayment = originalTotal && amountPaid !== undefined;
+  const remainingAmount = isPartialPayment ? originalTotal - amountPaid : 0;
 
   return (
     <Card>
@@ -52,8 +68,24 @@ export default function OrderSummaryCard({ items, total }: OrderSummaryCardProps
             </div>
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span>${baseTotal.toFixed(2)}</span>
             </div>
+
+            {/** Mostrar información de pago parcial si aplica */}
+            {isPartialPayment && (
+              <>
+                <div className="border-t pt-2 mt-2 space-y-2">
+                  <div className="flex justify-between text-green-600">
+                    <span>Ya pagado</span>
+                    <span>${amountPaid.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-orange-600">
+                    <span>Restante por pagar</span>
+                    <span>${remainingAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </CardContent>
