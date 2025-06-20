@@ -191,6 +191,16 @@ export default function Autopago() {
               setPayments([]);
             }}
             onBack={() => setCurrentStep(Step.PAYMENT)}
+            onDeletePayment={(paymentIndex) => {
+              /** Eliminar el pago específico del array de pagos */
+              const updatedPayments = payments.filter((_, index) => index !== paymentIndex);
+              setPayments(updatedPayments);
+
+              // /** Si no quedan pagos, volver a la selección de productos */
+              // if (updatedPayments.length === 0) {
+              //   setCurrentStep(Step.PRODUCT_SELECTION);
+              // }
+            }}
           />
         );
     }

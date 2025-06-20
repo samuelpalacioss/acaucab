@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import OrderSummaryCard from "./order-summary-card";
+import { Separator } from "@radix-ui/react-select";
 
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
@@ -325,24 +326,35 @@ export default function PaymentView({
 
                     <div className="p-4 bg-gray-50 rounded-md">
                       <div className="flex justify-between">
-                        <span>Total:</span>
-                        <span>${total.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Recibido:</span>
+                        <span>Recibido en efectivo:</span>
                         <span>${(Number.parseFloat(cashReceived) || 0).toFixed(2)}</span>
                       </div>
-                      {Number.parseFloat(cashReceived) > total && (
-                        <div className="flex justify-between font-bold mt-2 pt-2 border-t">
-                          <span>Cambio:</span>
-                          <span>${cashChange.toFixed(2)}</span>
-                        </div>
-                      )}
+                      <hr className="my-2 border-t border-gray-200" />
                       {Number.parseFloat(cashReceived) > 0 &&
-                        Number.parseFloat(cashReceived) < total && (
-                          <div className="flex justify-between font-bold mt-2 pt-2 border-t text-red-600">
-                            <span>Falta por pagar:</span>
-                            <span>${(total - Number.parseFloat(cashReceived)).toFixed(2)}</span>
+                        amountPaid + Number.parseFloat(cashReceived) > (originalTotal || total) && (
+                          <div className="flex justify-between font-bold text-green-600">
+                            <span>Cambio:</span>
+                            <span>
+                              $
+                              {(
+                                amountPaid +
+                                Number.parseFloat(cashReceived) -
+                                (originalTotal || total)
+                              ).toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                      {Number.parseFloat(cashReceived) > 0 &&
+                        amountPaid + Number.parseFloat(cashReceived) < (originalTotal || total) && (
+                          <div className="flex justify-between font-bold text-red-600">
+                            <span>Faltaría por pagar:</span>
+                            <span>
+                              $
+                              {(
+                                (originalTotal || total) -
+                                (amountPaid + Number.parseFloat(cashReceived))
+                              ).toFixed(2)}
+                            </span>
                           </div>
                         )}
                     </div>

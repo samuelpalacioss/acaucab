@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, PlusCircle } from "lucide-react";
+import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
 import OrderSummaryCard from "./order-summary-card";
 
 /** Tipos para el método de pago */
@@ -47,6 +47,8 @@ interface PaymentMethodSummaryProps {
   total: number;
   onConfirm: () => void;
   onBack: () => void;
+  /** Función para eliminar un método de pago específico */
+  onDeletePayment?: (paymentIndex: number) => void;
 }
 
 const getCardType = (cardNumber: string): string => {
@@ -63,6 +65,7 @@ export default function PaymentMethodSummary({
   total,
   onConfirm,
   onBack,
+  onDeletePayment,
 }: PaymentMethodSummaryProps) {
   const getPaymentMethodName = (method: PaymentMethod) => {
     switch (method) {
@@ -115,29 +118,53 @@ export default function PaymentMethodSummary({
             </CardHeader>
             <CardContent>
               {/* Lista de Métodos de Pago */}
-              {sortedPayments.map((payment, index) => (
-                <div key={index} className="flex items-center justify-between py-3 border-b">
-                  <div className="flex items-center gap-4">
-                    <span className="bg-blue-100 text-blue-800 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="font-semibold">
-                        {getPaymentMethodName(payment.method)}
-                        {payment.method === "tarjeta" && payment.details.cardNumber && (
-                          <span className="ml-2 font-normal text-gray-500">
-                            {getCardType(payment.details.cardNumber)} -{" "}
-                            {payment.details.cardNumber.replace(/\s/g, "").slice(-4)}
-                          </span>
-                        )}
-                      </p>
+              {sortedPayments.map((payment, sortedIndex) => {
+                // Encontrar el índice original en el array de pagos sin ordenar
+                const originalIndex = payments.findIndex(
+                  (p, i) =>
+                    p === payment ||
+                    (p.method === payment.method &&
+                      p.details.amountPaid === payment.details.amountPaid &&
+                      JSON.stringify(p.details) === JSON.stringify(payment.details))
+                );
+
+                return (
+                  <div
+                    key={originalIndex}
+                    className="flex items-center justify-between py-3 border-b"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="bg-blue-100 text-blue-800 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold">
+                        {sortedIndex + 1}
+                      </span>
+                      <div>
+                        <p className="font-semibold">
+                          {getPaymentMethodName(payment.method)}
+                          {payment.method === "tarjeta" && payment.details.cardNumber && (
+                            <span className="ml-2 font-normal text-gray-500">
+                              {getCardType(payment.details.cardNumber)} -{" "}
+                              {payment.details.cardNumber.replace(/\s/g, "").slice(-4)}
+                            </span>
+                          )}
+                        </p>
+                        {/** Solo permitir eliminar efectivo y puntos */}
+                        {onDeletePayment &&
+                          (payment.method === "efectivo" || payment.method === "puntos") && (
+                            <button
+                              onClick={() => onDeletePayment(originalIndex)}
+                              className="text-sm text-muted-foreground underline mt-1"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                      </div>
                     </div>
+                    <p className="font-semibold text-base">
+                      ${payment.details.amountPaid?.toFixed(2) || "0.00"}
+                    </p>
                   </div>
-                  <p className="font-semibold text-base">
-                    ${payment.details.amountPaid?.toFixed(2) || "0.00"}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Agregar otro método de pago */}
               <Button
