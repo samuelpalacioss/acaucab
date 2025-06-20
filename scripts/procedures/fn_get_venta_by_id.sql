@@ -22,7 +22,8 @@ RETURNS TABLE (
     fecha_ultimo_estado TIMESTAMP,
     producto_nombre VARCHAR,
     producto_cantidad INTEGER,
-    producto_precio_unitario DECIMAL
+    producto_precio_unitario DECIMAL,
+    pagos JSONB
 ) 
 LANGUAGE plpgsql
 AS $$
@@ -56,7 +57,9 @@ BEGIN
         -- Detalles del producto
         (c.nombre || ' - ' || p.nombre)::VARCHAR as producto_nombre,
         dp.cantidad as producto_cantidad,
-        dp.precio_unitario as producto_precio_unitario
+        dp.precio_unitario as producto_precio_unitario,
+        -- Llamada a la función de pagos para obtener un JSON agregado
+        (SELECT jsonb_agg(p.*) FROM fn_get_pagos_by_venta(v.id) p) as pagos
     FROM venta v
     -- Join para obtener los detalles de los productos de la venta
     JOIN detalle_presentacion dp ON v.id = dp.fk_venta

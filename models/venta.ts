@@ -127,6 +127,7 @@ export interface VentaByIdResponse {
   producto_nombre: string;
   producto_cantidad: number;
   producto_precio_unitario: number;
+  pagos?: PagoDetalle[];
 }
 
 /**
@@ -139,11 +140,23 @@ export interface ProductoDetalle {
 }
 
 /**
+ * Interface para representar el detalle de un pago en una venta.
+ */
+export interface PagoDetalle {
+  monto: number;
+  fecha_pago: string;
+  metodo_pago: string;
+  referencia: string;
+  tasa_bcv?: number;
+}
+
+/**
  * Interface para la Venta con sus detalles de productos, ideal para la UI.
  * Extiende VentaExpandida y añade la lista de productos.
  */
 export interface VentaDetalleExpansida extends VentaExpandida {
   productos: ProductoDetalle[];
+  pagos: PagoDetalle[];
 }
 
 /**
@@ -244,6 +257,7 @@ export function transformarVentaByIdResponse(
   return {
     ...ventaBase,
     productos: productos,
+    pagos: firstRow.pagos || [],
   };
 }
 

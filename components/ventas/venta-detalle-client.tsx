@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { VentaDetalleExpansida } from "@/models/venta";
+import { VentaDetalleExpansida, PagoDetalle } from "@/models/venta";
 
 /**
  * Interface para las props del componente
@@ -268,24 +268,32 @@ export default function VentaDetalleClient({ venta }: VentaDetalleClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div id="pago-grid" className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div id="metodo-pago">
-                  <p className="text-sm font-medium text-muted-foreground">Método</p>
-                  <p>No especificado</p>
-                </div>
-                <div id="referencia-pago">
-                  <p className="text-sm font-medium text-muted-foreground">Referencia</p>
-                  <p>No especificado</p>
-                </div>
-                <div id="fecha-pago">
-                  <p className="text-sm font-medium text-muted-foreground">Fecha pago</p>
-                  <p>{venta.fecha_venta ? formatDate(venta.fecha_venta) : 'N/A'}</p>
-                </div>
-                <div id="tasa-bcv">
-                  <p className="text-sm font-medium text-muted-foreground">Tasa BCV histórica</p>
-                  <p>No disponible</p>
-                </div>
-              </div>
+              {venta.pagos && venta.pagos.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Método</TableHead>
+                      <TableHead>Referencia</TableHead>
+                      <TableHead>Tasa BCV</TableHead>
+                      <TableHead className="text-right">Monto</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {venta.pagos.map((pago, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{formatDate(pago.fecha_pago)}</TableCell>
+                        <TableCell>{pago.metodo_pago}</TableCell>
+                        <TableCell>{pago.referencia}</TableCell>
+                        <TableCell>{pago.tasa_bcv ? `${Number(pago.tasa_bcv).toFixed(2)} Bs` : 'N/A'}</TableCell>
+                        <TableCell className="text-right font-medium">{pago.monto.toLocaleString("es-ES", { style: "currency", currency: "VES" })}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p>No se encontraron pagos para esta venta.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
