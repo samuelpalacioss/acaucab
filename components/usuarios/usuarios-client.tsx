@@ -8,69 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, Settings, Edit, Eye, UserCheck, UserX } from "lucide-react";
 import Link from "next/link";
-
-/**
- * Datos de ejemplo para usuarios del sistema
- * TODO: Esta información debería provenir de una API
- */
-const users = [
-  {
-    id: 1,
-    name: "Juan Pérez",
-    email: "juan.perez@empresa.com",
-    role: "Administrador",
-    status: "Activo",
-    lastLogin: "2024-01-15 10:30",
-    department: "IT",
-    phone: "+58 412-1234567",
-  },
-  {
-    id: 2,
-    name: "María González",
-    email: "maria.gonzalez@empresa.com",
-    role: "Gerente",
-    status: "Activo",
-    lastLogin: "2024-01-15 09:15",
-    department: "Ventas",
-    phone: "+58 414-2345678",
-  },
-  {
-    id: 3,
-    name: "Carlos Rodríguez",
-    email: "carlos.rodriguez@empresa.com",
-    role: "Empleado",
-    status: "Inactivo",
-    lastLogin: "2024-01-10 16:45",
-    department: "Logística",
-    phone: "+58 416-3456789",
-  },
-  {
-    id: 4,
-    name: "Ana Martínez",
-    email: "ana.martinez@empresa.com",
-    role: "Supervisor",
-    status: "Activo",
-    lastLogin: "2024-01-15 11:20",
-    department: "RRHH",
-    phone: "+58 424-4567890",
-  },
-];
-
-/**
- * Lista de roles disponibles en el sistema
- * TODO: Esta información debería provenir de una API de configuración
- */
-const roles = ["Administrador", "Gerente", "Supervisor", "Empleado", "Invitado"];
-
-/**
- * Interface para las props del componente
- */
-interface UsuariosClientProps {
-  // Aquí se pueden agregar props que vengan del servidor
-  // Por ejemplo: initialUsers, userPermissions, availableRoles, etc.
-}
+import { User, UsuariosClientProps } from "@/models/users";
+import { llamarFuncion } from "@/lib/server-actions";
+import { updateUserRole } from "@/api/update-user-role";
 
 /**
  * Interface para el estado de edición de roles
@@ -84,42 +27,89 @@ interface EditingRole {
  * Componente cliente para la gestión de usuarios del sistema
  * Maneja toda la interfaz de usuario y las interacciones de gestión de usuarios
  */
-export default function UsuariosClient({}: UsuariosClientProps) {
+export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
   /*
    * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
    *
    * Estados para controlar la funcionalidad de gestión de usuarios:
    * - searchTerm: Término de búsqueda para filtrar usuarios
    * - roleFilter: Filtro por rol seleccionado
-   * - statusFilter: Filtro por estado (activo/inactivo)
    * - editingRole: Estado para el modal de edición de roles
+   * - activeTab: Tab activo para filtrar por tipo de usuario
    */
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [editingRole, setEditingRole] = useState<EditingRole | null>(null);
+  const [activeTab, setActiveTab] = useState("todos");
 
   /**
-   * Función para filtrar usuarios según los criterios de búsqueda
+   * Obtener roles únicos de los usuarios para el filtro, excluyendo Empleado y Cliente
+   * Tipos: string[] - Array de nombres de roles únicos filtrados
    */
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+  const availableRoles = roles
+    .filter(role => !['Miembro', 'Cliente', 'Administrador'].includes(role.nombre))
+    .map(role => role.nombre);
 
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  /**
+   * Función para filtrar usuarios según los criterios de búsqueda y tipo
+   * Tipos: User[] - Array de usuarios filtrados
+   */
+  const getFilteredUsers = (tipoUsuario: string) => {
+    return users.filter((user) => {
+      const matchesSearch =
+        (user.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === "all" || user.rol_nombre === roleFilter;
+      const matchesType = tipoUsuario === "todos" || user.tipo_usuario.toLowerCase() === tipoUsuario.toLowerCase();
+
+      return matchesSearch && matchesRole && matchesType;
+    });
+  };
+
+  /**
+   * Obtener conteos por tipo de usuario para mostrar en los tabs
+   * Tipos: Record<string, number> - Objeto con conteos por tipo
+   */
+  const getUserCounts = () => {
+    const counts = {
+      todos: users.length,
+      cliente: users.filter(user => user.tipo_usuario === "Cliente").length,
+      miembro: users.filter(user => user.tipo_usuario === "Miembro").length,
+      empleado: users.filter(user => user.tipo_usuario === "Empleado").length,
+    };
+    return counts;
+  };
+
+  const userCounts = getUserCounts();
 
   /**
    * Función para manejar el cambio de rol de un usuario
-   * TODO: Implementar llamada a API para actualizar el rol
+   * Llama a una acción del servidor para actualizar el rol en la base de datos
    */
-  const handleRoleChange = (userId: number, newRole: string) => {
-    console.log(`Changing role for user ${userId} to ${newRole}`);
-    // Aquí se debería implementar la llamada a la API
-    setEditingRole(null);
+  const handleRoleChange = async (userId: number, newRoleName: string) => {
+    const role = roles.find((r) => r.nombre === newRoleName);
+    if (!role) {
+      console.error(`El rol "${newRoleName}" no fue encontrado.`);
+      // TODO: Mostrar notificación de error al usuario
+      return;
+    }
+
+    try {
+      const success = await llamarFuncion("fn_update_user_role", {
+        p_id_usuario: userId,
+        p_id_nuevo_rol: role.id,
+      });
+
+      if (success) {
+        console.log(`Rol del usuario ${userId} actualizado a ${newRoleName}`);
+        // TODO: Mostrar notificación de éxito y actualizar el estado local
+      }
+    } catch (error) {
+      console.error("Error al actualizar el rol:", error);
+      // TODO: Mostrar notificación de error al usuario
+    } finally {
+      setEditingRole(null);
+    }
   };
 
   /**
@@ -143,6 +133,83 @@ export default function UsuariosClient({}: UsuariosClientProps) {
    */
   const closeEditModal = () => {
     setEditingRole(null);
+  };
+
+  /**
+   * Componente para renderizar la tabla de usuarios
+   * Tipos: tipoUsuario (string) - Tipo de usuario a mostrar
+   */
+  const renderUserTable = (tipoUsuario: string) => {
+    const filteredUsers = getFilteredUsers(tipoUsuario);
+
+    return (
+      <Table id={`usuarios-table-${tipoUsuario}`}>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Usuario</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Rol</TableHead>
+            <TableHead>Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredUsers.map((user) => (
+            <TableRow key={user.id_usuario} id={`usuario-row-${user.id_usuario}`}>
+              <TableCell id={`usuario-info-${user.id_usuario}`}>
+                <div>
+                  <div className="font-medium">{user.nombre_completo || 'Sin nombre'}</div>
+                  <div className="text-sm text-gray-600">{user.email}</div>
+                  <div className="text-sm text-gray-500">{user.telefono || 'Sin teléfono'}</div>
+                </div>
+              </TableCell>
+              <TableCell id={`usuario-tipo-${user.id_usuario}`}>
+                <Badge variant="outline">
+                  {user.tipo_usuario}
+                </Badge>
+              </TableCell>
+              <TableCell id={`usuario-rol-${user.id_usuario}`}>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={user.rol_nombre === "Administrador" ? "default" : "secondary"}
+                    id={`badge-rol-${user.id_usuario}`}
+                  >
+                    {user.rol_nombre}
+                  </Badge>
+                  {/* Solo mostrar botón de editar rol para empleados */}
+                  {user.tipo_usuario === "Empleado" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingRole({ userId: user.id_usuario, currentRole: user.rol_nombre })}
+                      id={`edit-rol-${user.id_usuario}`}
+                    >
+                      <Edit className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell id={`usuario-acciones-${user.id_usuario}`}>
+                <div className="flex gap-1">
+                  <Link href={`/dashboard/usuarios/${user.id_usuario}`}>
+                    <Button variant="ghost" size="sm" id={`ver-usuario-${user.id_usuario}`}>
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleUserStatus(user.id_usuario)}
+                    id={`toggle-status-${user.id_usuario}`}
+                  >
+                    <UserX className="w-4 h-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
   };
 
   return (
@@ -177,26 +244,29 @@ export default function UsuariosClient({}: UsuariosClientProps) {
       <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card id="total-usuarios-card">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{userCounts.todos}</div>
             <div className="text-sm text-gray-600">Total Usuarios</div>
           </CardContent>
         </Card>
-        <Card id="usuarios-activos-card">
+        
+        <Card id="clientes-card">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">18</div>
-            <div className="text-sm text-gray-600">Usuarios Activos</div>
+            <div className="text-2xl font-bold">{userCounts.cliente}</div>
+            <div className="text-sm text-gray-600">Clientes</div>
           </CardContent>
         </Card>
-        <Card id="usuarios-inactivos-card">
+
+        <Card id="miembros-card">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">6</div>
-            <div className="text-sm text-gray-600">Usuarios Inactivos</div>
+            <div className="text-2xl font-bold">{userCounts.miembro}</div>
+            <div className="text-sm text-gray-600">Miembros</div>
           </CardContent>
         </Card>
-        <Card id="roles-configurados-card">
+
+        <Card id="empleados-card">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">5</div>
-            <div className="text-sm text-gray-600">Roles Configurados</div>
+            <div className="text-2xl font-bold">{userCounts.empleado}</div>
+            <div className="text-sm text-gray-600">Empleados</div>
           </CardContent>
         </Card>
       </div>
@@ -217,96 +287,42 @@ export default function UsuariosClient({}: UsuariosClientProps) {
                 />
               </div>
             </div>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-full md:w-48" id="role-filter">
-                <SelectValue placeholder="Filtrar por rol" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los roles</SelectItem>
-                {roles.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48" id="status-filter">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="Inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
+            
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabla de usuarios */}
+      {/* Lista de usuarios con tabs */}
       <Card id="usuarios-table-card">
         <CardHeader>
           <CardTitle id="tabla-titulo">Lista de Usuarios</CardTitle>
+          <p className="text-gray-600">Administra usuarios registrados en el sistema</p>
         </CardHeader>
         <CardContent>
-          <Table id="usuarios-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuario</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id} id={`usuario-row-${user.id}`}>
-                  <TableCell id={`usuario-info-${user.id}`}>
-                    <div>
-                      <div className="font-medium">{user.name}</div>
-                      <div className="text-sm text-gray-600">{user.email}</div>
-                      <div className="text-sm text-gray-500">{user.phone}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell id={`usuario-rol-${user.id}`}>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={user.role === "Administrador" ? "default" : "secondary"}
-                        id={`badge-rol-${user.id}`}
-                      >
-                        {user.role}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingRole({ userId: user.id, currentRole: user.role })}
-                        id={`edit-rol-${user.id}`}
-                      >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell id={`usuario-acciones-${user.id}`}>
-                    <div className="flex gap-1">
-                      <Link href={`/dashboard/usuarios/${user.id}`}>
-                        <Button variant="ghost" size="sm" id={`ver-usuario-${user.id}`}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleUserStatus(user.id)}
-                        id={`toggle-status-${user.id}`}
-                      >
-                        {user.status === "Activo" ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="todos">Todos</TabsTrigger>
+              <TabsTrigger value="empleado">Empleados</TabsTrigger>
+              <TabsTrigger value="cliente">Clientes</TabsTrigger>
+              <TabsTrigger value="miembro">Miembros</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="todos" className="mt-0">
+              {renderUserTable("todos")}
+            </TabsContent>
+            
+            <TabsContent value="empleado" className="mt-0">
+              {renderUserTable("empleado")}
+            </TabsContent>
+            
+            <TabsContent value="cliente" className="mt-0">
+              {renderUserTable("cliente")}
+            </TabsContent>
+            
+            <TabsContent value="miembro" className="mt-0">
+              {renderUserTable("miembro")}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
@@ -324,7 +340,7 @@ export default function UsuariosClient({}: UsuariosClientProps) {
                   <SelectValue placeholder="Seleccionar rol" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map((role) => (
+                  {availableRoles.map((role) => (
                     <SelectItem key={role} value={role}>
                       {role}
                     </SelectItem>

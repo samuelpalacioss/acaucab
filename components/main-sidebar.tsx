@@ -6,17 +6,10 @@ import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import {
-  BarChart3,
-  ShoppingCart,
   Package,
   Truck,
   Users,
-  Calendar,
-  TruckIcon,
   DollarSign,
-  UserCircle,
-  Leaf,
-  Settings,
   ChevronDown,
   Home,
 } from "lucide-react";
@@ -52,14 +45,20 @@ export function MainSidebar() {
       path: "/dashboard",
     },
     {
+      title: "Inventario",
+      icon: Package,
+      submenu: [
+        { title: "Detalle de Inventario", path: "/dashboard/inventario/detalle" },
+        { title: "Orden de Compra", path: "/dashboard/inventario/ordenes" },
+      ],
+    },
+    {
       title: "Finanzas",
       icon: DollarSign,
       submenu: [
         { title: "Ventas", path: "/dashboard/finanzas/ventas" },
-        { title: "Estadísticas", path: "/dashboard/finanzas/estadisticas" },
       ],
     },
-
     {
       title: "Usuarios",
       icon: Users,
@@ -67,6 +66,13 @@ export function MainSidebar() {
         { title: "Todos los usuarios", path: "/dashboard/usuarios" },
         { title: "Nuevo usuario", path: "/dashboard/usuarios/nuevo" },
         { title: "Roles", path: "/dashboard/usuarios/roles" },
+      ],
+    },
+    {
+      title: "Proveedores",
+      icon: Truck,
+      submenu: [
+        { title: "Solicitudes de Compra", path: "/dashboard/proveedores/ordenes" },
       ],
     },
   ];

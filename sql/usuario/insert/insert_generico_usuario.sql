@@ -310,7 +310,7 @@ INSERT INTO correo (
     ('ventas@sigmacom.com', 789012345, 'V', NULL),
     ('importaciones@thetaimports.com', 890123456, 'J', NULL),
     ('ventas@lambdastores.com', 901234567, 'V', NULL),
-    ('distribucion@zetadist.com', 012345678, 'J', NULL),
+    ('distribucion@zetadist.com', 12345678, 'J', NULL),
     ('ventas@omegacom.com', 123456780, 'V', NULL),
     ('omega-importaciones@omegacom.com', 123456780, 'V', NULL),
 
@@ -335,7 +335,20 @@ INSERT INTO correo (
     ('contacto@epsilontrade.com', NULL, NULL, 3),
     ('contacto@betastores.com', NULL, NULL, 4),
     ('contacto@gammadist.com', NULL, NULL, 5),
-    ('contacto@sigmacom.com', NULL, NULL, 6);
+    ('contacto@sigmacom.com', NULL, NULL, 6),
+
+    -- Emails for client users
+    ('cliente.natural.2@acaucab.com', NULL, NULL, NULL),
+    ('cliente.natural.3@acaucab.com', NULL, NULL, NULL),
+    ('cliente.natural.4@acaucab.com', NULL, NULL, NULL),
+    ('cliente.natural.5@acaucab.com', NULL, NULL, NULL),
+    ('cliente.natural.6@acaucab.com', NULL, NULL, NULL),
+    ('cliente.juridico.1@acaucab.com', NULL, NULL, NULL),
+    ('cliente.juridico.2@acaucab.com', NULL, NULL, NULL),
+    ('cliente.juridico.3@acaucab.com', NULL, NULL, NULL),
+    ('cliente.juridico.4@acaucab.com', NULL, NULL, NULL),
+    ('cliente.juridico.5@acaucab.com', NULL, NULL, NULL),
+    ('cliente.juridico.6@acaucab.com', NULL, NULL, NULL);
 
 /**
  * Inserts for usuario table
@@ -348,33 +361,46 @@ INSERT INTO usuario (
     fk_correo
 ) VALUES
     -- System users
-    ('admin123', 1, 1),  -- Admin user
-    ('emp123', 2, 2),    -- Employee user
-    ('cli123', 3, 3),    -- Client user
-    ('mem123', 4, 4),    -- Member user
+    ('admin123', 1, 14),
+    ('emp123', 2, 15),
+    ('cli123', 3, 16),
+    ('mem123', 4, 17),
     
     -- Member company users (all with role 4 - Miembro)
-    ('delta2024', 4, 5),     -- Delta Distrib
-    ('omega2024', 4, 6),     -- Omega Imports
-    ('epsilon2024', 4, 7),   -- Epsilon Trade
-    ('beta2024', 4, 8),      -- Beta Stores
-    ('gamma2024', 4, 9),     -- Gamma Dist
-    ('sigma2024', 4, 10),    -- Sigma Com
-    ('theta2024', 4, 11),    -- Theta Imports
-    ('lambda2024', 4, 12),   -- Lambda Stores
-    ('zeta2024', 4, 13),     -- Zeta Dist
-    ('omegacom2024', 4, 14), -- Omega Com
+    ('delta2024', 4, 3),
+    ('omega2024', 4, 4),
+    ('epsilon2024', 4, 5),
+    ('beta2024', 4, 6),
+    ('gamma2024', 4, 7),
+    ('sigma2024', 4, 8),
+    ('theta2024', 4, 9),
+    ('lambda2024', 4, 10),
+    ('zeta2024', 4, 11),
+    ('omegacom2024', 4, 12),
 
     -- Employee users (all with role 2 - Empleado)
-    ('maria2024', 2, 15),    -- María Rodríguez
-    ('pedro2024', 2, 16),    -- Pedro García
-    ('ana2024', 2, 17),      -- Ana Martínez
-    ('carlos2024', 2, 18),   -- Carlos López
-    ('laura2024', 2, 19),    -- Laura Sánchez
-    ('roberto2024', 2, 20),  -- Roberto Torres
-    ('sofia2024', 2, 21),    -- Sofía Díaz
-    ('miguel2024', 2, 22),   -- Miguel Morales
-    ('carmen2024', 2, 23);   -- Carmen Ortiz 
+    ('maria2024', 2, 18),
+    ('pedro2024', 2, 19),
+    ('ana2024', 2, 20),
+    ('carlos2024', 2, 21),
+    ('laura2024', 2, 22),
+    ('roberto2024', 2, 23),
+    ('sofia2024', 2, 24),
+    ('miguel2024', 2, 25),
+    ('carmen2024', 2, 26),
+    
+    -- Users for clients
+    ('cliente_natural_2', 3, 33),
+    ('cliente_natural_3', 3, 34),
+    ('cliente_natural_4', 3, 35),
+    ('cliente_natural_5', 3, 36),
+    ('cliente_natural_6', 3, 37),
+    ('cliente_juridico_1', 3, 38),
+    ('cliente_juridico_2', 3, 39),
+    ('cliente_juridico_3', 3, 40),
+    ('cliente_juridico_4', 3, 41),
+    ('cliente_juridico_5', 3, 42),
+    ('cliente_juridico_6', 3, 43);
 
 /**
  * Inserts for cliente_usuario table
@@ -387,20 +413,20 @@ INSERT INTO cliente_usuario (
     fk_cliente_natural
 ) VALUES
     -- Natural clients
-    (NULL, 3, 1),     -- Links natural client 1 with user 3 (cli123)
-    (NULL, 15, 2),    -- Links natural client 2 with user 15 (maria2024)
-    (NULL, 16, 3),    -- Links natural client 3 with user 16 (pedro2024)
-    (NULL, 17, 4),    -- Links natural client 4 with user 17 (ana2024)
-    (NULL, 18, 5),    -- Links natural client 5 with user 18 (carlos2024)
-    (NULL, 19, 6),    -- Links natural client 6 with user 19 (laura2024)
+    (NULL, 3, 1),
+    (NULL, 24, 2),
+    (NULL, 25, 3),
+    (NULL, 26, 4),
+    (NULL, 27, 5),
+    (NULL, 28, 6),
     
     -- Legal clients
-    (1, 4, NULL),     -- Links legal client 1 with user 4 (mem123)
-    (2, 5, NULL),     -- Links legal client 2 with user 5 (delta2024)
-    (3, 6, NULL),     -- Links legal client 3 with user 6 (omega2024)
-    (4, 7, NULL),     -- Links legal client 4 with user 7 (epsilon2024)
-    (5, 8, NULL),     -- Links legal client 5 with user 8 (beta2024)
-    (6, 9, NULL);     -- Links legal client 6 with user 9 (gamma2024)
+    (1, 29, NULL),
+    (2, 30, NULL),
+    (3, 31, NULL),
+    (4, 32, NULL),
+    (5, 33, NULL),
+    (6, 34, NULL);
 
 /**
  * Inserts for telefono table

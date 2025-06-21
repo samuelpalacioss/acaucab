@@ -211,9 +211,7 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
           <TabsTrigger value="permissions" id="permissions-tab">
             Permisos y Rol
           </TabsTrigger>
-          <TabsTrigger value="activity" id="activity-tab">
-            Actividad Reciente
-          </TabsTrigger>
+        
         </TabsList>
 
         {/* Pestaña de Información Personal */}
@@ -322,41 +320,7 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
           </Card>
         </TabsContent>
 
-        {/* Pestaña de Actividad Reciente */}
-        <TabsContent value="activity" id="activity-tab-content">
-          <Card id="actividad-reciente-card">
-            <CardHeader>
-              <CardTitle id="activity-title">Registro de Actividad</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table id="activity-table">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Acción</TableHead>
-                    <TableHead>Fecha y Hora</TableHead>
-                    <TableHead>IP</TableHead>
-                    <TableHead>Dispositivo</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activityLog.map((log) => (
-                    <TableRow key={log.id} id={`activity-row-${log.id}`}>
-                      <TableCell id={`action-${log.id}`}>
-                        <div className="flex items-center gap-2">
-                          <Activity className="w-4 h-4 text-gray-500" />
-                          {log.action}
-                        </div>
-                      </TableCell>
-                      <TableCell id={`timestamp-${log.id}`}>{log.timestamp}</TableCell>
-                      <TableCell id={`ip-${log.id}`}>{log.ip}</TableCell>
-                      <TableCell id={`device-${log.id}`}>{log.device}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+         
       </Tabs>
     </div>
   );
