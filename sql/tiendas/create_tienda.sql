@@ -82,9 +82,9 @@ CREATE TABLE lugar_tienda (
     fk_tienda_fisica INTEGER NOT NULL,
     fk_lugar_tienda_1 INTEGER,
     fk_lugar_tienda_2 INTEGER,
-    CONSTRAINT lugar_tienda_pk PRIMARY KEY (id, fk_tienda_fisica),
+    CONSTRAINT lugar_tienda_pk PRIMARY KEY (id),
     CONSTRAINT lugar_tienda_tienda_fisica_fk FOREIGN KEY (fk_tienda_fisica) REFERENCES tienda_fisica(id),
-    CONSTRAINT lugar_tienda_lugar_tienda_fk FOREIGN KEY (fk_lugar_tienda_1, fk_lugar_tienda_2) 
+    CONSTRAINT lugar_tienda_lugar_tienda_fk FOREIGN KEY (fk_lugar_tienda_1, fk_tienda_fisica) 
         REFERENCES lugar_tienda(id, fk_tienda_fisica) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -105,8 +105,8 @@ CREATE TABLE lugar_tienda_inventario (
     fk_inventario_2 INTEGER NOT NULL,
     fk_inventario_3 INTEGER NOT NULL,
     CONSTRAINT lugar_tienda_inventario_pk PRIMARY KEY (fk_lugar_tienda_1, fk_lugar_tienda_2, fk_inventario_1, fk_inventario_2, fk_inventario_3),
-    CONSTRAINT lugar_tienda_inventario_lugar_tienda_fk FOREIGN KEY (fk_lugar_tienda_1, fk_lugar_tienda_2) 
-        REFERENCES lugar_tienda(id, fk_tienda_fisica),
+    CONSTRAINT lugar_tienda_inventario_lugar_tienda_fk FOREIGN KEY (fk_lugar_tienda_1) 
+        REFERENCES lugar_tienda(id),
     CONSTRAINT lugar_tienda_inventario_inventario_fk FOREIGN KEY (fk_inventario_1, fk_inventario_2, fk_inventario_3) 
         REFERENCES inventario(fk_presentacion_cerveza_1, fk_presentacion_cerveza_2, fk_almacen)
 );
