@@ -70,9 +70,9 @@ BEGIN
             m.rif as miembro_rif,
             m.naturaleza_rif as miembro_naturaleza_rif,
             CASE
-                WHEN e.id IS NOT NULL THEN 'Empleado'
                 WHEN cn.id IS NOT NULL THEN 'Cliente Natural'
                 WHEN cj.id IS NOT NULL THEN 'Cliente Juridico'
+                WHEN e.id IS NOT NULL THEN 'Empleado'
                 WHEN m.rif IS NOT NULL THEN 'Miembro'
                 ELSE 'Indefinido'
             END AS tipo_usuario_val,
