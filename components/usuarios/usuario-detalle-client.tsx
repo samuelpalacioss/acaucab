@@ -179,18 +179,7 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
                 </div>
               </div>
             </div>
-            <div id="usuario-status-info" className="text-right">
-              <Badge
-                variant={userData.status === "Activo" ? "default" : "secondary"}
-                className="mb-2"
-                id="status-badge"
-              >
-                {userData.status}
-              </Badge>
-              <div id="last-access" className="text-sm text-gray-600">
-                Último acceso: {userData.lastLogin}
-              </div>
-            </div>
+             
           </div>
         </CardContent>
       </Card>
@@ -244,13 +233,7 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
                     <div id="address-value">{userData.address}</div>
                   </div>
                 </div>
-                <div id="emergency-contact-info" className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="text-sm text-gray-600">Contacto de Emergencia</div>
-                    <div id="emergency-contact-value">{userData.emergencyContact}</div>
-                  </div>
-                </div>
+ 
               </CardContent>
             </Card>
 
