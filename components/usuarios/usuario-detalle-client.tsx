@@ -5,9 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, Clock, Shield, Activity } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, Shield } from "lucide-react";
 import Link from "next/link";
+import { UserDetail } from "@/models/users";
+import { RolDetalle } from "@/models/roles";
+
+/**
+ * Interface para las props del componente
+ */
+interface UsuarioDetalleClientProps {
+  userId: string;
+  userData: UserDetail | null;
+  userPermissions: RolDetalle[];
+}
 
 /**
  * Datos de ejemplo para el usuario específico
@@ -71,19 +81,10 @@ const activityLog = [
 ];
 
 /**
- * Interface para las props del componente
- */
-interface UsuarioDetalleClientProps {
-  userId: string;
-  // Aquí se pueden agregar props que vengan del servidor
-  // Por ejemplo: userData, userPermissions, activityLogs, etc.
-}
-
-/**
  * Componente cliente para el detalle de usuario del sistema
  * Maneja toda la interfaz de usuario y las interacciones del detalle de usuario
  */
-export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientProps) {
+export default function UsuarioDetalleClient({ userId, userData, userPermissions }: UsuarioDetalleClientProps) {
   /*
    * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
    *
@@ -91,6 +92,21 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
    * - isEditing: Controla si el usuario está en modo de edición
    */
   const [isEditing, setIsEditing] = useState(false);
+
+  /**
+   * Si no hay datos del usuario, mostramos mensaje de error
+   */
+  if (!userData) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center text-gray-500">No se encontró información del usuario.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   /**
    * Función para alternar el modo de edición
@@ -110,6 +126,25 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
     setIsEditing(false);
   };
 
+  /**
+   * Determinar si mostrar información laboral
+   */
+  const isEmpleado = userData.tipo_usuario === 'Empleado';
+
+  /**
+   * Obtener permisos únicos del rol
+   */
+  const uniquePermissions = userPermissions
+    .filter(p => p.permiso_nombre)
+    .map(p => ({
+      id: p.permiso_id,
+      nombre: p.permiso_nombre,
+      descripcion: p.permiso_descripcion
+    }))
+    .filter((p, index, self) => 
+      index === self.findIndex((t) => t.id === p.id)
+    );
+
   return (
     <div id="usuario-detalle-container" className="p-6 space-y-6">
       {/* 
@@ -128,10 +163,10 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
           </Link>
           <div id="usuario-title-info">
             <h1 id="usuario-name-title" className="text-2xl font-bold">
-              {userData.name}
+              {userData.nombre_completo}
             </h1>
             <p id="usuario-position-department" className="text-gray-600">
-              {userData.position} - {userData.department}
+              {isEmpleado && userData.cargo ? `${userData.cargo} - ${userData.departamento}` : userData.tipo_usuario}
             </p>
           </div>
         </div>
@@ -160,12 +195,12 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
             <div id="usuario-main-info" className="flex items-center gap-4">
               <div id="usuario-avatar" className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
                 <span id="avatar-initial" className="text-xl font-bold">
-                  {userData.name.charAt(0)}
+                  {userData.nombre_completo.charAt(0)}
                 </span>
               </div>
               <div id="usuario-contact-info">
                 <h2 id="usuario-display-name" className="text-xl font-semibold">
-                  {userData.name}
+                  {userData.nombre_completo}
                 </h2>
                 <div id="contact-details" className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                   <span id="email-display" className="flex items-center gap-1">
@@ -174,7 +209,7 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
                   </span>
                   <span id="phone-display" className="flex items-center gap-1">
                     <Phone className="w-4 h-4" />
-                    {userData.phone}
+                    {userData.telefono}
                   </span>
                 </div>
               </div>
@@ -223,49 +258,116 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
                   <Phone className="w-4 h-4 text-gray-500" />
                   <div>
                     <div className="text-sm text-gray-600">Teléfono</div>
-                    <div id="phone-value">{userData.phone}</div>
+                    <div id="phone-value">{userData.telefono}</div>
                   </div>
                 </div>
-                <div id="address-info" className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4 text-gray-500" />
+                {userData.direccion && (
+                  <div id="address-info" className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <div className="text-sm text-gray-600">Dirección</div>
+                      <div id="address-value">{userData.direccion}</div>
+                    </div>
+                  </div>
+                )}
+                <div id="identification-info" className="flex items-center gap-3">
+                  <Shield className="w-4 h-4 text-gray-500" />
                   <div>
-                    <div className="text-sm text-gray-600">Dirección</div>
-                    <div id="address-value">{userData.address}</div>
+                    <div className="text-sm text-gray-600">Identificación</div>
+                    <div id="identification-value">{userData.identificacion}</div>
                   </div>
                 </div>
  
               </CardContent>
             </Card>
 
-            {/* Información Laboral */}
-            <Card id="informacion-laboral-card">
-              <CardHeader>
-                <CardTitle id="work-info-title">Información Laboral</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div id="role-info" className="flex items-center gap-3">
-                  <Shield className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="text-sm text-gray-600">Rol</div>
-                    <Badge id="role-badge">{userData.role}</Badge>
+            {/* Información Laboral - Solo para empleados */}
+            {isEmpleado ? (
+              <Card id="informacion-laboral-card">
+                <CardHeader>
+                  <CardTitle id="work-info-title">Información Laboral</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div id="role-info" className="flex items-center gap-3">
+                    <Shield className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <div className="text-sm text-gray-600">Rol</div>
+                      <Badge id="role-badge">{userData.rol_nombre}</Badge>
+                    </div>
                   </div>
-                </div>
-                <div id="hire-date-info" className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="text-sm text-gray-600">Fecha de Contratación</div>
-                    <div id="hire-date-value">{userData.hireDate}</div>
+                  {userData.fecha_inicio_nomina && (
+                    <div id="hire-date-info" className="flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Fecha de Contratación</div>
+                        <div id="hire-date-value">{new Date(userData.fecha_inicio_nomina).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  )}
+                  {userData.cargo && (
+                    <div id="position-info" className="flex items-center gap-3">
+                      <Shield className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Cargo</div>
+                        <div id="position-value">{userData.cargo}</div>
+                      </div>
+                    </div>
+                  )}
+                  {userData.departamento && (
+                    <div id="department-info" className="flex items-center gap-3">
+                      <Shield className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Departamento</div>
+                        <div id="department-value">{userData.departamento}</div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              /* Información adicional para clientes */
+              <Card id="informacion-adicional-card">
+                <CardHeader>
+                  <CardTitle id="additional-info-title">Información Adicional</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div id="user-type-info" className="flex items-center gap-3">
+                    <Shield className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <div className="text-sm text-gray-600">Tipo de Usuario</div>
+                      <Badge id="user-type-badge">{userData.tipo_usuario}</Badge>
+                    </div>
                   </div>
-                </div>
-                <div id="last-login-info" className="flex items-center gap-3">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="text-sm text-gray-600">Último Acceso</div>
-                    <div id="last-login-value">{userData.lastLogin}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  {userData.razon_social && (
+                    <div id="razon-social-info" className="flex items-center gap-3">
+                      <Shield className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Razón Social</div>
+                        <div id="razon-social-value">{userData.razon_social}</div>
+                      </div>
+                    </div>
+                  )}
+                  {userData.fecha_nacimiento && (
+                    <div id="birth-date-info" className="flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Fecha de Nacimiento</div>
+                        <div id="birth-date-value">{new Date(userData.fecha_nacimiento).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  )}
+                  {userData.pc_nombre_completo && (
+                    <div id="contact-person-info" className="flex items-center gap-3">
+                      <Shield className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Persona de Contacto</div>
+                        <div id="contact-person-value">{userData.pc_nombre_completo} - {userData.pc_telefono}</div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -280,24 +382,37 @@ export default function UsuarioDetalleClient({ userId }: UsuarioDetalleClientPro
                 <div id="current-role-section">
                   <div className="text-sm font-medium mb-2">Rol Actual</div>
                   <Badge variant="default" className="text-base px-3 py-1" id="current-role-badge">
-                    {userData.role}
+                    {userData.rol_nombre}
                   </Badge>
                 </div>
-                <div id="permissions-section">
-                  <div className="text-sm font-medium mb-3">Permisos Asignados</div>
-                  <div id="permissions-grid" className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {userData.permissions.map((permission, index) => (
-                      <div
-                        key={index}
-                        id={`permission-${index}`}
-                        className="flex items-center gap-2 p-2 border rounded"
-                      >
-                        <Shield className="w-4 h-4 text-green-600" />
-                        <span className="text-sm">{permission}</span>
-                      </div>
-                    ))}
+                {uniquePermissions.length > 0 && (
+                  <div id="permissions-section">
+                    <div className="text-sm font-medium mb-3">Permisos Asignados</div>
+                    <div id="permissions-grid" className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {uniquePermissions.map((permission) => (
+                        <div
+                          key={permission.id}
+                          id={`permission-${permission.id}`}
+                          className="flex items-center gap-2 p-2 border rounded"
+                        >
+                          <Shield className="w-4 h-4 text-green-600" />
+                          <div>
+                            <span className="text-sm font-medium">{permission.nombre}</span>
+                            {permission.descripcion && (
+                              <p className="text-xs text-gray-600">{permission.descripcion}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+                {(!isEmpleado || uniquePermissions.length === 0) && (
+                  <div className="text-sm text-gray-500">
+                    {isEmpleado 
+                      && "Este rol no tiene permisos específicos asignados." }
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

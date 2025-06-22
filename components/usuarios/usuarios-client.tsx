@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,9 @@ import { Search, Plus, Settings, Edit, Eye, UserCheck, UserX } from "lucide-reac
 import Link from "next/link";
 import { User, UsuariosClientProps } from "@/models/users";
 import { llamarFuncion } from "@/lib/server-actions";
+import { deleteUser } from "@/api/delete-user";
 import { updateUserRole } from "@/api/update-user-role";
+import { toast } from "sonner";
 
 /**
  * Interface para el estado de edición de roles
@@ -41,6 +44,8 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
   const [roleFilter, setRoleFilter] = useState("all");
   const [editingRole, setEditingRole] = useState<EditingRole | null>(null);
   const [activeTab, setActiveTab] = useState("todos");
+  const [userList, setUserList] = useState(users);
+  const router = useRouter();
 
   /**
    * Obtener roles únicos de los usuarios para el filtro, excluyendo Empleado y Cliente
@@ -55,7 +60,7 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
    * Tipos: User[] - Array de usuarios filtrados
    */
   const getFilteredUsers = (tipoUsuario: string) => {
-    return users.filter((user) => {
+    return userList.filter((user) => {
       const matchesSearch =
         (user.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -72,10 +77,10 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
    */
   const getUserCounts = () => {
     const counts = {
-      todos: users.length,
-      cliente: users.filter(user => user.tipo_usuario === "Cliente").length,
-      miembro: users.filter(user => user.tipo_usuario === "Miembro").length,
-      empleado: users.filter(user => user.tipo_usuario === "Empleado").length,
+      todos: userList.length,
+      cliente: userList.filter(user => user.tipo_usuario === "Cliente").length,
+      miembro: userList.filter(user => user.tipo_usuario === "Miembro").length,
+      empleado: userList.filter(user => user.tipo_usuario === "Empleado").length,
     };
     return counts;
   };
@@ -133,6 +138,29 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
    */
   const closeEditModal = () => {
     setEditingRole(null);
+  };
+
+  /**
+   * Función para eliminar un usuario y sus relaciones.
+   * Llama a la server action `deleteUser`.
+   */
+  const handleDeleteUser = async (userId: number) => {
+    const confirmation = window.confirm(
+      "¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible."
+    );
+
+    if (confirmation) {
+      const promise = deleteUser(userId).then(() => {
+        setUserList((prevUsers) => prevUsers.filter((user) => user.id_usuario !== userId));
+        router.refresh();
+      });
+
+      toast.promise(promise, {
+        loading: 'Eliminando usuario...',
+        success: 'Usuario eliminado con éxito.',
+        error: 'No se pudo eliminar el usuario.',
+      });
+    }
   };
 
   /**
@@ -198,7 +226,7 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleUserStatus(user.id_usuario)}
+                    onClick={() => handleDeleteUser(user.id_usuario)}
                     id={`toggle-status-${user.id_usuario}`}
                   >
                     <UserX className="w-4 h-4" />
