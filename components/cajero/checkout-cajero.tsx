@@ -23,6 +23,7 @@ interface CheckoutCajeroProps {
   onUpdateQuantity: (sku: string, quantity: number) => void;
   onRemoveItem: (sku: string) => void;
   onClearCart: () => void;
+  products: CarritoItemType[];
 }
 
 export default function CheckoutCajero({
@@ -31,36 +32,11 @@ export default function CheckoutCajero({
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
+  products,
 }: CheckoutCajeroProps) {
-  const [products, setProducts] = useState<CarritoItemType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>("Todas");
   const [recentlyUsed, setRecentlyUsed] = useState<CarritoItemType[]>([]);
-
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        setIsLoading(true);
-        // Default tienda id 1 en el procedure de la bd
-        const presentaciones = await getPresentacionesDisponibles();
-
-        const mappedProducts: CarritoItemType[] = presentaciones.map((p: PresentacionType) => ({
-          ...p,
-          quantity: 1, // Default quantity for the list
-        }));
-
-        setProducts(mappedProducts);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        // Handle error state if needed
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchProducts();
-  }, []);
 
   const categories = getUniqueCategories(products);
 
@@ -86,23 +62,31 @@ export default function CheckoutCajero({
   };
 
   const addToCart = (product: CarritoItemType) => {
-    // Add to recently used if not already there
-    const originalProduct = products.find((p) => p.sku === product.sku);
-    if (originalProduct) {
-      setRecentlyUsed((prev) => {
-        const exists = prev.some((p) => p.sku === originalProduct.sku);
-        if (!exists) {
-          const newRecent = [originalProduct, ...prev].slice(0, 6);
-          return newRecent;
-        }
-        return prev;
-      });
-    }
+    console.log("🛒 Adding product to cart:", product); // Debug log
+    console.log("🛒 Current cart state:", cart); // Debug log
 
+    // Add to recently used if not already there
+    setRecentlyUsed((prev) => {
+      const exists = prev.some((p) => p.sku === product.sku);
+      if (!exists) {
+        const newRecent = [product, ...prev].slice(0, 6);
+        return newRecent;
+      }
+      return prev;
+    });
+
+    /** Verificar si el producto ya existe en el carrito */
     const existingItem = cart.find((item) => item.sku === product.sku);
+
+    console.log("🛒 Existing item in cart:", existingItem); // Debug log
+
     if (existingItem) {
+      /** Si existe, incrementar la cantidad */
+      console.log("🛒 Updating existing item quantity:", existingItem.quantity + 1); // Debug log
       onUpdateQuantity(product.sku, existingItem.quantity + 1);
     } else {
+      /** Si no existe, agregarlo con cantidad 1 */
+      console.log("🛒 Adding new item with quantity 1 for SKU:", product.sku); // Debug log
       onUpdateQuantity(product.sku, 1);
     }
   };
@@ -130,26 +114,18 @@ export default function CheckoutCajero({
             />
           </div>
 
-          {isLoading ? (
-            <div className="text-center p-8">Cargando productos...</div>
-          ) : (
-            <>
-              {!selectedCategory && searchQuery === "" && (
-                <h3 className="font-medium text-gray-700 mb-2">
-                  {recentlyUsed.length > 0
-                    ? "Productos Usados Recientemente"
-                    : "Productos Populares"}
-                </h3>
-              )}
-
-              <ProductList
-                products={getFilteredProducts()}
-                onAddToCart={addToCart}
-                searchQuery={searchQuery}
-                selectedCategory={selectedCategory}
-              />
-            </>
+          {!selectedCategory && searchQuery === "" && (
+            <h3 className="font-medium text-gray-700 mb-2">
+              {recentlyUsed.length > 0 ? "Productos Usados Recientemente" : "Productos Populares"}
+            </h3>
           )}
+
+          <ProductList
+            products={getFilteredProducts()}
+            onAddToCart={addToCart}
+            searchQuery={searchQuery}
+            selectedCategory={selectedCategory}
+          />
         </div>
       </div>
 

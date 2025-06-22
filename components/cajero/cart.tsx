@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { CarritoItemType } from "@/lib/schemas";
+import { Badge } from "../ui/badge";
 
 interface CartProps {
   items: CarritoItemType[];
@@ -51,9 +52,12 @@ export default function Cart({
           <div className="flex-grow overflow-y-auto mb-4 max-h-[calc(100vh-300px)]">
             {items.map((item) => (
               <div key={item.sku} className="flex justify-between items-center py-2 border-b">
-                <div className="flex-grow">
-                  <p className="font-medium text-sm">{item.nombre_cerveza}</p>
-                  <p className="text-xs text-gray-500">${item.precio.toFixed(2)} c/u</p>
+                <div className="flex-grow space-y-2">
+                  <p className="font-semibold text-sm">{item.nombre_cerveza}</p>
+                  <Badge variant="secondary" className="text-xs w-fit font-medium">
+                    {item.presentacion}
+                  </Badge>
+                  <p className="text-sm text-gray-500">${item.precio.toFixed(2)} c/u</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button

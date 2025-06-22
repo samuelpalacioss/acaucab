@@ -8,7 +8,7 @@ import PaymentView from "./cajero/payment-view";
 import { beers } from "@/app/(marketing)/productos/page";
 import PaymentMethodSummary from "./cajero/payment-method-summary";
 import { getClienteByDoc } from "@/api/get-cliente-by-doc";
-import { ClienteType, DocType, CarritoItemType } from "@/lib/schemas";
+import { ClienteType, DocType, CarritoItemType, PresentacionType } from "@/lib/schemas";
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader, X } from "lucide-react";
+import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
 
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
@@ -43,30 +44,54 @@ export default function Autopago() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cart, setCart] = useState<CarritoItemType[]>([]);
-  const [products, setProducts] = useState<CarritoItemType[]>(
-    beers.map((beer) => ({
-      sku: beer.id.toString(),
-      nombre_cerveza: beer.name,
-      presentacion: beer.capacity,
-      precio: beer.price,
-      id_tipo_cerveza: 1,
-      tipo_cerveza: beer.category,
-      stock_total: 100,
-      marca: beer.brand,
-      imagen: beer.image,
-      quantity: 1,
-    }))
-  );
+  const [products, setProducts] = useState<CarritoItemType[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
+
+  /** Cargar productos desde la API al montar el componente */
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const presentaciones = await getPresentacionesDisponibles();
+        const mappedProducts: CarritoItemType[] = presentaciones.map((p: PresentacionType) => ({
+          ...p,
+          quantity: 1, // Default quantity
+        }));
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        // Fallback to empty array or show error state
+        setProducts([]);
+      }
+    }
+
+    fetchProducts();
+  }, []);
 
   // Timer para pasar a la siguiente pantalla luego de bienvenida al cliente
   useEffect(() => {
     if (currentStep === Step.CLIENT_WELCOME) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
+        /** Cargar productos solo cuando el usuario está autenticado y va a la selección */
+        setIsLoadingProducts(true);
+        try {
+          const presentaciones = await getPresentacionesDisponibles();
+          const mappedProducts: CarritoItemType[] = presentaciones.map((p: PresentacionType) => ({
+            ...p,
+            quantity: 1, // Default quantity
+          }));
+          setProducts(mappedProducts);
+        } catch (error) {
+          console.error("Failed to fetch products:", error);
+          setProducts([]);
+        } finally {
+          setIsLoadingProducts(false);
+        }
+
         setCurrentStep(Step.PRODUCT_SELECTION);
-      }, 4000); // 2 seconds
+      }, 4000); // 4 seconds
       return () => clearTimeout(timer);
     }
   }, [currentStep]);
@@ -84,11 +109,19 @@ export default function Autopago() {
 
   // Handle quantity changes
   const handleUpdateQuantity = (sku: string, newQuantity: number) => {
+    console.log("🔄 handleUpdateQuantity called with:", { sku, newQuantity }); // Debug log
+    console.log("🔄 Current cart:", cart); // Debug log
+    console.log(
+      "🔄 Products available:",
+      products.map((p) => ({ sku: p.sku, name: p.nombre_cerveza }))
+    ); // Debug log
+
     if (newQuantity <= 0) {
       setCart(cart.filter((product) => product.sku !== sku));
     } else {
       const existingItem = cart.find((item) => item.sku === sku);
       if (existingItem) {
+        console.log("🔄 Updating existing cart item"); // Debug log
         setCart(
           cart.map((product) =>
             product.sku === sku ? { ...product, quantity: newQuantity } : product
@@ -97,8 +130,12 @@ export default function Autopago() {
       } else {
         // Find the product in the products list and add it to cart
         const productToAdd = products.find((p) => p.sku === sku);
+        console.log("🔄 Product to add:", productToAdd); // Debug log
         if (productToAdd) {
+          console.log("🔄 Adding new product to cart"); // Debug log
           setCart([...cart, { ...productToAdd, quantity: newQuantity }]);
+        } else {
+          console.log("❌ Product not found in products list!"); // Debug log
         }
       }
     }
@@ -244,6 +281,16 @@ export default function Autopago() {
       }
 
       case Step.PRODUCT_SELECTION:
+        /** Mostrar loading mientras se cargan los productos */
+        if (isLoadingProducts) {
+          return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <h2 className="text-2xl font-semibold mb-4">Cargando productos...</h2>
+              <Loader className="animate-spin" />
+            </div>
+          );
+        }
+
         return (
           <CheckoutCajero
             onCheckout={() => setCurrentStep(Step.PAYMENT)}
@@ -251,6 +298,7 @@ export default function Autopago() {
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
+            products={products}
           />
         );
 
