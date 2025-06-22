@@ -6,23 +6,22 @@ import { Input } from "@/components/ui/input";
 import ProductList from "./product-list";
 import CategoryFilter from "./category-filter";
 import Cart from "./cart";
-import { CartItemType } from "@/components/carrito-compras/cart-list";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
-import { PresentacionType } from "@/lib/schemas";
+import { CarritoItemType, PresentacionType } from "@/lib/schemas";
 
 // Utility function to get unique categories
-function getUniqueCategories(products: CartItemType[]): string[] {
+function getUniqueCategories(products: CarritoItemType[]): string[] {
   const categories = products
-    .map((product) => product.category)
+    .map((product) => product.tipo_cerveza)
     .filter((category): category is string => category !== undefined);
   return [...new Set(categories)];
 }
 
 interface CheckoutCajeroProps {
   onCheckout: () => void;
-  cart: CartItemType[];
-  onUpdateQuantity: (id: number, quantity: number) => void;
-  onRemoveItem: (id: number) => void;
+  cart: CarritoItemType[];
+  onUpdateQuantity: (sku: string, quantity: number) => void;
+  onRemoveItem: (sku: string) => void;
   onClearCart: () => void;
 }
 
@@ -33,11 +32,11 @@ export default function CheckoutCajero({
   onRemoveItem,
   onClearCart,
 }: CheckoutCajeroProps) {
-  const [products, setProducts] = useState<CartItemType[]>([]);
+  const [products, setProducts] = useState<CarritoItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>("Todas");
-  const [recentlyUsed, setRecentlyUsed] = useState<CartItemType[]>([]);
+  const [recentlyUsed, setRecentlyUsed] = useState<CarritoItemType[]>([]);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -46,18 +45,9 @@ export default function CheckoutCajero({
         // Default tienda id 1 en el procedure de la bd
         const presentaciones = await getPresentacionesDisponibles();
 
-        const mappedProducts = presentaciones.map((p: PresentacionType) => ({
-          // The component expects a number for the ID.
-          // This assumes your SKUs are strings that can be converted to numbers.
-          // If SKU is not numeric, this will result in NaN, which can cause issues.
-          sku: p.sku,
-          name: p.nombre_presentacion_cerveza,
-          price: p.precio,
+        const mappedProducts: CarritoItemType[] = presentaciones.map((p: PresentacionType) => ({
+          ...p,
           quantity: 1, // Default quantity for the list
-          brand: p.marca,
-          imageSrc: "/placeholder.svg", // Placeholder image
-          size: "N/A", // Placeholder size
-          category: p.tipo_cerveza,
         }));
 
         setProducts(mappedProducts);
@@ -74,45 +64,33 @@ export default function CheckoutCajero({
 
   const categories = getUniqueCategories(products);
 
-  // Convert products to CartItemType for display
-  const displayProducts: CartItemType[] = products.map((product) => ({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    quantity: 1,
-    brand: product.brand,
-    imageSrc: product.imageSrc,
-    size: product.size,
-    category: product.category,
-  }));
-
   // Get filtered products based on search and category
   const getFilteredProducts = () => {
-    let filtered = displayProducts;
+    let filtered = products;
 
     if (selectedCategory === "Recientes") {
       return recentlyUsed;
     }
 
     if (selectedCategory && selectedCategory !== "Todas") {
-      filtered = filtered.filter((product) => product.category === selectedCategory);
+      filtered = filtered.filter((product) => product.tipo_cerveza === selectedCategory);
     }
 
     if (searchQuery.trim() !== "") {
       filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+        product.nombre_cerveza.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     return filtered;
   };
 
-  const addToCart = (product: CartItemType) => {
+  const addToCart = (product: CarritoItemType) => {
     // Add to recently used if not already there
-    const originalProduct = products.find((p) => p.id === product.id);
+    const originalProduct = products.find((p) => p.sku === product.sku);
     if (originalProduct) {
       setRecentlyUsed((prev) => {
-        const exists = prev.some((p) => p.id === originalProduct.id);
+        const exists = prev.some((p) => p.sku === originalProduct.sku);
         if (!exists) {
           const newRecent = [originalProduct, ...prev].slice(0, 6);
           return newRecent;
@@ -121,11 +99,11 @@ export default function CheckoutCajero({
       });
     }
 
-    const existingItem = cart.find((item) => item.id === product.id);
+    const existingItem = cart.find((item) => item.sku === product.sku);
     if (existingItem) {
-      onUpdateQuantity(product.id, existingItem.quantity + 1);
+      onUpdateQuantity(product.sku, existingItem.quantity + 1);
     } else {
-      onUpdateQuantity(product.id, 1);
+      onUpdateQuantity(product.sku, 1);
     }
   };
 

@@ -1,48 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import { CartList, CartItemType } from "@/components/carrito-compras/cart-list";
+import { CartList } from "@/components/carrito-compras/cart-list";
 import { OrderSummary } from "@/components/carrito-compras/order-summary";
+import { CarritoItemType } from "@/lib/schemas";
 
 // This would typically come from a context or state management library
-const initialItems: CartItemType[] = [
+const initialItems: CarritoItemType[] = [
   {
-    id: 1,
-    name: "Cerveza Especial",
-    size: "355ml",
+    sku: "CERV001",
+    nombre_cerveza: "Cerveza Especial",
+    presentacion: "355ml",
+    precio: 12,
+    id_tipo_cerveza: 1,
+    tipo_cerveza: "Especial",
+    stock_total: 100,
+    marca: "Cervecería La Esquina",
+    imagen: "/placeholder.svg?height=128&width=128",
     quantity: 1,
-    price: 12,
-    brand: "Cervecería La Esquina",
-    imageSrc: "/placeholder.svg?height=128&width=128",
-    category: "Especial",
   },
   {
-    id: 2,
-    name: "Cerveza Pale",
-    size: "355ml",
+    sku: "CERV002",
+    nombre_cerveza: "Cerveza Pale",
+    presentacion: "355ml",
+    precio: 10,
+    id_tipo_cerveza: 2,
+    tipo_cerveza: "Pale",
+    stock_total: 50,
+    marca: "Artesana",
+    imagen: "/placeholder.svg?height=128&width=128",
     quantity: 1,
-    price: 10,
-    brand: "Artesana",
-    imageSrc: "/placeholder.svg?height=128&width=128",
-    category: "Pale",
   },
 ];
 
 export default function CarritoCompras() {
-  const [cartItems, setCartItems] = useState<CartItemType[]>(initialItems);
+  const [cartItems, setCartItems] = useState<CarritoItemType[]>(initialItems);
 
-  const handleRemoveItem = (id: number) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const handleRemoveItem = (sku: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.sku !== sku));
   };
 
-  const handleUpdateQuantity = (id: number, newQuantity: number) => {
+  const handleUpdateQuantity = (sku: string, newQuantity: number) => {
     setCartItems((prevItems) =>
-      prevItems.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item))
+      prevItems.map((item) => (item.sku === sku ? { ...item, quantity: newQuantity } : item))
     );
   };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return cartItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
   };
 
   const calculateTotalItems = () => {

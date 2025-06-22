@@ -71,7 +71,7 @@ export type ClienteType = z.infer<typeof clienteSchema>;
 
 export const presentacionSchema = z.object({
   sku: z.string(),
-  nombre_presentacion_cerveza: z.string(),
+  nombre_cerveza: z.string(),
   presentacion: z.string(),
   precio: z.number(),
   id_tipo_cerveza: z.number(),
@@ -82,3 +82,9 @@ export const presentacionSchema = z.object({
 });
 
 export type PresentacionType = z.infer<typeof presentacionSchema>;
+
+export const carritoItemSchema = presentacionSchema.extend({
+  quantity: z.number(),
+});
+
+export type CarritoItemType = z.infer<typeof carritoItemSchema>;

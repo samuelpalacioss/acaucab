@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
 import OrderSummaryCard from "./order-summary-card";
+import { CarritoItemType } from "@/lib/schemas";
 
 /** Tipos para el método de pago */
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
@@ -22,18 +23,6 @@ interface PaymentDetails {
   amountPaid?: number;
 }
 
-/** Interfaz para los items del carrito */
-interface CartItem {
-  id: number;
-  name: string;
-  size: string;
-  quantity: number;
-  price: number;
-  brand: string;
-  imageSrc: string;
-  category: string;
-}
-
 /** Interfaz para un solo pago */
 interface Payment {
   method: PaymentMethod;
@@ -43,7 +32,7 @@ interface Payment {
 /** Props del componente PaymentMethodSummary */
 interface PaymentMethodSummaryProps {
   payments: Payment[];
-  items: CartItem[];
+  items: CarritoItemType[];
   total: number;
   onConfirm: () => void;
   onBack: () => void;

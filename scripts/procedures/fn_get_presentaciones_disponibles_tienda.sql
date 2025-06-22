@@ -1,4 +1,3 @@
-DROP FUNCTION IF EXISTS fn_get_presentaciones_disponibles_tienda(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS fn_get_presentaciones_disponibles_tienda(INTEGER);
 
 CREATE OR REPLACE FUNCTION fn_get_presentaciones_disponibles_tienda(
@@ -60,6 +59,6 @@ BEGIN
         tf.id = p_id_tienda_fisica 
         -- Stock total debe ser mayor o igual a 1
         AND (COALESCE(i.cantidad_almacen, 0) + COALESCE(lti.cantidad, 0)) >= 1
-    ORDER BY 2; -- Ordenar por nombre_presentacion_cerveza
+    ORDER BY c.nombre; -- Ordenar por nombre_cerveza
 END;
 $$;

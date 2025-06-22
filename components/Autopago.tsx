@@ -2,16 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { CartList, CartItemType } from "@/components/carrito-compras/cart-list";
-import { OrderSummary } from "@/components/carrito-compras/order-summary";
-import CategoryFilter from "@/components/cajero/category-filter";
+
 import CheckoutCajero from "./cajero/checkout-cajero";
 import PaymentView from "./cajero/payment-view";
 import { beers } from "@/app/(marketing)/productos/page";
 import PaymentMethodSummary from "./cajero/payment-method-summary";
 import { getClienteByDoc } from "@/api/get-cliente-by-doc";
-import { ClienteType, DocType } from "@/lib/schemas";
+import { ClienteType, DocType, CarritoItemType } from "@/lib/schemas";
 import {
   Select,
   SelectContent,
@@ -45,17 +42,19 @@ export default function Autopago() {
   const [cliente, setCliente] = useState<ClienteType | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [cart, setCart] = useState<CartItemType[]>([]);
-  const [products, setProducts] = useState<CartItemType[]>(
+  const [cart, setCart] = useState<CarritoItemType[]>([]);
+  const [products, setProducts] = useState<CarritoItemType[]>(
     beers.map((beer) => ({
-      id: beer.id,
-      name: beer.name,
-      price: beer.price,
+      sku: beer.id.toString(),
+      nombre_cerveza: beer.name,
+      presentacion: beer.capacity,
+      precio: beer.price,
+      id_tipo_cerveza: 1,
+      tipo_cerveza: beer.category,
+      stock_total: 100,
+      marca: beer.brand,
+      imagen: beer.image,
       quantity: 1,
-      size: beer.capacity,
-      brand: beer.brand,
-      imageSrc: beer.image,
-      category: beer.category,
     }))
   );
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -73,31 +72,31 @@ export default function Autopago() {
   }, [currentStep]);
 
   const filteredProducts = selectedCategory
-    ? products.filter((product) => product.category === selectedCategory)
+    ? products.filter((product) => product.tipo_cerveza === selectedCategory)
     : products;
 
   // Calculate totals
-  const subtotal = cart.reduce((sum, product) => sum + product.price * product.quantity, 0);
+  const subtotal = cart.reduce((sum, product) => sum + product.precio * product.quantity, 0);
   const iva = subtotal * 0.16;
   const total = subtotal + iva;
   const totalPaid = payments.reduce((sum, payment) => sum + (payment.details.amountPaid || 0), 0);
   const remainingTotal = total - totalPaid;
 
   // Handle quantity changes
-  const handleUpdateQuantity = (id: number, newQuantity: number) => {
+  const handleUpdateQuantity = (sku: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      setCart(cart.filter((product) => product.id !== id));
+      setCart(cart.filter((product) => product.sku !== sku));
     } else {
-      const existingItem = cart.find((item) => item.id === id);
+      const existingItem = cart.find((item) => item.sku === sku);
       if (existingItem) {
         setCart(
           cart.map((product) =>
-            product.id === id ? { ...product, quantity: newQuantity } : product
+            product.sku === sku ? { ...product, quantity: newQuantity } : product
           )
         );
       } else {
         // Find the product in the products list and add it to cart
-        const productToAdd = products.find((p) => p.id === id);
+        const productToAdd = products.find((p) => p.sku === sku);
         if (productToAdd) {
           setCart([...cart, { ...productToAdd, quantity: newQuantity }]);
         }
@@ -105,8 +104,8 @@ export default function Autopago() {
     }
   };
 
-  const handleRemoveItem = (id: number) => {
-    setCart(cart.filter((product) => product.id !== id));
+  const handleRemoveItem = (sku: string) => {
+    setCart(cart.filter((product) => product.sku !== sku));
   };
 
   const handleClearCart = () => {
@@ -114,7 +113,7 @@ export default function Autopago() {
   };
 
   const calculateSubtotal = () => {
-    return products.reduce((sum, product) => sum + product.price * product.quantity, 0);
+    return products.reduce((sum, product) => sum + product.precio * product.quantity, 0);
   };
 
   const calculateTotalItems = () => {
@@ -305,5 +304,5 @@ export default function Autopago() {
     }
   };
 
-  return <div className="max-w-6xl mx-auto px-4 py-8">{renderStep()}</div>;
+  return <div className="max-w-7xl mx-auto px-4 py-8">{renderStep()}</div>;
 }

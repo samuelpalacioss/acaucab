@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
-import { CartItemType } from "@/components/carrito-compras/cart-list";
+import { CarritoItemType } from "@/lib/schemas";
 
 interface CartProps {
-  items: CartItemType[];
-  onUpdateQuantity: (id: number, quantity: number) => void; // Changed to number
-  onRemoveItem: (id: number) => void; // Changed to number
+  items: CarritoItemType[];
+  onUpdateQuantity: (sku: string, quantity: number) => void;
+  onRemoveItem: (sku: string) => void;
   onClearCart: () => void;
   onCheckout: () => void;
 }
@@ -19,7 +19,7 @@ export default function Cart({
   onClearCart,
   onCheckout,
 }: CartProps) {
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.precio * item.quantity, 0);
   const iva = subtotal * 0.16; // 16% iva
   const total = subtotal + iva;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -50,17 +50,17 @@ export default function Cart({
         <>
           <div className="flex-grow overflow-y-auto mb-4 max-h-[calc(100vh-300px)]">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center py-2 border-b">
+              <div key={item.sku} className="flex justify-between items-center py-2 border-b">
                 <div className="flex-grow">
-                  <p className="font-medium text-sm">{item.name}</p>
-                  <p className="text-xs text-gray-500">${item.price.toFixed(2)} c/u</p>
+                  <p className="font-medium text-sm">{item.nombre_cerveza}</p>
+                  <p className="text-xs text-gray-500">${item.precio.toFixed(2)} c/u</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-6 w-6"
-                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                    onClick={() => onUpdateQuantity(item.sku, item.quantity - 1)}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
@@ -69,7 +69,7 @@ export default function Cart({
                     variant="outline"
                     size="icon"
                     className="h-6 w-6"
-                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                    onClick={() => onUpdateQuantity(item.sku, item.quantity + 1)}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
@@ -77,7 +77,7 @@ export default function Cart({
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 text-red-500 hover:text-red-700"
-                    onClick={() => onRemoveItem(item.id)}
+                    onClick={() => onRemoveItem(item.sku)}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
