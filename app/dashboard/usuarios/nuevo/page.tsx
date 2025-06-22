@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import NuevoUsuarioClient from "@/components/usuarios/nuevo-usuario-client";
 import { llamarFuncion } from "@/lib/server-actions";
 import { PersonaSinUsuario } from "@/models/users";

@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Search, User, Lock, Shield } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PersonaSinUsuario } from "@/models/users";
 import { Rol, RolDetalle } from "@/models/roles";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Badge } from "@/components/ui/badge";
 import { llamarFuncion } from "@/lib/server-actions";
+import { toast } from "@/components/ui/use-toast";
 
 /**
  * Interface para las props del componente
@@ -29,6 +31,7 @@ interface NewUserData {
   role: string;
   roleId: number | null;
   password: string;
+  newEmail?: string;
 }
 
 /**
@@ -39,16 +42,7 @@ export default function NuevoUsuarioClient({
   personasDisponibles,
   roles
 }: NuevoUsuarioClientProps) {
-  /*
-   * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
-   *
-   * Estados para controlar la funcionalidad de creación de usuarios:
-   * - selectedPerson: Persona seleccionada para convertir en usuario
-   * - searchTerm: Término de búsqueda para filtrar personas
-   * - newUser: Datos del nuevo usuario a crear
-   * - rolePermissions: Permisos del rol seleccionado
-   * - loadingPermissions: Estado de carga de permisos
-   */
+  const router = useRouter();
   const [selectedPerson, setSelectedPerson] = useState<PersonaSinUsuario | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [newUser, setNewUser] = useState<NewUserData>({
@@ -56,9 +50,11 @@ export default function NuevoUsuarioClient({
     role: "",
     roleId: null,
     password: "",
+    newEmail: "",
   });
   const [rolePermissions, setRolePermissions] = useState<RolDetalle[]>([]);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   /**
    * Función para filtrar personas según el término de búsqueda
@@ -122,21 +118,95 @@ export default function NuevoUsuarioClient({
 
   /**
    * Función para crear el nuevo usuario
-   * TODO: Implementar llamada a API para crear el usuario
+   * Llama a la función fn_create_user de PostgreSQL
    */
-  const handleCreateUser = () => {
+  const handleCreateUser = async () => {
     if (!selectedPerson || !newUser.role || !newUser.password) {
-      alert("Por favor complete todos los campos obligatorios");
+      toast({
+        title: "Error",
+        description: "Por favor complete todos los campos obligatorios",
+        variant: "destructive"
+      });
       return;
     }
 
-    console.log("Creating user:", {
-      person: selectedPerson,
-      ...newUser,
-    });
+    // Validar que el email esté disponible
+    const finalEmail = selectedPerson.email || newUser.newEmail;
+    if (!finalEmail) {
+      toast({
+        title: "Error",
+        description: "El usuario debe tener un email. Por favor ingrese uno.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    // TODO: Implementar llamada a API y redirección
-    // router.push('/dashboard/usuarios')
+    setIsCreatingUser(true);
+
+    try {
+      // Preparar parámetros para la función PostgreSQL
+      const parametros = {
+        p_person_id: selectedPerson.id,
+        p_person_type: selectedPerson.tipo_persona,
+        p_person_naturaleza: selectedPerson.nacionalidad_naturaleza || null,
+        p_rol_id: newUser.roleId,
+        p_email: finalEmail,
+        p_password: newUser.password
+      };
+
+      console.log("Creando usuario con parámetros:", parametros);
+
+      // Llamar a la función de PostgreSQL
+      const resultado = await llamarFuncion('fn_create_user', parametros);
+
+      console.log("Resultado completo de fn_create_user:", resultado);
+
+      // Verificar si la operación fue exitosa
+      // La función puede retornar el ID del usuario directamente o en un array
+      const userCreated = resultado && (
+        (Array.isArray(resultado) && resultado.length > 0) ||
+        (typeof resultado === 'number' && resultado > 0) ||
+        (typeof resultado === 'string' && resultado !== '')
+      );
+
+      if (userCreated) {
+        toast({
+          title: "¡Éxito!",
+          description: `Usuario creado exitosamente`,
+        });
+        
+        // Limpiar los campos del formulario
+        setSelectedPerson(null);
+        setSearchTerm("");
+        setNewUser({
+          personId: "",
+          role: "",
+          roleId: null,
+          password: "",
+          newEmail: "",
+        });
+        setRolePermissions([]);
+
+        // Forzar recarga completa de la página para actualizar la lista de personas
+        window.location.reload();
+
+      } else {
+        toast({
+          title: "Error",
+          description: "Error al crear el usuario. Por favor intente de nuevo.",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error("Error al crear usuario:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Error desconocido al crear el usuario",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingUser(false);
+    }
   };
 
   /**
@@ -181,10 +251,19 @@ export default function NuevoUsuarioClient({
         <Button 
           onClick={handleCreateUser} 
           id="crear-usuario-button"
-          disabled={!canCreateUser}
+          disabled={!canCreateUser || isCreatingUser}
         >
-          <Save className="w-4 h-4 mr-2" />
-          Crear Usuario
+          {isCreatingUser ? (
+            <>
+              <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Creando...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Crear Usuario
+            </>
+          )}
         </Button>
       </div>
 
@@ -303,6 +382,26 @@ export default function NuevoUsuarioClient({
               </Select>
             </div>
 
+            {/* Campo de email */}
+            <div id="email-field">
+              <label className="text-sm font-medium">Email</label>
+              <div className="text-xs text-gray-500 mb-1">
+                {selectedPerson?.email 
+                  ? "Email existente (no editable)" 
+                  : "Agregar email para este usuario (opcional)"
+                }
+              </div>
+              <Input
+                id="email-input"
+                type="email"
+                value={selectedPerson?.email || newUser.newEmail || ""}
+                onChange={(e) => updateNewUser("newEmail", e.target.value)}
+                placeholder={selectedPerson?.email ? "" : "ejemplo@correo.com"}
+                disabled={!!selectedPerson?.email}
+                className={selectedPerson?.email ? "bg-gray-50 text-gray-600" : ""}
+              />
+            </div>
+
             {/* Campo de contraseña */}
             <div id="password-field">
               <label className="text-sm font-medium">Contraseña *</label>
@@ -364,10 +463,10 @@ export default function NuevoUsuarioClient({
                   {selectedPerson.nacionalidad_naturaleza}-{selectedPerson.documento}
                 </div>
                 <div id="resumen-persona-email" className="text-sm text-gray-600">
-                  {selectedPerson.email || 'Sin email'}
-                </div>
-                <div id="resumen-persona-phone" className="text-sm text-gray-600">
-                  {selectedPerson.telefono || 'Sin teléfono'}
+                  {selectedPerson.email || newUser.newEmail || 'Sin email'}
+                  {!selectedPerson.email && newUser.newEmail && (
+                    <span className="text-green-600 ml-1">(Nuevo)</span>
+                  )}
                 </div>
               </div>
               <div id="resumen-configuracion">

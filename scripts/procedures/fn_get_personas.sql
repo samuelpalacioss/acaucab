@@ -80,8 +80,8 @@ BEGIN
         m.razón_social::VARCHAR(255) AS nombre_completo,
         (SELECT c.dirección_correo FROM correo c 
          LEFT JOIN persona_contacto pc on c.fk_persona_contacto = pc.id
-         WHERE c.fk_miembro_1 = m.rif AND c.fk_miembro_2 = m.naturaleza_rif 
-         OR pc.fk_miembro_1 = m.rif AND pc.fk_miembro_2 = m.naturaleza_rif
+         WHERE (c.fk_miembro_1 = m.rif AND c.fk_miembro_2 = m.naturaleza_rif) 
+         OR (pc.fk_miembro_1 = m.rif AND pc.fk_miembro_2 = m.naturaleza_rif)
          LIMIT 1
         )::VARCHAR(255) as email,
         (SELECT CONCAT(t.codigo_área, '-', t.número) FROM telefono t WHERE t.fk_miembro_1 = m.rif AND t.fk_miembro_2 = m.naturaleza_rif LIMIT 1)::VARCHAR(20) as telefono
@@ -91,9 +91,9 @@ BEGIN
     
     ORDER BY 
         -- Priorizar registros con email (0 si tiene email, 1 si es NULL)
-        CASE WHEN email IS NOT NULL THEN 0 ELSE 1 END,
+        email NULLS LAST,
         -- Priorizar registros con teléfono (0 si tiene teléfono, 1 si es NULL)
-        CASE WHEN telefono IS NOT NULL THEN 0 ELSE 1 END,
+        telefono NULLS LAST,
         -- Luego ordenar por tipo de persona
         tipo_persona,
         -- Luego por nombre completo
