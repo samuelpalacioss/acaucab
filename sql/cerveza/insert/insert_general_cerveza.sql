@@ -168,26 +168,26 @@ INSERT INTO presentacion (id, nombre, descripcion, unidades) VALUES
 (10, 'Caja 12 unidades 500ml', 'Caja con 12 botellas de 500ml', 12);
 
 /** Inserción de relaciones presentación-cerveza para todas las cervezas **/
-INSERT INTO presentacion_cerveza (sku, precio, fk_presentacion, fk_cerveza) VALUES
-/** Distribución cíclica de las 10 presentaciones para las 18 cervezas **/
-('DEST-B330-01', 1.50, 1, 1),      /** Destilo - Botella 330ml **/
-('DLEO-B500-02', 2.25, 2, 2),      /** Dos Leones - Botella 500ml **/
-('BENI-L330-03', 1.80, 3, 3),      /** Benitz Pale Ale - Lata 330ml **/
-('CAND-6P330-04', 8.50, 4, 4),     /** Candileja de Abadía - Six-pack 330ml **/
-('ANGE-C24330-05', 35.00, 5, 5),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
-('BARR-BR20L-06', 85.00, 6, 6),    /** Barricas Saison Belga - Barril 20L **/
-('ALDA-BR30L-07', 125.00, 7, 7),   /** Aldarra Mantuana - Barril 30L **/
-('TROE-BR50L-08', 195.00, 8, 8),   /** Tröegs HopBack Amber - Barril 50L **/
-('FULL-GR1L-09', 4.50, 9, 9),      /** Full Sail Amber - Growler 1L **/
-('DESC-C12500-10', 22.00, 10, 10), /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
-('ROGU-B330-11', 1.65, 1, 11),     /** Rogue American Amber - Botella 330ml **/
-('LACH-B500-12', 2.85, 2, 12),     /** La Chouffe - Botella 500ml **/
-('ORVA-L330-13', 2.10, 3, 13),     /** Orval - Lata 330ml **/
-('CHIM-6P330-14', 12.50, 4, 14),   /** Chimay - Six-pack 330ml **/
-('LEFF-C24330-15', 42.00, 5, 15),  /** Leffe Blonde - Caja 24 unidades 330ml **/
-('HOEG-BR20L-16', 78.00, 6, 16),   /** Hoegaarden - Barril 20L **/
-('PILS-BR30L-17', 115.00, 7, 17),  /** Pilsner Urquell - Barril 30L **/
-('SAMA-BR50L-18', 175.00, 8, 18);  /** Samuel Adams - Barril 50L **/
+INSERT INTO presentacion_cerveza (sku, precio, fk_presentacion, fk_cerveza, imagen) VALUES
+/** Distribución cíclica de las 10 presentaciones para las 18 cervezas **/presentacion_cerve
+('DEST-B330-01', 1.50, 1, 1, NULL),      /** Destilo - Botella 330ml **/
+('DLEO-B500-02', 2.25, 2, 2, NULL),      /** Dos Leones - Botella 500ml **/
+('BENI-L330-03', 1.80, 3, 3, NULL),      /** Benitz Pale Ale - Lata 330ml **/
+('CAND-6P330-04', 8.50, 4, 4, NULL),     /** Candileja de Abadía - Six-pack 330ml **/
+('ANGE-C24330-05', 35.00, 5, 5, NULL),   /** Ángel o Demonio - Caja 24 unidades 330ml **/
+('BARR-BR20L-06', 85.00, 6, 6, NULL),    /** Barricas Saison Belga - Barril 20L **/
+('ALDA-BR30L-07', 125.00, 7, 7, NULL),   /** Aldarra Mantuana - Barril 30L **/
+('TROE-BR50L-08', 195.00, 8, 8, NULL),   /** Tröegs HopBack Amber - Barril 50L **/
+('FULL-GR1L-09', 4.50, 9, 9, NULL),      /** Full Sail Amber - Growler 1L **/
+('DESC-C12500-10', 22.00, 10, 10, NULL), /** Deschutes Cinder Cone - Caja 12 unidades 500ml **/
+('ROGU-B330-11', 1.65, 1, 11, NULL),     /** Rogue American Amber - Botella 330ml **/
+('LACH-B500-12', 2.85, 2, 12, NULL),     /** La Chouffe - Botella 500ml **/
+('ORVA-L330-13', 2.10, 3, 13, NULL),     /** Orval - Lata 330ml **/
+('CHIM-6P330-14', 12.50, 4, 14, NULL),   /** Chimay - Six-pack 330ml **/
+('LEFF-C24330-15', 42.00, 5, 15, NULL),  /** Leffe Blonde - Caja 24 unidades 330ml **/
+('HOEG-BR20L-16', 78.00, 6, 16, NULL),   /** Hoegaarden - Barril 20L **/
+('PILS-BR30L-17', 115.00, 7, 17, NULL),  /** Pilsner Urquell - Barril 30L **/
+('SAMA-BR50L-18', 175.00, 8, 18, NULL);  /** Samuel Adams - Barril 50L **/
  
 
 
