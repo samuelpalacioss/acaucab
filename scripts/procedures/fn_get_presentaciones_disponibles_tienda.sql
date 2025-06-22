@@ -1,16 +1,15 @@
+DROP FUNCTION IF EXISTS fn_get_presentaciones_disponibles_tienda(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS fn_get_presentaciones_disponibles_tienda(INTEGER);
 
-DROP FUNCTION IF EXISTS fn_get_presentaciones_disponibles_tienda(INTEGER, INTEGER);
-
 CREATE OR REPLACE FUNCTION fn_get_presentaciones_disponibles_tienda(
-    p_id_tienda_fisica INTEGER,
-    p_id_tipo_cerveza INTEGER DEFAULT NULL
+    p_id_tienda_fisica INTEGER DEFAULT 1
 )
 RETURNS TABLE (
     sku VARCHAR,              -- SKU de la presentación
     nombre_presentacion_cerveza VARCHAR,   -- Nombre de la cerveza (nombre de la presentación)
     precio DECIMAL,            -- Precio de la presentación
-    tipo_cerveza VARCHAR,     -- Tipo de cerveza
+    id_tipo_cerveza INTEGER,  -- ID del tipo de cerveza
+    tipo_cerveza VARCHAR,     -- Nombre del tipo de cerveza
     stock_total INTEGER,      -- Stock total (almacén + lugares de la tienda física)
     marca VARCHAR            -- Marca (denominación comercial del miembro)
 )
@@ -18,22 +17,12 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    WITH RECURSIVE tipos_recursivos AS (
-        -- Selecciona el tipo de cerveza inicial
-        SELECT id
-        FROM tipo_cerveza
-        WHERE id = p_id_tipo_cerveza
-        UNION ALL
-        -- Selecciona recursivamente los subtipos
-        SELECT tc.id
-        FROM tipo_cerveza tc
-        INNER JOIN tipos_recursivos tr ON tc.fk_tipo_cerveza = tr.id
-    )
     SELECT 
         pc.sku, -- SKU de la presentación
         (c.nombre || ' (' || pr.nombre || ')')::VARCHAR, -- Nombre de la cerveza (nombre de la presentación)
         pc.precio::DECIMAL, -- Precio de la presentación
-        tc.nombre, -- Tipo de cerveza
+        tc.id, -- ID del tipo de cerveza
+        tc.nombre, -- Nombre del tipo de cerveza
         -- Stock individual de producto: cantidad en almacén + cantidad en tienda
         COALESCE(i.cantidad_almacen, 0) + COALESCE(lti.cantidad, 0) AS stock_total,
         m.denominación_comercial -- Marca (denominación comercial del miembro)
@@ -65,11 +54,6 @@ BEGIN
     -- Trae todas las presentaciones o solo las de un determinado tipo de cerveza
     WHERE 
         tf.id = p_id_tienda_fisica 
-        AND (
-            p_id_tipo_cerveza IS NULL 
-            OR 
-            c.fk_tipo_cerveza IN (SELECT id FROM tipos_recursivos)
-        )
         -- Stock total debe ser mayor o igual a 1
         AND (COALESCE(i.cantidad_almacen, 0) + COALESCE(lti.cantidad, 0)) >= 1
     ORDER BY 2; -- Ordenar por nombre_presentacion_cerveza
