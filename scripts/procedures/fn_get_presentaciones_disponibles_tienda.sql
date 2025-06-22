@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION fn_get_presentaciones_disponibles_tienda(
 )
 RETURNS TABLE (
     sku VARCHAR,              -- SKU de la presentación
-    nombre_presentacion_cerveza VARCHAR,   -- Nombre de la cerveza (nombre de la presentación)
+    nombre_cerveza VARCHAR,   -- Nombre de la cerveza 
     presentacion VARCHAR,   -- Nombre de la presentación
     precio DECIMAL,            -- Precio de la presentación
     id_tipo_cerveza INTEGER,  -- ID del tipo de cerveza
@@ -21,7 +21,7 @@ BEGIN
     RETURN QUERY
     SELECT 
         pc.sku, -- SKU de la presentación
-        (c.nombre || ' (' || pr.nombre || ')')::VARCHAR, -- Nombre de la cerveza (nombre de la presentación)
+        c.nombre, -- Nombre de la cerveza 
         pr.nombre, -- Nombre de la presentación
         pc.precio::DECIMAL, -- Precio de la presentación
         tc.id, -- ID del tipo de cerveza

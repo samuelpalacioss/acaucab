@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION fn_get_presentaciones_disponibles_by_categoria(
 )
 RETURNS TABLE (
     sku VARCHAR,
-    nombre_presentacion_cerveza VARCHAR,
+    nombre_cerveza VARCHAR,
     presentacion VARCHAR,
     precio DECIMAL,
     tipo_cerveza VARCHAR,
@@ -34,8 +34,8 @@ BEGIN
     )
     SELECT
         f.sku,
-        f.nombre_presentacion_cerveza,
-        f.nombre_presentacion,
+        f.nombre_cerveza,
+        f.presentacion,
         f.precio,
         f.tipo_cerveza,
         f.stock_total,
@@ -44,6 +44,6 @@ BEGIN
     FROM fn_get_presentaciones_disponibles_tienda(p_id_tienda_fisica) f
     WHERE 
         f.id_tipo_cerveza IN (SELECT id FROM tipos_recursivos)
-    ORDER BY f.nombre_presentacion_cerveza;
+    ORDER BY f.nombre_cerveza;
 END;
 $$; 
