@@ -45,7 +45,7 @@ RETURNS TABLE (
     -- Detalles de Cliente Juridico / Miembro
     razon_social VARCHAR,
     denominacion_comercial VARCHAR,
-    -- Detalles de Cliente Natural
+    -- Detalle de Empleado
     fecha_nacimiento DATE,
     -- Persona de Contacto
     pc_nombre_completo VARCHAR,
