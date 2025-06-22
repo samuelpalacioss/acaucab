@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { Loader, X } from "lucide-react";
 
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
@@ -32,6 +32,7 @@ interface Payment {
 enum Step {
   WELCOME = "welcome",
   ID_INPUT = "id_input",
+  CLIENT_WELCOME = "client_welcome",
   PRODUCT_SELECTION = "product_selection",
   PAYMENT = "payment",
   PAYMENT_SUMMARY = "payment_summary",
@@ -60,6 +61,16 @@ export default function Autopago() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
+
+  // Timer para pasar a la siguiente pantalla luego de bienvenida al cliente
+  useEffect(() => {
+    if (currentStep === Step.CLIENT_WELCOME) {
+      const timer = setTimeout(() => {
+        setCurrentStep(Step.PRODUCT_SELECTION);
+      }, 4000); // 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep]);
 
   const filteredProducts = selectedCategory
     ? products.filter((product) => product.category === selectedCategory)
@@ -124,7 +135,7 @@ export default function Autopago() {
 
       if (clienteEncontrado !== null) {
         setCliente(clienteEncontrado);
-        setCurrentStep(Step.PRODUCT_SELECTION);
+        setCurrentStep(Step.CLIENT_WELCOME);
       } else {
         setError("Cliente no encontrado. Por favor, verifique los datos.");
       }
@@ -142,7 +153,7 @@ export default function Autopago() {
       case Step.WELCOME:
         return (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
-            <h1 className="text-4xl font-bold mb-8">Bienvenido al Autopago</h1>
+            <h1 className="text-4xl font-bold mb-8">Bienvenid@ al Autopago</h1>
             <Button size="lg" onClick={() => setCurrentStep(Step.ID_INPUT)}>
               Empezar
             </Button>
@@ -216,6 +227,22 @@ export default function Autopago() {
             </div>
           </div>
         );
+
+      case Step.CLIENT_WELCOME: {
+        const clientName =
+          cliente?.tipo_usuario === "Cliente Natural"
+            ? cliente.nombre_completo
+            : cliente?.denominacion_comercial;
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <h1 className="text-4xl font-bold mb-4">Hola, {clientName}!</h1>
+            <p className="text-lg text-muted-foreground mb-8">
+              Un momento mientras preparamos todo para ti.
+            </p>
+            <Loader className="animate-spin" />
+          </div>
+        );
+      }
 
       case Step.PRODUCT_SELECTION:
         return (
