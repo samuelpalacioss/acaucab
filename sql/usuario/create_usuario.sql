@@ -34,7 +34,7 @@ CREATE TABLE miembro (
     fk_lugar_1             INTEGER NOT NULL,
     fk_lugar_2             INTEGER NOT NULL,
     
-    /** Primary key constraint compuesta */
+    /** Primary key constraint */
     CONSTRAINT miembro_pk PRIMARY KEY (rif, naturaleza_rif),
     
     /** Foreign key constraints */
@@ -68,6 +68,10 @@ CREATE TABLE cliente_natural (
     
     /** Primary key constraint */
     CONSTRAINT cliente_natural_pk PRIMARY KEY (id),    
+
+    /** Check constraints */
+    --!DESCOMENTAR ESTO CUANDO SE CAMBIE LAS CEDULAS DE LOS INSERTS
+    -- CONSTRAINT chk_cliente_natural_ci_length CHECK (LENGTH(ci::TEXT) BETWEEN 7 AND 8),
 
     CONSTRAINT chk_cliente_natural_unico_1 UNIQUE (ci, nacionalidad),
     CONSTRAINT chk_cliente_natural_unico_2 UNIQUE (rif, naturaleza_rif),

@@ -49,3 +49,22 @@ export const direccionJuridicaFormSchema = z.object({
   parroquiaFisica: z.string().min(1, "La parroquia es requerida"),
   direccionFisica: z.string().min(1, "La dirección física es requerida"),
 }) 
+
+export const ClienteSchema = z.object({
+  id_usuario: z.number(),
+  nombre_completo: z.string(),
+  razon_social: z.string().nullable(),
+  denominacion_comercial: z.string().nullable(), 
+  email: z.string().email(),
+  telefono: z.string().nullable(),
+  rol_nombre: z.string(),
+  id_rol: z.number(),
+  tipo_usuario: z.enum(['Cliente Natural', 'Cliente Juridico']),
+  identificacion: z.string(),
+  direccion: z.string(),
+  direccion_fiscal: z.string().nullable()
+});
+
+export type DocType = "V" | "E" | "J" | "P";
+
+export type ClienteType = z.infer<typeof ClienteSchema>;
