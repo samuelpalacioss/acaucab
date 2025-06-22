@@ -1,8 +1,10 @@
 /**
  * Función: fn_get_personas
  * Propósito: Obtiene todas las personas (empleados, clientes naturales, clientes jurídicos y miembros) que NO tienen un usuario asociado
- * Retorna: Tabla con información básica de las personas sin usuario
+ * Retorna: Tabla con información básica, correo y teléfono de las personas sin usuario
  */
+DROP FUNCTION IF EXISTS fn_get_personas();
+
 CREATE OR REPLACE FUNCTION fn_get_personas()
 RETURNS TABLE (
     tipo_persona VARCHAR(20),
@@ -10,7 +12,8 @@ RETURNS TABLE (
     documento VARCHAR(15),
     nacionalidad_naturaleza CHAR(1),
     nombre_completo VARCHAR(255),
-    direccion VARCHAR(255)
+    email VARCHAR(255),
+    telefono VARCHAR(20)
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -26,7 +29,8 @@ BEGIN
                ' ', e.primer_apellido,
                CASE WHEN e.segundo_apellido IS NOT NULL THEN ' ' || e.segundo_apellido ELSE '' END
         )::VARCHAR(255) AS nombre_completo,
-        NULL::VARCHAR(255) AS direccion
+        NULL::VARCHAR(255) AS email,
+        (SELECT CONCAT(t.codigo_área, '-', t.número) FROM telefono t WHERE t.fk_empleado = e.id LIMIT 1)::VARCHAR(20) as telefono
     FROM empleado e
     LEFT JOIN empleado_usuario eu ON e.id = eu.fk_empleado
     WHERE eu.fk_usuario IS NULL
@@ -44,7 +48,8 @@ BEGIN
                ' ', cn.primer_apellido,
                CASE WHEN cn.segundo_apellido IS NOT NULL THEN ' ' || cn.segundo_apellido ELSE '' END
         )::VARCHAR(255) AS nombre_completo,
-        cn.dirección::VARCHAR(255)
+        NULL::VARCHAR(255) AS email,
+        (SELECT CONCAT(t.codigo_área, '-', t.número) FROM telefono t WHERE t.fk_cliente_natural = cn.id LIMIT 1)::VARCHAR(20) as telefono
     FROM cliente_natural cn
     LEFT JOIN cliente_usuario cu ON cn.id = cu.fk_cliente_natural
     WHERE cu.fk_usuario IS NULL
@@ -58,7 +63,8 @@ BEGIN
         cj.rif::VARCHAR(15) AS documento,
         cj.naturaleza_rif AS nacionalidad_naturaleza,
         cj.razón_social::VARCHAR(255) AS nombre_completo,
-        cj.dirección::VARCHAR(255)
+        (SELECT c.dirección_correo FROM correo c JOIN persona_contacto pc ON c.fk_persona_contacto = pc.id WHERE pc.fk_cliente_juridico = cj.id LIMIT 1)::VARCHAR(255) as email,
+        (SELECT CONCAT(t.codigo_área, '-', t.número) FROM telefono t WHERE t.fk_cliente_juridico = cj.id LIMIT 1)::VARCHAR(20) as telefono
     FROM cliente_juridico cj
     LEFT JOIN cliente_usuario cu ON cj.id = cu.fk_cliente_juridico
     WHERE cu.fk_usuario IS NULL
@@ -72,12 +78,28 @@ BEGIN
         m.rif::VARCHAR(15) AS documento,
         m.naturaleza_rif AS nacionalidad_naturaleza,
         m.razón_social::VARCHAR(255) AS nombre_completo,
-        m.dirección_física::VARCHAR(255) AS direccion
+        (SELECT c.dirección_correo FROM correo c 
+         LEFT JOIN persona_contacto pc on c.fk_persona_contacto = pc.id
+         WHERE c.fk_miembro_1 = m.rif AND c.fk_miembro_2 = m.naturaleza_rif 
+         OR pc.fk_miembro_1 = m.rif AND pc.fk_miembro_2 = m.naturaleza_rif
+         LIMIT 1
+        )::VARCHAR(255) as email,
+        (SELECT CONCAT(t.codigo_área, '-', t.número) FROM telefono t WHERE t.fk_miembro_1 = m.rif AND t.fk_miembro_2 = m.naturaleza_rif LIMIT 1)::VARCHAR(20) as telefono
     FROM miembro m
     LEFT JOIN miembro_usuario mu ON m.rif = mu.fk_miembro_1 AND m.naturaleza_rif = mu.fk_miembro_2
     WHERE mu.fk_usuario IS NULL
     
-    ORDER BY tipo_persona, nombre_completo;
+    ORDER BY 
+        -- Priorizar registros con email (0 si tiene email, 1 si es NULL)
+        CASE WHEN email IS NOT NULL THEN 0 ELSE 1 END,
+        -- Priorizar registros con teléfono (0 si tiene teléfono, 1 si es NULL)
+        CASE WHEN telefono IS NOT NULL THEN 0 ELSE 1 END,
+        -- Luego ordenar por tipo de persona
+        tipo_persona,
+        -- Luego por nombre completo
+        nombre_completo,
+        -- Finalmente por ID
+        id;
     
 END;
 $$ LANGUAGE plpgsql;
@@ -92,5 +114,6 @@ $$ LANGUAGE plpgsql;
  * - documento: CI o RIF según corresponda
  * - nacionalidad_naturaleza: V/E para personas naturales, J/V/P/E para jurídicas
  * - nombre_completo: Nombre completo o razón social
- * - direccion: Dirección (NULL para empleados)
+ * - email: Correo electrónico (si existe)
+ * - telefono: Número de teléfono (si existe)
  */

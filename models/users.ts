@@ -53,3 +53,17 @@ export interface UsuariosClientProps {
   users: User[];
   roles: Rol[];
 }
+
+/**
+ * Modelo de datos para personas sin usuario
+ * Basado en la función fn_get_personas de PostgreSQL
+ */
+export interface PersonaSinUsuario {
+  tipo_persona: string;
+  id: number;
+  documento: string;
+  nacionalidad_naturaleza: string;
+  nombre_completo: string;
+  email: string | null;
+  telefono: string | null;
+}
