@@ -50,7 +50,7 @@ export const direccionJuridicaFormSchema = z.object({
   direccionFisica: z.string().min(1, "La dirección física es requerida"),
 }) 
 
-export const ClienteSchema = z.object({
+export const clienteSchema = z.object({
   id_usuario: z.number(),
   nombre_completo: z.string(),
   razon_social: z.string().nullable(),
@@ -67,4 +67,18 @@ export const ClienteSchema = z.object({
 
 export type DocType = "V" | "E" | "J" | "P";
 
-export type ClienteType = z.infer<typeof ClienteSchema>;
+export type ClienteType = z.infer<typeof clienteSchema>;
+
+export const presentacionSchema = z.object({
+  sku: z.string(),
+  nombre_presentacion_cerveza: z.string(),
+  presentacion: z.string(),
+  precio: z.number(),
+  id_tipo_cerveza: z.number(),
+  tipo_cerveza: z.string(),
+  stock_total: z.number(),
+  marca: z.string(),
+  imagen: z.string().url().nullable()
+});
+
+export type PresentacionType = z.infer<typeof presentacionSchema>;

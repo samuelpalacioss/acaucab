@@ -7,11 +7,13 @@ CREATE OR REPLACE FUNCTION fn_get_presentaciones_disponibles_tienda(
 RETURNS TABLE (
     sku VARCHAR,              -- SKU de la presentación
     nombre_presentacion_cerveza VARCHAR,   -- Nombre de la cerveza (nombre de la presentación)
+    presentacion VARCHAR,   -- Nombre de la presentación
     precio DECIMAL,            -- Precio de la presentación
     id_tipo_cerveza INTEGER,  -- ID del tipo de cerveza
     tipo_cerveza VARCHAR,     -- Nombre del tipo de cerveza
     stock_total INTEGER,      -- Stock total (almacén + lugares de la tienda física)
-    marca VARCHAR            -- Marca (denominación comercial del miembro)
+    marca VARCHAR,            -- Marca (denominación comercial del miembro)
+    imagen VARCHAR            -- URL de la imagen
 )
 LANGUAGE plpgsql
 AS $$
@@ -20,12 +22,14 @@ BEGIN
     SELECT 
         pc.sku, -- SKU de la presentación
         (c.nombre || ' (' || pr.nombre || ')')::VARCHAR, -- Nombre de la cerveza (nombre de la presentación)
+        pr.nombre, -- Nombre de la presentación
         pc.precio::DECIMAL, -- Precio de la presentación
         tc.id, -- ID del tipo de cerveza
         tc.nombre, -- Nombre del tipo de cerveza
         -- Stock individual de producto: cantidad en almacén + cantidad en tienda
         COALESCE(i.cantidad_almacen, 0) + COALESCE(lti.cantidad, 0) AS stock_total,
-        m.denominación_comercial -- Marca (denominación comercial del miembro)
+        m.denominación_comercial, -- Marca (denominación comercial del miembro)
+        pc.imagen -- URL de la imagen
     FROM tienda_fisica tf
     -- Unir almacenes de la tienda física
     JOIN almacen a ON tf.id = a.fk_tienda_fisica

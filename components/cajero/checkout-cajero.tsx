@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ProductList from "./product-list";
 import CategoryFilter from "./category-filter";
 import Cart from "./cart";
 import { CartItemType } from "@/components/carrito-compras/cart-list";
-import { beers } from "@/app/(marketing)/productos/page";
+import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { PresentacionType } from "@/lib/schemas";
 
 // Utility function to get unique categories
 function getUniqueCategories(products: CartItemType[]): string[] {
@@ -32,21 +33,44 @@ export default function CheckoutCajero({
   onRemoveItem,
   onClearCart,
 }: CheckoutCajeroProps) {
-  const [products] = useState<CartItemType[]>(
-    beers.map((beer) => ({
-      id: Number(beer.id),
-      name: beer.name,
-      price: beer.price,
-      quantity: 1,
-      brand: beer.brand,
-      imageSrc: beer.image,
-      size: beer.capacity,
-      category: beer.category,
-    }))
-  );
+  const [products, setProducts] = useState<CartItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>("Todas");
   const [recentlyUsed, setRecentlyUsed] = useState<CartItemType[]>([]);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        setIsLoading(true);
+        // Default tienda id 1 en el procedure de la bd
+        const presentaciones = await getPresentacionesDisponibles();
+
+        const mappedProducts = presentaciones.map((p: PresentacionType) => ({
+          // The component expects a number for the ID.
+          // This assumes your SKUs are strings that can be converted to numbers.
+          // If SKU is not numeric, this will result in NaN, which can cause issues.
+          sku: p.sku,
+          name: p.nombre_presentacion_cerveza,
+          price: p.precio,
+          quantity: 1, // Default quantity for the list
+          brand: p.marca,
+          imageSrc: "/placeholder.svg", // Placeholder image
+          size: "N/A", // Placeholder size
+          category: p.tipo_cerveza,
+        }));
+
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        // Handle error state if needed
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
 
   const categories = getUniqueCategories(products);
 
@@ -128,18 +152,26 @@ export default function CheckoutCajero({
             />
           </div>
 
-          {!selectedCategory && searchQuery === "" && (
-            <h3 className="font-medium text-gray-700 mb-2">
-              {recentlyUsed.length > 0 ? "Productos Usados Recientemente" : "Productos Populares"}
-            </h3>
-          )}
+          {isLoading ? (
+            <div className="text-center p-8">Cargando productos...</div>
+          ) : (
+            <>
+              {!selectedCategory && searchQuery === "" && (
+                <h3 className="font-medium text-gray-700 mb-2">
+                  {recentlyUsed.length > 0
+                    ? "Productos Usados Recientemente"
+                    : "Productos Populares"}
+                </h3>
+              )}
 
-          <ProductList
-            products={getFilteredProducts()}
-            onAddToCart={addToCart}
-            searchQuery={searchQuery}
-            selectedCategory={selectedCategory}
-          />
+              <ProductList
+                products={getFilteredProducts()}
+                onAddToCart={addToCart}
+                searchQuery={searchQuery}
+                selectedCategory={selectedCategory}
+              />
+            </>
+          )}
         </div>
       </div>
 
