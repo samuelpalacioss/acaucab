@@ -19,66 +19,6 @@ interface UsuarioDetalleClientProps {
   userPermissions: RolDetalle[];
 }
 
-/**
- * Datos de ejemplo para el usuario específico
- * TODO: Esta información debería provenir de una API utilizando el userId
- */
-const userData = {
-  id: 1,
-  name: "Juan Pérez",
-  email: "juan.perez@empresa.com",
-  phone: "+58 412-1234567",
-  role: "Administrador",
-  status: "Activo",
-  department: "IT",
-  position: "Desarrollador Senior",
-  hireDate: "2022-03-15",
-  lastLogin: "2024-01-15 10:30",
-  address: "Av. Principal, Caracas, Venezuela",
-  emergencyContact: "María Pérez - +58 414-7654321",
-  permissions: [
-    "Gestión de usuarios",
-    "Configuración del sistema",
-    "Reportes avanzados",
-    "Gestión de roles",
-    "Acceso completo",
-  ],
-};
-
-/**
- * Registro de actividad del usuario
- * TODO: Esta información debería provenir de una API de logs de actividad
- */
-const activityLog = [
-  {
-    id: 1,
-    action: "Inicio de sesión",
-    timestamp: "2024-01-15 10:30:15",
-    ip: "192.168.1.100",
-    device: "Chrome - Windows",
-  },
-  {
-    id: 2,
-    action: "Modificó usuario: María González",
-    timestamp: "2024-01-15 09:45:22",
-    ip: "192.168.1.100",
-    device: "Chrome - Windows",
-  },
-  {
-    id: 3,
-    action: "Generó reporte de ventas",
-    timestamp: "2024-01-15 09:15:33",
-    ip: "192.168.1.100",
-    device: "Chrome - Windows",
-  },
-  {
-    id: 4,
-    action: "Cerró sesión",
-    timestamp: "2024-01-14 18:30:45",
-    ip: "192.168.1.100",
-    device: "Chrome - Windows",
-  },
-];
 
 /**
  * Componente cliente para el detalle de usuario del sistema
