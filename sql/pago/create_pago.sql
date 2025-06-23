@@ -176,7 +176,7 @@ CREATE UNIQUE INDEX idx_tasa_unica_por_dia ON tasa (moneda, fecha_inicio);
  */
 CREATE TABLE pago (
     id                       SERIAL,
-    monto                    DECIMAL(10,2) NOT NULL,
+    monto                    DECIMAL(10,2) NOT NULL CHECK (monto > 0),
     fecha_pago               TIMESTAMP NOT NULL,
     fk_tasa                  INTEGER NOT NULL,
     fk_mensualidad_1         INTEGER,
