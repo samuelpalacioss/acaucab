@@ -77,8 +77,8 @@ CREATE TABLE venta (
  * Incluye cantidad, precio unitario y referencias a presentación_cerveza y venta
  */
 CREATE TABLE detalle_presentacion (
-    cantidad        INTEGER NOT NULL,                    /** Cantidad de productos vendidos (tipo: INTEGER) */
-    precio_unitario DECIMAL(10,2),                      /** Precio por unidad del producto (tipo: DECIMAL) */
+    cantidad        INTEGER NOT NULL CHECK (cantidad > 0),  /** Cantidad de productos vendidos (tipo: INTEGER, debe ser positivo) */
+    precio_unitario DECIMAL(10,2) CHECK (precio_unitario > 0),                      /** Precio por unidad del producto (tipo: DECIMAL) */
     fk_presentacion INTEGER NOT NULL,               /** Primera clave foránea de presentación_cerveza - SKU (tipo: VARCHAR) */
     fk_cerveza      INTEGER NOT NULL,                   /** Segunda clave foránea de presentación_cerveza - ID cerveza (tipo: INTEGER) */
     fk_venta        INTEGER NOT NULL,                   /** Clave foránea que referencia la venta (tipo: INTEGER) */
