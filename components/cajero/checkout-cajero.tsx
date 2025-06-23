@@ -1,28 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ProductList from "./product-list";
 import CategoryFilter from "./category-filter";
 import Cart from "./cart";
-import { CartItemType } from "@/components/carrito-compras/cart-list";
-import { beers } from "@/app/(marketing)/productos/page";
+import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { CarritoItemType, PresentacionType } from "@/lib/schemas";
 
 // Utility function to get unique categories
-function getUniqueCategories(products: CartItemType[]): string[] {
+function getUniqueCategories(products: CarritoItemType[]): string[] {
   const categories = products
-    .map((product) => product.category)
+    .map((product) => product.tipo_cerveza)
     .filter((category): category is string => category !== undefined);
   return [...new Set(categories)];
 }
 
 interface CheckoutCajeroProps {
   onCheckout: () => void;
-  cart: CartItemType[];
-  onUpdateQuantity: (id: number, quantity: number) => void;
-  onRemoveItem: (id: number) => void;
+  cart: CarritoItemType[];
+  onUpdateQuantity: (sku: string, quantity: number) => void;
+  onRemoveItem: (sku: string) => void;
   onClearCart: () => void;
+  products: CarritoItemType[];
 }
 
 export default function CheckoutCajero({
@@ -31,77 +32,62 @@ export default function CheckoutCajero({
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
+  products,
 }: CheckoutCajeroProps) {
-  const [products] = useState<CartItemType[]>(
-    beers.map((beer) => ({
-      id: Number(beer.id),
-      name: beer.name,
-      price: beer.price,
-      quantity: 1,
-      brand: beer.brand,
-      imageSrc: beer.image,
-      size: beer.capacity,
-      category: beer.category,
-    }))
-  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>("Todas");
-  const [recentlyUsed, setRecentlyUsed] = useState<CartItemType[]>([]);
+  const [recentlyUsed, setRecentlyUsed] = useState<CarritoItemType[]>([]);
 
   const categories = getUniqueCategories(products);
 
-  // Convert products to CartItemType for display
-  const displayProducts: CartItemType[] = products.map((product) => ({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    quantity: 1,
-    brand: product.brand,
-    imageSrc: product.imageSrc,
-    size: product.size,
-    category: product.category,
-  }));
-
   // Get filtered products based on search and category
   const getFilteredProducts = () => {
-    let filtered = displayProducts;
+    let filtered = products;
 
     if (selectedCategory === "Recientes") {
       return recentlyUsed;
     }
 
     if (selectedCategory && selectedCategory !== "Todas") {
-      filtered = filtered.filter((product) => product.category === selectedCategory);
+      filtered = filtered.filter((product) => product.tipo_cerveza === selectedCategory);
     }
 
     if (searchQuery.trim() !== "") {
       filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+        product.nombre_cerveza.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     return filtered;
   };
 
-  const addToCart = (product: CartItemType) => {
-    // Add to recently used if not already there
-    const originalProduct = products.find((p) => p.id === product.id);
-    if (originalProduct) {
-      setRecentlyUsed((prev) => {
-        const exists = prev.some((p) => p.id === originalProduct.id);
-        if (!exists) {
-          const newRecent = [originalProduct, ...prev].slice(0, 6);
-          return newRecent;
-        }
-        return prev;
-      });
-    }
+  const addToCart = (product: CarritoItemType) => {
+    console.log("🛒 Adding product to cart:", product); // Debug log
+    console.log("🛒 Current cart state:", cart); // Debug log
 
-    const existingItem = cart.find((item) => item.id === product.id);
+    // Add to recently used if not already there
+    setRecentlyUsed((prev) => {
+      const exists = prev.some((p) => p.sku === product.sku);
+      if (!exists) {
+        const newRecent = [product, ...prev].slice(0, 6);
+        return newRecent;
+      }
+      return prev;
+    });
+
+    /** Verificar si el producto ya existe en el carrito */
+    const existingItem = cart.find((item) => item.sku === product.sku);
+
+    console.log("🛒 Existing item in cart:", existingItem); // Debug log
+
     if (existingItem) {
-      onUpdateQuantity(product.id, existingItem.quantity + 1);
+      /** Si existe, incrementar la cantidad */
+      console.log("🛒 Updating existing item quantity:", existingItem.quantity + 1); // Debug log
+      onUpdateQuantity(product.sku, existingItem.quantity + 1);
     } else {
-      onUpdateQuantity(product.id, 1);
+      /** Si no existe, agregarlo con cantidad 1 */
+      console.log("🛒 Adding new item with quantity 1 for SKU:", product.sku); // Debug log
+      onUpdateQuantity(product.sku, 1);
     }
   };
 

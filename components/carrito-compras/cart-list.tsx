@@ -1,20 +1,10 @@
 import { CartItem } from "./cart-item";
-
-export interface CartItemType {
-  id: number;
-  name: string;
-  size: string;
-  quantity: number;
-  price: number;
-  brand: string;
-  imageSrc: string;
-  category: string;
-}
+import { CarritoItemType } from "@/lib/schemas";
 
 interface CartListProps {
-  items: CartItemType[];
-  onRemoveItem: (id: number) => void;
-  onUpdateQuantity: (id: number, newQuantity: number) => void;
+  items: CarritoItemType[];
+  onRemoveItem: (sku: string) => void;
+  onUpdateQuantity: (sku: string, newQuantity: number) => void;
   isCheckout?: boolean;
 }
 
@@ -42,15 +32,9 @@ export function CartList({
       ) : (
         items.map((item) => (
           <CartItem
-            key={item.id}
-            id={item.id}
-            name={item.name}
-            size={item.size}
-            quantity={item.quantity}
-            price={item.price}
-            brand={item.brand}
-            imageSrc={item.imageSrc}
-            onRemove={() => onRemoveItem(item.id)}
+            key={item.sku}
+            item={item}
+            onRemove={() => onRemoveItem(item.sku)}
             onUpdateQuantity={onUpdateQuantity}
           />
         ))

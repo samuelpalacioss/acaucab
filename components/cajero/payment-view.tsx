@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import OrderSummaryCard from "./order-summary-card";
 import { Separator } from "@radix-ui/react-select";
+import { CarritoItemType } from "@/lib/schemas";
 
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
@@ -40,19 +41,8 @@ interface ExistingPayment {
   details: PaymentDetails;
 }
 
-interface PaymentViewItem {
-  id: number;
-  name: string;
-  size: string;
-  quantity: number;
-  price: number;
-  brand: string;
-  imageSrc: string;
-  category: string;
-}
-
 interface PaymentViewProps {
-  items: PaymentViewItem[];
+  items: CarritoItemType[];
   total: number;
   /** Total original de la compra (para mostrar correctamente en order summary) */
   originalTotal?: number;

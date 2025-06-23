@@ -163,6 +163,7 @@ CREATE TABLE presentacion_cerveza (
     precio        DECIMAL(10,2) NOT NULL,
     fk_presentacion INTEGER NOT NULL,
     fk_cerveza      INTEGER NOT NULL,
+    imagen          VARCHAR(2083), -- URL de la imagen
     CONSTRAINT presentacion_cerveza_pk PRIMARY KEY (fk_presentacion, fk_cerveza),
     CONSTRAINT presentacion_cerveza_fk_presentacion FOREIGN KEY (fk_presentacion) REFERENCES presentacion(id),
     CONSTRAINT presentacion_cerveza_fk_cerveza FOREIGN KEY (fk_cerveza) REFERENCES cerveza(id)

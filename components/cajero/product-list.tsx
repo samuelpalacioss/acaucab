@@ -1,14 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-
+import { CarritoItemType } from "@/lib/schemas";
+import { ProductCard } from "@/components/product-card";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { Plus } from "lucide-react";
-import { CartItemType } from "@/components/carrito-compras/cart-list";
 
 interface ProductListProps {
-  products: CartItemType[];
-  onAddToCart: (product: CartItemType) => void;
+  products: CarritoItemType[];
+  onAddToCart: (product: CarritoItemType) => void;
   searchQuery: string;
   selectedCategory: string | null;
 }
@@ -50,25 +51,49 @@ export default function ProductList({
     );
   }
 
+  const handleAddToCart = (product: CarritoItemType) => {
+    console.log("📦 Product clicked:", product); // Debug log
+    console.log("📦 onAddToCart function:", onAddToCart); // Debug log
+    onAddToCart(product);
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
       {products.map((product) => (
         <Card
-          key={product.id}
+          key={product.sku}
           className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => onAddToCart(product)}
+          onClick={() => handleAddToCart(product)}
         >
           <CardContent className="p-3">
             <div className="flex flex-col h-full">
-              <div className="flex-grow">
-                <h3 className="font-medium text-sm">
-                  {searchQuery ? highlightText(product.name, searchQuery) : product.name}
+              <div className="flex-grow space-y-2">
+                <h3 className="font-semibold text-sm leading-tight">
+                  {searchQuery
+                    ? highlightText(product.nombre_cerveza, searchQuery)
+                    : product.nombre_cerveza}
                 </h3>
-                <p className="text-xs text-gray-500">{product.category}</p>
+
+                <Badge variant="secondary" className="text-xs w-fit font-medium">
+                  {product.presentacion}
+                </Badge>
+
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {product.tipo_cerveza}
+                </p>
               </div>
-              <div className="flex justify-between items-center mt-2">
-                <p className="font-bold text-sm">${product.price.toFixed(2)}</p>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
+
+              <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+                <p className="font-bold text-sm">${product.precio.toFixed(2)}</p>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent card click when button is clicked
+                    handleAddToCart(product);
+                  }}
+                >
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>

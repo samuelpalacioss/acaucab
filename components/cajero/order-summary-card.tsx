@@ -1,16 +1,10 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-
-interface OrderSummaryItem {
-  id: number;
-  name: string;
-  quantity: number;
-  price: number;
-}
+import { CarritoItemType } from "@/lib/schemas";
 
 interface OrderSummaryCardProps {
-  items: OrderSummaryItem[];
+  items: CarritoItemType[];
   total: number;
   /** Total original de la compra (opcional, para mostrar en pagos parciales) */
   originalTotal?: number;
@@ -48,11 +42,11 @@ export default function OrderSummaryCard({
 
           <div className="max-h-[300px] overflow-y-auto space-y-2">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
+              <div key={item.sku} className="flex justify-between text-sm">
                 <span>
-                  {item.name} x{item.quantity}
+                  {item.nombre_cerveza} x{item.quantity}
                 </span>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                <span>${(item.precio * item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>
