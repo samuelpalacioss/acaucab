@@ -28,6 +28,6 @@ BEGIN
     FROM
         rol r
     ORDER BY
-        r.id;
+        r.id DESC;
 END;
 $$ LANGUAGE plpgsql;

@@ -4,108 +4,114 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Save, Users, Shield } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { PermisoSistema, UsuarioPorRol } from "@/models/roles";
+import { llamarFuncion } from "@/lib/server-actions";
+import { toast } from "sonner";
 
-/**
- * Datos de ejemplo para un rol específico
- * TODO: Esta información debería provenir de una API que reciba el ID del rol
- */
-const roleData = {
-  id: 1,
-  name: "Gerente",
-  description: "Gestión de equipos y reportes",
-  userCount: 5,
-  permissions: ["users.read", "reports.all", "sales.all"],
-  users: [
-    { id: 1, name: "María González", email: "maria.gonzalez@empresa.com" },
-    { id: 2, name: "Carlos Rodríguez", email: "carlos.rodriguez@empresa.com" },
-    { id: 3, name: "Ana Martínez", email: "ana.martinez@empresa.com" },
-  ],
-};
 
-/**
- * Lista completa de permisos disponibles en el sistema
- * TODO: Esta información debería provenir de una API de configuración de permisos
- */
-const allPermissions = [
-  { id: "users.read", name: "Ver usuarios", category: "Usuarios" },
-  { id: "users.write", name: "Gestionar usuarios", category: "Usuarios" },
-  { id: "roles.read", name: "Ver roles", category: "Roles" },
-  { id: "roles.write", name: "Gestionar roles", category: "Roles" },
-  { id: "reports.read", name: "Ver reportes", category: "Reportes" },
-  { id: "reports.write", name: "Crear reportes", category: "Reportes" },
-  { id: "sales.read", name: "Ver ventas", category: "Ventas" },
-  { id: "sales.write", name: "Gestionar ventas", category: "Ventas" },
-  { id: "inventory.read", name: "Ver inventario", category: "Inventario" },
-  { id: "inventory.write", name: "Gestionar inventario", category: "Inventario" },
-  { id: "orders.read", name: "Ver pedidos", category: "Pedidos" },
-  { id: "orders.write", name: "Gestionar pedidos", category: "Pedidos" },
-];
 
 /**
  * Interface para las props del componente
  */
 interface EditarRolClientProps {
   roleId: string;
-  // Aquí se pueden agregar props que vengan del servidor
-  // Por ejemplo: initialRoleData, availablePermissions, userPermissions, etc.
+  /**
+   * Información del rol obtenida desde la base de datos
+   */
+  roleInfo: {
+    id: number;
+    nombre: string;
+    cantidad_usuarios: number;
+    permisos_asignados: Array<{
+      id: number;
+      nombre: string;
+      descripcion: string;
+    }>;
+  };
+  /**
+   * Lista de todos los permisos disponibles en el sistema
+   */
+  todosLosPermisos: PermisoSistema[];
+  /**
+   * Lista de usuarios asignados a este rol
+   */
+  usuariosDelRol: UsuarioPorRol[];
 }
 
 /**
- * Interface para la información del rol
+ * Interface para la información del rol en edición
  */
 interface RoleData {
   id: number;
-  name: string;
-  description: string;
-  userCount: number;
-  permissions: string[];
-  users: Array<{
-    id: number;
-    name: string;
-    email: string;
-  }>;
+  nombre: string;
+  cantidad_usuarios: number;
+  permisos: number[];
 }
 
 /**
  * Componente cliente para la edición de roles del sistema
  * Maneja toda la interfaz de usuario y las interacciones de edición de roles y permisos
  */
-export default function EditarRolClient({ roleId }: EditarRolClientProps) {
+export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDelRol }: EditarRolClientProps) {
   /*
    * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
    *
    * Estados para controlar la funcionalidad de edición de roles:
    * - role: Datos del rol actual en edición
    * - hasChanges: Indica si hay cambios pendientes por guardar
+   * - isLoading: Indica si se está procesando la actualización
    */
-  const [role, setRole] = useState<RoleData>(roleData);
+  const [role, setRole] = useState<RoleData>({
+    id: roleInfo.id,
+    nombre: roleInfo.nombre,
+    cantidad_usuarios: roleInfo.cantidad_usuarios,
+    permisos: roleInfo.permisos_asignados.map(p => p.id)
+  });
   const [hasChanges, setHasChanges] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   /**
    * Función para agrupar permisos por categoría
+   * Agrupa los permisos basándose en palabras clave en su nombre
    */
-  const groupedPermissions = allPermissions.reduce((acc, permission) => {
-    if (!acc[permission.category]) {
-      acc[permission.category] = [];
+  const groupedPermissions = todosLosPermisos.reduce((acc, permission) => {
+    let category = 'Otros';
+    
+    // Determinar categoría basándose en el nombre del permiso
+    if (permission.nombre.includes('usuario') || permission.nombre.includes('roles') || 
+        permission.nombre.includes('miembros') || permission.nombre.includes('clientes')) {
+      category = 'Gestión de Usuarios';
+    } else if (permission.nombre.includes('venta') || permission.nombre.includes('pago') || 
+               permission.nombre.includes('factura') || permission.nombre.includes('caja')) {
+      category = 'Gestión de Ventas';
+    } else if (permission.nombre.includes('compra') || permission.nombre.includes('proveedores') || 
+               permission.nombre.includes('pedidos')) {
+      category = 'Gestión de Compras';
+    } else if (permission.nombre.includes('reposición')) {
+      category = 'Gestión de Pasillos';
     }
-    acc[permission.category].push(permission);
+    
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(permission);
     return acc;
-  }, {} as Record<string, typeof allPermissions>);
+  }, {} as Record<string, PermisoSistema[]>);
 
   /**
    * Función para alternar permisos del rol
    */
-  const togglePermission = (permissionId: string) => {
+  const togglePermission = (permissionId: number) => {
     setRole((prev) => ({
       ...prev,
-      permissions: prev.permissions.includes(permissionId)
-        ? prev.permissions.filter((p) => p !== permissionId)
-        : [...prev.permissions, permissionId],
+      permisos: prev.permisos.includes(permissionId)
+        ? prev.permisos.filter((p) => p !== permissionId)
+        : [...prev.permisos, permissionId],
     }));
     setHasChanges(true);
   };
@@ -113,33 +119,58 @@ export default function EditarRolClient({ roleId }: EditarRolClientProps) {
   /**
    * Función para actualizar el nombre del rol
    */
-  const updateRoleName = (name: string) => {
-    setRole((prev) => ({ ...prev, name }));
+  const updateRoleName = (nombre: string) => {
+    setRole((prev) => ({ ...prev, nombre }));
     setHasChanges(true);
   };
 
-  /**
-   * Función para actualizar la descripción del rol
-   */
-  const updateRoleDescription = (description: string) => {
-    setRole((prev) => ({ ...prev, description }));
-    setHasChanges(true);
-  };
+
 
   /**
    * Función para guardar los cambios del rol
-   * TODO: Implementar llamada a API para actualizar el rol
+   * Llama a la función fn_update_rol de PostgreSQL
    */
-  const handleSave = () => {
-    console.log("Saving role:", role);
-    setHasChanges(false);
-    // TODO: Implementar llamada a API y manejo de errores
-  };
+  const handleSave = async () => {
+    // Validar que el nombre no esté vacío
+    if (!role.nombre.trim()) {
+      toast.error('Error de validación', {
+        description: 'El nombre del rol no puede estar vacío'
+      });
+      return;
+    }
 
-  /**
-   * Cálculo del porcentaje de permisos asignados
-   */
-  const permissionsPercentage = Math.round((role.permissions.length / allPermissions.length) * 100);
+    setIsLoading(true);
+    
+    try {
+      // Llamar a la función de PostgreSQL con los parámetros necesarios
+      const result = await llamarFuncion('fn_update_rol', {
+        p_rol_id: role.id,
+        p_nuevo_nombre: role.nombre.trim(),
+        p_permisos_ids: role.permisos
+      });
+
+      if (result) {
+        // Mostrar mensaje de éxito
+        toast.success('Rol actualizado correctamente', {
+          description: `El rol "${role.nombre}" ha sido actualizado con ${role.permisos.length} permisos.`
+        });
+        
+        // Resetear el estado de cambios
+        setHasChanges(false);
+        
+        // Refrescar la página para obtener los datos actualizados
+        router.refresh();
+      }
+    } catch (error) {
+      // Manejar errores
+      console.error('Error al actualizar el rol:', error);
+      toast.error('Error al actualizar el rol', {
+        description: error instanceof Error ? error.message : 'Ocurrió un error inesperado'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div id="editar-rol-container" className="p-6 space-y-6">
@@ -159,16 +190,29 @@ export default function EditarRolClient({ roleId }: EditarRolClientProps) {
           </Link>
           <div id="header-title-info">
             <h1 id="editar-rol-title" className="text-2xl font-bold">
-              Editar Rol: {role.name}
+              Editar Rol: {role.nombre}
             </h1>
             <p id="editar-rol-description" className="text-gray-600">
               Configura permisos y usuarios asignados
             </p>
           </div>
         </div>
-        <Button onClick={handleSave} disabled={!hasChanges} id="guardar-cambios-button">
-          <Save className="w-4 h-4 mr-2" />
-          Guardar Cambios
+        <Button 
+          onClick={handleSave} 
+          disabled={!hasChanges || isLoading} 
+          id="guardar-cambios-button"
+        >
+          {isLoading ? (
+            <>
+              <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Guardar Cambios
+            </>
+          )}
         </Button>
       </div>
 
@@ -193,23 +237,13 @@ export default function EditarRolClient({ roleId }: EditarRolClientProps) {
                 <label className="text-sm font-medium">Nombre del Rol *</label>
                 <Input
                   id="rol-name-input"
-                  value={role.name}
+                  value={role.nombre}
                   onChange={(e) => updateRoleName(e.target.value)}
                   placeholder="Nombre del rol"
+                  disabled={isLoading}
                 />
               </div>
 
-              {/* Campo de descripción del rol */}
-              <div id="rol-description-field">
-                <label className="text-sm font-medium">Descripción</label>
-                <Textarea
-                  id="rol-description-textarea"
-                  value={role.description}
-                  onChange={(e) => updateRoleDescription(e.target.value)}
-                  rows={3}
-                  placeholder="Descripción del rol y sus responsabilidades"
-                />
-              </div>
             </CardContent>
           </Card>
 
@@ -238,11 +272,12 @@ export default function EditarRolClient({ roleId }: EditarRolClientProps) {
                         >
                           <Checkbox
                             id={`checkbox-${permission.id}`}
-                            checked={role.permissions.includes(permission.id)}
+                            checked={role.permisos.includes(permission.id)}
                             onCheckedChange={() => togglePermission(permission.id)}
+                            disabled={isLoading}
                           />
                           <label htmlFor={`checkbox-${permission.id}`} className="text-sm">
-                            {permission.name}
+                            {permission.descripcion}
                           </label>
                         </div>
                       ))}
@@ -269,76 +304,67 @@ export default function EditarRolClient({ roleId }: EditarRolClientProps) {
                 {/* Estadística de usuarios */}
                 <div id="usuarios-stats" className="text-center p-4 bg-gray-50 rounded">
                   <div id="usuarios-count" className="text-2xl font-bold">
-                    {role.userCount}
+                    {role.cantidad_usuarios}
                   </div>
                   <div className="text-sm text-gray-600">usuarios con este rol</div>
                 </div>
 
                 {/* Lista de usuarios asignados */}
-                <div id="usuarios-list" className="space-y-2">
-                  {role.users.map((user) => (
-                    <div
-                      key={user.id}
-                      id={`user-item-${user.id}`}
-                      className="flex items-center gap-3 p-2 border rounded"
-                    >
+                {usuariosDelRol.length > 0 ? (
+                  <div id="usuarios-list" className="space-y-2 max-h-64 overflow-y-auto">
+                    {usuariosDelRol.slice(0, 10).map((user) => (
                       <div
-                        id={`user-avatar-${user.id}`}
-                        className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
+                        key={user.id}
+                        id={`user-item-${user.id}`}
+                        className="flex items-center gap-3 p-2 border rounded"
                       >
-                        <span className="text-xs font-bold">{user.name.charAt(0)}</span>
+                        <div
+                          id={`user-avatar-${user.id}`}
+                          className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0"
+                        >
+                          <span className="text-xs font-bold">{user.nombre_completo.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <div id={`user-info-${user.id}`} className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{user.nombre_completo}</div>
+                          <div className="text-xs text-gray-600 truncate">{user.correo}</div>
+                          <div className="text-xs text-gray-500">{user.tipo_persona}</div>
+                        </div>
                       </div>
-                      <div id={`user-info-${user.id}`} className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{user.name}</div>
-                        <div className="text-xs text-gray-600 truncate">{user.email}</div>
+                    ))}
+                    {usuariosDelRol.length > 10 && (
+                      <div className="text-xs text-gray-500 text-center pt-2">
+                        y {usuariosDelRol.length - 10} usuarios más...
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </div>
+                ) : (
+                  <div id="usuarios-empty" className="text-sm text-gray-600 text-center p-4">
+                    No hay usuarios asignados a este rol
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Sección de resumen de permisos */}
-          <Card id="resumen-permisos-card">
+          {/* Resumen de permisos actuales */}
+          <Card id="permisos-actuales-card">
             <CardHeader>
-              <CardTitle id="resumen-permisos-title">Resumen de Permisos</CardTitle>
+              <CardTitle id="permisos-actuales-title" className="text-sm">
+                Permisos Actuales
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div id="resumen-content" className="space-y-3">
-                {/* Estadísticas de permisos */}
-                <div id="permisos-stats" className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Total permisos:</span>
-                    <Badge id="total-permisos-badge">{role.permissions.length}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Disponibles:</span>
-                    <Badge variant="outline" id="disponibles-permisos-badge">
-                      {allPermissions.length}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Cobertura:</span>
-                    <Badge variant="secondary" id="cobertura-permisos-badge">
-                      {permissionsPercentage}%
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Descripción de permisos */}
-                <div id="permisos-description" className="text-xs text-gray-600">
-                  {role.permissions.length} de {allPermissions.length} permisos asignados
-                </div>
-
-                {/* Indicador visual de cobertura */}
-                <div id="cobertura-visual" className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    id="cobertura-bar"
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${permissionsPercentage}%` }}
-                  ></div>
-                </div>
+              <div id="permisos-actuales-count" className="text-center p-2 bg-gray-50 rounded mb-2">
+                <div className="text-lg font-bold">{role.permisos.length}</div>
+                <div className="text-xs text-gray-600">permisos asignados</div>
+              </div>
+              <div id="permisos-actuales-list" className="text-xs text-gray-600 space-y-1 max-h-32 overflow-y-auto">
+                {todosLosPermisos
+                  .filter(p => role.permisos.includes(p.id))
+                  .map(p => (
+                    <div key={p.id} className="truncate">• {p.nombre}</div>
+                  ))
+                }
               </div>
             </CardContent>
           </Card>

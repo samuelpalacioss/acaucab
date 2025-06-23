@@ -90,30 +90,16 @@ BEGIN
     WHERE mu.fk_usuario IS NULL
     
     ORDER BY 
-        -- Priorizar registros con email (0 si tiene email, 1 si es NULL)
-        email NULLS LAST,
-        -- Priorizar registros con teléfono (0 si tiene teléfono, 1 si es NULL)
-        telefono NULLS LAST,
-        -- Luego ordenar por tipo de persona
-        tipo_persona,
-        -- Luego por nombre completo
-        nombre_completo,
-        -- Finalmente por ID
-        id;
+        -- Priorizar registros con email (columna 6) (0 si tiene email, 1 si es NULL)
+        6 NULLS LAST,
+        -- Priorizar registros con teléfono (columna 7) (0 si tiene teléfono, 1 si es NULL)
+        7 NULLS LAST,
+        -- Luego ordenar por tipo de persona (columna 1)
+        1,
+        -- Luego por nombre completo (columna 5)
+        5,
+        -- Finalmente por ID (columna 2)
+        2;
     
 END;
 $$ LANGUAGE plpgsql;
-
-/**
- * Ejemplo de uso:
- * SELECT * FROM fn_get_personas();
- * 
- * Retorna:
- * - tipo_persona: Tipo de entidad (Empleado, Cliente Natural, Cliente Jurídico, Miembro)
- * - id: ID único de la persona
- * - documento: CI o RIF según corresponda
- * - nacionalidad_naturaleza: V/E para personas naturales, J/V/P/E para jurídicas
- * - nombre_completo: Nombre completo o razón social
- * - email: Correo electrónico (si existe)
- * - telefono: Número de teléfono (si existe)
- */

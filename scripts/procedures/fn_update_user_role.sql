@@ -51,11 +51,11 @@ BEGIN
     RETURN TRUE;
 
 EXCEPTION
-    WHEN NO_DATA_FOUND THEN
+    WHEN no_data_found THEN
         RAISE EXCEPTION 'El rol con ID % no existe.', p_id_nuevo_rol;
-        RETURN FALSE;
+    WHEN check_violation THEN
+        RAISE EXCEPTION '%', SQLERRM;
     WHEN OTHERS THEN
-        RAISE NOTICE 'Ocurrió un error al actualizar el rol: %', SQLERRM;
-        RETURN FALSE;
+        RAISE EXCEPTION 'Ocurrió un error inesperado al actualizar el rol: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql;

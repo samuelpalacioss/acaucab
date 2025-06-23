@@ -118,9 +118,10 @@ BEGIN
     RETURN v_usuario_id;
 
 EXCEPTION
+    WHEN foreign_key_violation THEN
+        RAISE EXCEPTION 'El rol especificado o la persona no existe.';
     WHEN OTHERS THEN
         -- En caso de cualquier error, se levanta una excepción para asegurar que la transacción se revierta.
         RAISE EXCEPTION 'Error al crear el usuario: %', SQLERRM;
-        RETURN NULL; -- Esto no se alcanzará, pero es buena práctica.
 END;
 $$ LANGUAGE plpgsql;

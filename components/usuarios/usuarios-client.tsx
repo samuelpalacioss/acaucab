@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, Settings, Edit, Eye, UserCheck, UserX } from "lucide-react";
@@ -359,6 +359,9 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
         <DialogContent id="edit-role-dialog">
           <DialogHeader>
             <DialogTitle id="edit-role-title">Cambiar Rol de Usuario</DialogTitle>
+            <DialogDescription>
+              Selecciona el nuevo rol para este usuario.
+            </DialogDescription>
           </DialogHeader>
           <div id="edit-role-content" className="space-y-4">
             <div id="role-selector-container">
