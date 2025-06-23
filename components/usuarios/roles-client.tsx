@@ -24,6 +24,7 @@ import Link from "next/link";
 import { Rol, PermisoSistema } from "@/models/roles";
 import { llamarFuncion } from "@/lib/server-actions";
 import { toast } from "sonner";
+import ErrorModal from "@/components/error-modal";
 
 /**
  * Interface para las props del componente
@@ -89,6 +90,10 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
   const [currentRolePage, setCurrentRolePage] = useState(1);
   const [currentPermisoPage, setCurrentPermisoPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
+    isOpen: false,
+    message: ""
+  });
 
   /**
    * Función para agrupar permisos por categoría
@@ -134,7 +139,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
         p_permission_ids: newRole.permissions
       });
 
-      if (response && response.length > 0) {
+      if (response !== null && response !== undefined) {
         toast.success("Rol creado exitosamente");
         setIsCreateModalOpen(false);
         setNewRole({ name: "", description: "", permissions: [] });
@@ -144,11 +149,17 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
           window.location.reload();
         }, 500);
       } else {
-        toast.error("Error al crear el rol");
+        setErrorModal({
+          isOpen: true,
+          message: "Error al crear el rol"
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating role:", error);
-      toast.error("Error al crear el rol");
+      setErrorModal({
+        isOpen: true,
+        message: error.message || "Error desconocido al crear el rol"
+      });
     }
   };
 
@@ -168,7 +179,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
         p_descripcion: newPermission.description.trim()
       });
 
-      if (response && response.length > 0) {
+      if (response !== null && response !== undefined) {
         toast.success("Permiso creado exitosamente");
         setIsCreatePermissionModalOpen(false);
         setNewPermission({ name: "", description: "" });
@@ -178,11 +189,17 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
           window.location.reload();
         }, 500);
       } else {
-        toast.error("Error al crear el permiso");
+        setErrorModal({
+          isOpen: true,
+          message: "Error al crear el permiso"
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating permission:", error);
-      toast.error("Error al crear el permiso");
+      setErrorModal({
+        isOpen: true,
+        message: error.message || "Error desconocido al crear el permiso"
+      });
     }
   };
 
@@ -196,10 +213,54 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
 
   /**
    * Función para eliminar un rol
-   * TODO: Implementar llamada a API para eliminar el rol
+   * Utiliza la función fn_delete_role de PostgreSQL para eliminar el rol
+   * Incluye confirmación del usuario y manejo de errores
    */
-  const handleDeleteRole = (roleId: number) => {
-    console.log("Deleting role:", roleId);
+  const handleDeleteRole = async (roleId: number) => {
+    // Buscar el rol para obtener su nombre
+    const role = roles.find(r => r.id === roleId);
+    const roleName = role ? role.nombre : `ID ${roleId}`;
+
+    // Confirmar la eliminación con el usuario
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que deseas eliminar el rol "${roleName}"?\n\n` +
+      `Esta acción no se puede deshacer y eliminará todas las asociaciones de permisos del rol.`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      // Llamar a la función de PostgreSQL para eliminar el rol
+      await llamarFuncion("fn_delete_role", {
+        p_id: roleId
+      });
+
+      toast.success(`Rol "${roleName}" eliminado exitosamente`);
+      
+      // Recargar la página para mostrar los cambios
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+
+    } catch (error: any) {
+      console.error("Error deleting role:", error);
+      
+      // Mostrar mensaje de error específico
+      let errorMessage = "Error desconocido al eliminar el rol";
+      
+      if (error.message && error.message.includes("está asignado a uno o más usuarios")) {
+        errorMessage = `No se puede eliminar el rol "${roleName}" porque está asignado a uno o más usuarios. Primero reasigna o elimina los usuarios que tienen este rol.`;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setErrorModal({
+        isOpen: true,
+        message: errorMessage
+      });
+    }
   };
 
   /**
@@ -592,7 +653,6 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteRole(role.id)}
-                            disabled={role.cantidad_usuarios > 0}
                             id={`delete-role-${role.id}`}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -776,6 +836,14 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de error */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        title="Error en gestión de roles"
+        errorMessage={errorModal.message}
+      />
     </div>
   );
 }

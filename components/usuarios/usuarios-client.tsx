@@ -17,6 +17,7 @@ import { llamarFuncion } from "@/lib/server-actions";
 import { deleteUser } from "@/api/delete-user";
 import { updateUserRole } from "@/api/update-user-role";
 import { toast } from "sonner";
+import ErrorModal from "@/components/error-modal";
 
 /**
  * Interface para el estado de edición de roles
@@ -45,6 +46,10 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
   const [editingRole, setEditingRole] = useState<EditingRole | null>(null);
   const [activeTab, setActiveTab] = useState("todos");
   const [userList, setUserList] = useState(users);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
+    isOpen: false,
+    message: ""
+  });
   const router = useRouter();
 
   /**
@@ -94,8 +99,10 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
   const handleRoleChange = async (userId: number, newRoleName: string) => {
     const role = roles.find((r) => r.nombre === newRoleName);
     if (!role) {
-      console.error(`El rol "${newRoleName}" no fue encontrado.`);
-      // TODO: Mostrar notificación de error al usuario
+      setErrorModal({
+        isOpen: true,
+        message: `El rol "${newRoleName}" no fue encontrado.`
+      });
       return;
     }
 
@@ -106,12 +113,22 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
       });
 
       if (success) {
-        console.log(`Rol del usuario ${userId} actualizado a ${newRoleName}`);
-        // TODO: Mostrar notificación de éxito y actualizar el estado local
+        toast.success(`Rol del usuario actualizado a ${newRoleName}`);
+        // Actualizar el estado local del usuario
+        setUserList(prevUsers => 
+          prevUsers.map(user => 
+            user.id_usuario === userId 
+              ? { ...user, rol_nombre: newRoleName }
+              : user
+          )
+        );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al actualizar el rol:", error);
-      // TODO: Mostrar notificación de error al usuario
+      setErrorModal({
+        isOpen: true,
+        message: error.message || "Error desconocido al actualizar el rol del usuario"
+      });
     } finally {
       setEditingRole(null);
     }
@@ -150,16 +167,19 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
     );
 
     if (confirmation) {
-      const promise = deleteUser(userId).then(() => {
+      try {
+        toast.loading('Eliminando usuario...');
+        await deleteUser(userId);
         setUserList((prevUsers) => prevUsers.filter((user) => user.id_usuario !== userId));
         router.refresh();
-      });
-
-      toast.promise(promise, {
-        loading: 'Eliminando usuario...',
-        success: 'Usuario eliminado con éxito.',
-        error: 'No se pudo eliminar el usuario.',
-      });
+        toast.success('Usuario eliminado con éxito.');
+      } catch (error: any) {
+        console.error("Error al eliminar usuario:", error);
+        setErrorModal({
+          isOpen: true,
+          message: error.message || "Error desconocido al eliminar el usuario"
+        });
+      }
     }
   };
 
@@ -203,17 +223,15 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
                   >
                     {user.rol_nombre}
                   </Badge>
-                  {/* Solo mostrar botón de editar rol para empleados */}
-                  {user.tipo_usuario === "Empleado" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingRole({ userId: user.id_usuario, currentRole: user.rol_nombre })}
-                      id={`edit-rol-${user.id_usuario}`}
-                    >
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                  )}
+                  {/* Mostrar botón de editar rol para todos los tipos de usuario */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingRole({ userId: user.id_usuario, currentRole: user.rol_nombre })}
+                    id={`edit-rol-${user.id_usuario}`}
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
                 </div>
               </TableCell>
               <TableCell id={`usuario-acciones-${user.id_usuario}`}>
@@ -390,6 +408,14 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de error */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        title="Error en la operación"
+        errorMessage={errorModal.message}
+      />
     </div>
   );
 }

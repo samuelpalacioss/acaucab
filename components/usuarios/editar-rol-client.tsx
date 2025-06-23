@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { PermisoSistema, UsuarioPorRol } from "@/models/roles";
 import { llamarFuncion } from "@/lib/server-actions";
 import { toast } from "sonner";
+import ErrorModal from "@/components/error-modal";
 
 
 
@@ -73,6 +74,10 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
   });
   const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
+    isOpen: false,
+    message: ""
+  });
   const router = useRouter();
 
   /**
@@ -133,8 +138,9 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
   const handleSave = async () => {
     // Validar que el nombre no esté vacío
     if (!role.nombre.trim()) {
-      toast.error('Error de validación', {
-        description: 'El nombre del rol no puede estar vacío'
+      setErrorModal({
+        isOpen: true,
+        message: 'El nombre del rol no puede estar vacío'
       });
       return;
     }
@@ -161,11 +167,12 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
         // Refrescar la página para obtener los datos actualizados
         router.refresh();
       }
-    } catch (error) {
+    } catch (error: any) {
       // Manejar errores
       console.error('Error al actualizar el rol:', error);
-      toast.error('Error al actualizar el rol', {
-        description: error instanceof Error ? error.message : 'Ocurrió un error inesperado'
+      setErrorModal({
+        isOpen: true,
+        message: error.message || 'Ocurrió un error inesperado al actualizar el rol'
       });
     } finally {
       setIsLoading(false);
@@ -382,6 +389,14 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
           )}
         </div>
       </div>
+
+      {/* Modal de error */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        title="Error al editar rol"
+        errorMessage={errorModal.message}
+      />
     </div>
   );
 }
