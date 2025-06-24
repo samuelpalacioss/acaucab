@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const navLinks = [
   { href: "/eventos", label: "Eventos" },
@@ -32,9 +32,12 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center space-x-4 ml-auto">
-          <Button variant="outline" className="font-medium">
+          <Link
+            href="/login"
+            className={buttonVariants({ variant: "outline", className: "font-medium" })}
+          >
             Iniciar Sesión
-          </Button>
+          </Link>
           <Link href="/carrito" className="text-black hover:text-gray-600">
             <ShoppingCart className="h-6 w-6" />
           </Link>
