@@ -96,6 +96,7 @@ export interface TarjetaDetails {
   fechaExpiracion: string;
   banco: string;
   amountPaid: number;
+  tipo?: string;
 }
 
 // Para efectivo

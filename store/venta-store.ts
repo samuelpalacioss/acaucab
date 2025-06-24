@@ -4,8 +4,10 @@ import {
   ClienteType, 
   CarritoItemType, 
   DocType,
-  PaymentMethod
+  PaymentMethod,
+  TarjetaDetails
 } from '@/lib/schemas';
+import { getCardType } from '@/lib/utils';
 
 /**
  * Interface para los datos de la venta que se enviarán a fn_create_venta
@@ -34,6 +36,15 @@ export interface DetalleVentaData {
 }
 
 /**
+ * Detalles específicos para un pago con cheque.
+ */
+export interface ChequeDetails {
+  numeroCheque?: string;
+  numeroCuenta?: string;
+  banco?: string;
+}
+
+/**
  * Interface para los datos de pago - fn_create_pago
  */
 export interface PagoData {
@@ -45,6 +56,8 @@ export interface PagoData {
   fk_venta: number;
   fk_miembro_metodo_pago_1?: number;
   fk_cliente_metodo_pago_1?: number;
+  detalles_cheque?: ChequeDetails;
+  detalles_tarjeta?: TarjetaDetails;
 }
 
 /**
@@ -193,8 +206,11 @@ export const useVentaStore = create<VentaStore>()(
 
       /** 3. Crear los pagos usando fn_create_pago */
       for (const metodoPago of metodosPago) {
+        const details = metodoPago.details as any;
+        const method = metodoPago.method as any;
+
         const pagoData: PagoData = {
-          monto: metodoPago.details.amountPaid,
+          monto: details.amountPaid,
           fecha_pago: new Date(),
           fk_tasa: 1, // TODO: Obtener tasa actual
           tipo_transaccion: 'VENTA',
@@ -202,7 +218,20 @@ export const useVentaStore = create<VentaStore>()(
           fk_venta: ventaId,
           fk_cliente_metodo_pago_1: 1, // TODO: Obtener del cliente
         };
+        
+        // Si es tarjeta, añadir el tipo de tarjeta
+        if (method === 'tarjetaCredito') {
+          pagoData.detalles_tarjeta = details as TarjetaDetails;
+        }
 
+        if (method === 'cheque') {
+          const chequeDetails = details;
+          pagoData.detalles_cheque = {
+            numeroCheque: chequeDetails.numeroCheque,
+            numeroCuenta: chequeDetails.numeroCuenta,
+            banco: chequeDetails.banco,
+          };
+        }
         /** TODO: Llamar a la función SQL fn_create_pago */
         // await createPago(pagoData);
       }

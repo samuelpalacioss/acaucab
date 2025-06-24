@@ -14,7 +14,6 @@ import {
   DocType,
   TarjetaDetails,
   EfectivoDetails,
-  PagoMovilDetails,
   PuntosDetails,
   PaymentMethod,
   PaymentMethodType,
@@ -30,13 +29,7 @@ import {
 import { Loader, X } from "lucide-react";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
 import { useVentaStore } from "@/store/venta-store";
-
-type LocalPaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
-
-interface Payment {
-  method: LocalPaymentMethod;
-  details: any; // Debería ser PaymentDetails, pero lo mantenemos flexible
-}
+import { getCardType } from "@/lib/utils";
 
 // Steps enum for better type safety
 enum Step {
@@ -362,20 +355,22 @@ export default function Autopago() {
             total={remainingTotal > 0 ? remainingTotal : total}
             originalTotal={total}
             amountPaid={totalPaid}
-            existingPayments={metodosPago}
-            onComplete={(method: PaymentMethodType, details: any) => {
+            existingPayments={metodosPago as any}
+            onComplete={(method: any, details: any) => {
               const newPayment: PaymentMethod = {
                 method,
                 details: { ...details },
               };
 
               // Type guard para detalles de tarjeta
-              if (method === "tarjeta") {
-                newPayment.details = details as TarjetaDetails;
+              if (method === "tarjetaCredito" || method === "tarjetaDebito") {
+                const cardDetails = details as TarjetaDetails;
+                cardDetails.tipo = getCardType(cardDetails.numeroTarjeta || "");
+                newPayment.details = cardDetails;
               } else if (method === "efectivo") {
                 newPayment.details = details as EfectivoDetails;
-              } else if (method === "pagoMovil") {
-                newPayment.details = details as PagoMovilDetails;
+              } else if (method === "cheque") {
+                newPayment.details = details as any;
               } else if (method === "puntos") {
                 newPayment.details = details as PuntosDetails;
               }
