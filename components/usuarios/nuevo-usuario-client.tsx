@@ -14,6 +14,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Badge } from "@/components/ui/badge";
 import { llamarFuncion } from "@/lib/server-actions";
 import { toast } from "@/components/ui/use-toast";
+import ErrorModal from "@/components/error-modal";
 
 /**
  * Interface para las props del componente
@@ -55,6 +56,10 @@ export default function NuevoUsuarioClient({
   const [rolePermissions, setRolePermissions] = useState<RolDetalle[]>([]);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
+    isOpen: false,
+    message: ""
+  });
 
   /**
    * Función para filtrar personas según el término de búsqueda
@@ -191,18 +196,16 @@ export default function NuevoUsuarioClient({
         window.location.reload();
 
       } else {
-        toast({
-          title: "Error",
-          description: "Error al crear el usuario. Por favor intente de nuevo.",
-          variant: "destructive"
+        setErrorModal({
+          isOpen: true,
+          message: "Error al crear el usuario. Por favor intente de nuevo."
         });
       }
     } catch (error: any) {
       console.error("Error al crear usuario:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error desconocido al crear el usuario",
-        variant: "destructive"
+      setErrorModal({
+        isOpen: true,
+        message: error.message || "Error desconocido al crear el usuario"
       });
     } finally {
       setIsCreatingUser(false);
@@ -480,6 +483,14 @@ export default function NuevoUsuarioClient({
           </CardContent>
         </Card>
       )}
+
+      {/* Modal de error */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        title="Error al crear usuario"
+        errorMessage={errorModal.message}
+      />
     </div>
   );
 }

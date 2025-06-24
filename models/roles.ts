@@ -97,3 +97,65 @@ export interface RolDetalle {
      */
     permiso_descripcion: string | null;
 }
+
+/**
+ * @interface PermisoSistema
+ * @description Modelo que representa un permiso del sistema obtenido de la función `fn_get_permisos`.
+ *              Incluye información sobre el permiso y cuántos roles lo tienen asignado.
+ */
+export interface PermisoSistema {
+    /**
+     * @property {number} id - El identificador único del permiso.
+     * @example 1
+     */
+    id: number;
+
+    /**
+     * @property {string} nombre - El nombre del permiso.
+     * @example 'users.read'
+     */
+    nombre: string;
+
+    /**
+     * @property {string} descripcion - La descripción detallada del permiso.
+     * @example 'Permite ver la lista de usuarios del sistema'
+     */
+    descripcion: string;
+
+    /**
+     * @property {number} cantidad_roles - La cantidad de roles que tienen este permiso asignado.
+     * @example 5
+     */
+    cantidad_roles: number;
+}
+
+/**
+ * @interface UsuarioPorRol
+ * @description Modelo que representa un usuario asignado a un rol específico, 
+ *              obtenido de la función `fn_get_users_by_role`.
+ */
+export interface UsuarioPorRol {
+    /**
+     * @property {number} id - El identificador único del usuario.
+     * @example 1
+     */
+    id: number;
+
+    /**
+     * @property {string} correo - El correo electrónico del usuario.
+     * @example 'usuario@ejemplo.com'
+     */
+    correo: string;
+
+    /**
+     * @property {string} tipo_persona - El tipo de persona (Natural, Jurídico, Empleado, Miembro).
+     * @example 'Natural'
+     */
+    tipo_persona: string;
+
+    /**
+     * @property {string} nombre_completo - El nombre completo del usuario o razón social.
+     * @example 'Juan Pérez'
+     */
+    nombre_completo: string;
+}

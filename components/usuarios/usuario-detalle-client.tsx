@@ -110,17 +110,6 @@ export default function UsuarioDetalleClient({ userId, userData, userPermissions
             </p>
           </div>
         </div>
-        <div id="header-actions" className="flex gap-2">
-          <Button variant="outline" onClick={toggleEditMode} id="edit-toggle-button">
-            <Edit className="w-4 h-4 mr-2" />
-            {isEditing ? "Cancelar" : "Editar"}
-          </Button>
-          {isEditing && (
-            <Button onClick={handleSaveChanges} id="save-changes-button">
-              Guardar Cambios
-            </Button>
-          )}
-        </div>
       </div>
 
       {/* 

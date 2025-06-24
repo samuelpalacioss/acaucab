@@ -65,7 +65,7 @@ export function MainSidebar() {
       submenu: [
         { title: "Todos los usuarios", path: "/dashboard/usuarios" },
         { title: "Nuevo usuario", path: "/dashboard/usuarios/nuevo" },
-        { title: "Roles", path: "/dashboard/usuarios/roles" },
+        { title: "Roles y Permisos", path: "/dashboard/usuarios/roles" },
       ],
     },
     {

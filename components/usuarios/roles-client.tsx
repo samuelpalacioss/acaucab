@@ -5,72 +5,39 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, Edit, Trash2, Shield, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ArrowLeft, Plus, Edit, Trash2, Shield, Users, Key } from "lucide-react";
 import Link from "next/link";
-
-/**
- * Datos de ejemplo para roles del sistema
- * TODO: Esta información debería provenir de una API de roles y permisos
- */
-const roles = [
-  {
-    id: 1,
-    name: "Administrador",
-    description: "Acceso completo al sistema",
-    userCount: 3,
-    permissions: ["all"],
-  },
-  {
-    id: 2,
-    name: "Gerente",
-    description: "Gestión de equipos y reportes",
-    userCount: 5,
-    permissions: ["users.read", "reports.all", "sales.all"],
-  },
-  {
-    id: 3,
-    name: "Supervisor",
-    description: "Supervisión de operaciones",
-    userCount: 8,
-    permissions: ["users.read", "inventory.all", "orders.read"],
-  },
-  {
-    id: 4,
-    name: "Empleado",
-    description: "Acceso básico al sistema",
-    userCount: 12,
-    permissions: ["profile.read", "orders.read"],
-  },
-];
-
-/**
- * Lista completa de permisos disponibles en el sistema
- * TODO: Esta información debería provenir de una API de configuración de permisos
- */
-const allPermissions = [
-  { id: "users.read", name: "Ver usuarios", category: "Usuarios" },
-  { id: "users.write", name: "Gestionar usuarios", category: "Usuarios" },
-  { id: "roles.read", name: "Ver roles", category: "Roles" },
-  { id: "roles.write", name: "Gestionar roles", category: "Roles" },
-  { id: "reports.read", name: "Ver reportes", category: "Reportes" },
-  { id: "reports.write", name: "Crear reportes", category: "Reportes" },
-  { id: "sales.read", name: "Ver ventas", category: "Ventas" },
-  { id: "sales.write", name: "Gestionar ventas", category: "Ventas" },
-  { id: "inventory.read", name: "Ver inventario", category: "Inventario" },
-  { id: "inventory.write", name: "Gestionar inventario", category: "Inventario" },
-  { id: "orders.read", name: "Ver pedidos", category: "Pedidos" },
-  { id: "orders.write", name: "Gestionar pedidos", category: "Pedidos" },
-];
+import { Rol, PermisoSistema } from "@/models/roles";
+import { llamarFuncion } from "@/lib/server-actions";
+import { toast } from "sonner";
+import ErrorModal from "@/components/error-modal";
 
 /**
  * Interface para las props del componente
  */
 interface RolesClientProps {
-  // Aquí se pueden agregar props que vengan del servidor
-  // Por ejemplo: initialRoles, availablePermissions, userPermissions, etc.
+  /**
+   * Lista de roles obtenidos desde la base de datos
+   */
+  roles: Rol[];
+  /**
+   * Lista de permisos disponibles obtenidos desde la base de datos
+   */
+  permisos: PermisoSistema[];
 }
 
 /**
@@ -79,71 +46,227 @@ interface RolesClientProps {
 interface NewRoleData {
   name: string;
   description: string;
-  permissions: string[];
+  permissions: number[];
+}
+
+/**
+ * Interface para la información de un nuevo permiso
+ */
+interface NewPermissionData {
+  name: string;
+  description: string;
 }
 
 /**
  * Componente cliente para la gestión de roles del sistema
  * Maneja toda la interfaz de usuario y las interacciones de gestión de roles y permisos
  */
-export default function RolesClient({}: RolesClientProps) {
+export default function RolesClient({ roles, permisos }: RolesClientProps) {
   /*
    * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
    *
    * Estados para controlar la funcionalidad de gestión de roles:
-   * - isCreateModalOpen: Controla la visibilidad del modal de creación
+   * - isCreateModalOpen: Controla la visibilidad del modal de creación de roles
+   * - isCreatePermissionModalOpen: Controla la visibilidad del modal de creación de permisos
    * - editingRole: Rol actualmente en edición
    * - newRole: Datos del nuevo rol a crear
+   * - newPermission: Datos del nuevo permiso a crear
+   * - Estados de paginación para roles y permisos
    */
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<any>(null);
+  const [isCreatePermissionModalOpen, setIsCreatePermissionModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<Rol | null>(null);
   const [newRole, setNewRole] = useState<NewRoleData>({
     name: "",
     description: "",
     permissions: [],
   });
+  const [newPermission, setNewPermission] = useState<NewPermissionData>({
+    name: "",
+    description: "",
+  });
+
+  // Estados para paginación
+  const [currentRolePage, setCurrentRolePage] = useState(1);
+  const [currentPermisoPage, setCurrentPermisoPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
+    isOpen: false,
+    message: ""
+  });
 
   /**
    * Función para agrupar permisos por categoría
+   * Agrupa los permisos basándose en palabras clave en su nombre
    */
-  const groupedPermissions = allPermissions.reduce((acc, permission) => {
-    if (!acc[permission.category]) {
-      acc[permission.category] = [];
+  const groupedPermissions = permisos.reduce((acc, permission) => {
+    let category = 'Otros';
+    
+    // Determinar categoría basándose en el nombre del permiso
+    if (permission.nombre.includes('usuario') || permission.nombre.includes('roles') || 
+        permission.nombre.includes('miembros') || permission.nombre.includes('clientes')) {
+      category = 'Gestión de Usuarios';
+    } else if (permission.nombre.includes('venta') || permission.nombre.includes('pago') || 
+               permission.nombre.includes('factura') || permission.nombre.includes('caja')) {
+      category = 'Gestión de Ventas';
+    } else if (permission.nombre.includes('compra') || permission.nombre.includes('proveedores') || 
+               permission.nombre.includes('pedidos')) {
+      category = 'Gestión de Compras';
+    } else if (permission.nombre.includes('reposición')) {
+      category = 'Gestión de Pasillos';
     }
-    acc[permission.category].push(permission);
+    
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(permission);
     return acc;
-  }, {} as Record<string, typeof allPermissions>);
+  }, {} as Record<string, PermisoSistema[]>);
 
   /**
    * Función para crear un nuevo rol
-   * TODO: Implementar llamada a API para crear el rol
+   * Llama a la función fn_create_rol con el nombre y permisos seleccionados
    */
-  const handleCreateRole = () => {
-    console.log("Creating role:", newRole);
-    setIsCreateModalOpen(false);
-    setNewRole({ name: "", description: "", permissions: [] });
+  const handleCreateRole = async () => {
+    if (!newRole.name.trim()) {
+      toast.error("El nombre del rol es requerido");
+      return;
+    }
+
+    try {
+      const response = await llamarFuncion("fn_create_rol", {
+        p_nombre: newRole.name.trim(),
+        p_permission_ids: newRole.permissions
+      });
+
+      if (response !== null && response !== undefined) {
+        toast.success("Rol creado exitosamente");
+        setIsCreateModalOpen(false);
+        setNewRole({ name: "", description: "", permissions: [] });
+        
+        // Recargar la página para mostrar el nuevo rol
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } else {
+        setErrorModal({
+          isOpen: true,
+          message: "Error al crear el rol"
+        });
+      }
+    } catch (error: any) {
+      console.error("Error creating role:", error);
+      setErrorModal({
+        isOpen: true,
+        message: error.message || "Error desconocido al crear el rol"
+      });
+    }
+  };
+
+  /**
+   * Función para crear un nuevo permiso
+   * Llama a la función fn_create_permission con el nombre y descripción
+   */
+  const handleCreatePermission = async () => {
+    if (!newPermission.name.trim() || !newPermission.description.trim()) {
+      toast.error("El nombre y la descripción del permiso son requeridos");
+      return;
+    }
+
+    try {
+      const response = await llamarFuncion("fn_create_permission", {
+        p_nombre: newPermission.name.trim(),
+        p_descripcion: newPermission.description.trim()
+      });
+
+      if (response !== null && response !== undefined) {
+        toast.success("Permiso creado exitosamente");
+        setIsCreatePermissionModalOpen(false);
+        setNewPermission({ name: "", description: "" });
+        
+        // Recargar la página para mostrar el nuevo permiso
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } else {
+        setErrorModal({
+          isOpen: true,
+          message: "Error al crear el permiso"
+        });
+      }
+    } catch (error: any) {
+      console.error("Error creating permission:", error);
+      setErrorModal({
+        isOpen: true,
+        message: error.message || "Error desconocido al crear el permiso"
+      });
+    }
   };
 
   /**
    * Función para editar un rol existente
    * TODO: Implementar llamada a API para editar el rol
    */
-  const handleEditRole = (role: any) => {
+  const handleEditRole = (role: Rol) => {
     setEditingRole(role);
   };
 
   /**
    * Función para eliminar un rol
-   * TODO: Implementar llamada a API para eliminar el rol
+   * Utiliza la función fn_delete_role de PostgreSQL para eliminar el rol
+   * Incluye confirmación del usuario y manejo de errores
    */
-  const handleDeleteRole = (roleId: number) => {
-    console.log("Deleting role:", roleId);
+  const handleDeleteRole = async (roleId: number) => {
+    // Buscar el rol para obtener su nombre
+    const role = roles.find(r => r.id === roleId);
+    const roleName = role ? role.nombre : `ID ${roleId}`;
+
+    // Confirmar la eliminación con el usuario
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que deseas eliminar el rol "${roleName}"?\n\n` +
+      `Esta acción no se puede deshacer y eliminará todas las asociaciones de permisos del rol.`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      // Llamar a la función de PostgreSQL para eliminar el rol
+      await llamarFuncion("fn_delete_role", {
+        p_id: roleId
+      });
+
+      toast.success(`Rol "${roleName}" eliminado exitosamente`);
+      
+      // Recargar la página para mostrar los cambios
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+
+    } catch (error: any) {
+      console.error("Error deleting role:", error);
+      
+      // Mostrar mensaje de error específico
+      let errorMessage = "Error desconocido al eliminar el rol";
+      
+      if (error.message && error.message.includes("está asignado a uno o más usuarios")) {
+        errorMessage = `No se puede eliminar el rol "${roleName}" porque está asignado a uno o más usuarios. Primero reasigna o elimina los usuarios que tienen este rol.`;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setErrorModal({
+        isOpen: true,
+        message: errorMessage
+      });
+    }
   };
 
   /**
    * Función para alternar permisos en el nuevo rol
    */
-  const togglePermission = (permissionId: string) => {
+  const togglePermission = (permissionId: number) => {
     setNewRole((prev) => ({
       ...prev,
       permissions: prev.permissions.includes(permissionId)
@@ -160,14 +283,21 @@ export default function RolesClient({}: RolesClientProps) {
   };
 
   /**
-   * Función para abrir el modal de creación
+   * Función para actualizar los datos del nuevo permiso
+   */
+  const updateNewPermission = (field: keyof NewPermissionData, value: string) => {
+    setNewPermission((prev) => ({ ...prev, [field]: value }));
+  };
+
+  /**
+   * Función para abrir el modal de creación de rol
    */
   const openCreateModal = () => {
     setIsCreateModalOpen(true);
   };
 
   /**
-   * Función para cerrar el modal de creación
+   * Función para cerrar el modal de creación de rol
    */
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
@@ -175,9 +305,182 @@ export default function RolesClient({}: RolesClientProps) {
   };
 
   /**
+   * Función para abrir el modal de creación de permiso
+   */
+  const openCreatePermissionModal = () => {
+    setIsCreatePermissionModalOpen(true);
+  };
+
+  /**
+   * Función para cerrar el modal de creación de permiso
+   */
+  const closeCreatePermissionModal = () => {
+    setIsCreatePermissionModalOpen(false);
+    setNewPermission({ name: "", description: "" });
+  };
+
+  /**
    * Cálculo del total de usuarios asignados
    */
-  const totalUsuariosAsignados = roles.reduce((sum, role) => sum + role.userCount, 0);
+  const totalUsuariosAsignados = roles.reduce((sum, role) => sum + role.cantidad_usuarios, 0);
+
+  /**
+   * Cálculos de paginación para roles
+   */
+  const totalRolePages = Math.ceil(roles.length / itemsPerPage);
+  const startRoleIndex = (currentRolePage - 1) * itemsPerPage;
+  const endRoleIndex = startRoleIndex + itemsPerPage;
+  const paginatedRoles = roles.slice(startRoleIndex, endRoleIndex);
+
+  /**
+   * Cálculos de paginación para permisos
+   */
+  const totalPermisoPages = Math.ceil(permisos.length / itemsPerPage);
+  const startPermisoIndex = (currentPermisoPage - 1) * itemsPerPage;
+  const endPermisoIndex = startPermisoIndex + itemsPerPage;
+  const paginatedPermisos = permisos.slice(startPermisoIndex, endPermisoIndex);
+
+  /**
+   * Función helper para renderizar los controles de paginación
+   */
+  const renderPagination = (currentPage: number, totalPages: number, onPageChange: (page: number) => void) => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center mt-4">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage > 1) {
+                    onPageChange(currentPage - 1);
+                  }
+                }}
+                className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+
+            {/* Lógica simplificada de paginación */}
+            {(() => {
+              const pages = [];
+              const maxVisiblePages = 5;
+
+              if (totalPages <= maxVisiblePages) {
+                // Mostrar todas las páginas si son pocas
+                for (let i = 1; i <= totalPages; i++) {
+                  pages.push(
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onPageChange(i);
+                        }}
+                        isActive={currentPage === i}
+                      >
+                        {i}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+              } else {
+                // Siempre mostrar primera página
+                pages.push(
+                  <PaginationItem key={1}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onPageChange(1);
+                      }}
+                      isActive={currentPage === 1}
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+
+                // Mostrar ellipsis si hay espacio
+                if (currentPage > 3) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-start">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Mostrar páginas alrededor de la actual
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+
+                for (let i = start; i <= end; i++) {
+                  pages.push(
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onPageChange(i);
+                        }}
+                        isActive={currentPage === i}
+                      >
+                        {i}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                // Mostrar ellipsis si hay espacio
+                if (currentPage < totalPages - 2) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-end">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Siempre mostrar última página
+                if (totalPages > 1) {
+                  pages.push(
+                    <PaginationItem key={totalPages}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onPageChange(totalPages);
+                        }}
+                        isActive={currentPage === totalPages}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+              }
+
+              return pages;
+            })()}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage < totalPages) {
+                    onPageChange(currentPage + 1);
+                  }
+                }}
+                className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    );
+  };
 
   return (
     <div id="roles-container" className="p-6 space-y-6">
@@ -204,10 +507,16 @@ export default function RolesClient({}: RolesClientProps) {
             </p>
           </div>
         </div>
-        <Button onClick={openCreateModal} id="nuevo-rol-button">
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Rol
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={openCreateModal} id="nuevo-rol-button">
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Rol
+          </Button>
+          <Button onClick={openCreatePermissionModal} variant="outline" id="nuevo-permiso-button">
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Permiso
+          </Button>
+        </div>
       </div>
 
       {/* 
@@ -230,7 +539,7 @@ export default function RolesClient({}: RolesClientProps) {
         <Card id="permisos-disponibles-card">
           <CardContent className="p-4">
             <div id="permisos-count" className="text-2xl font-bold">
-              {allPermissions.length}
+              {permisos.length}
             </div>
             <div className="text-sm text-gray-600">Permisos Disponibles</div>
           </CardContent>
@@ -246,72 +555,154 @@ export default function RolesClient({}: RolesClientProps) {
       </div>
 
       {/* 
-        BLOQUE DE COMENTARIOS: TABLA DE ROLES
+        BLOQUE DE COMENTARIOS: CONTROLES DE PAGINACIÓN
         
-        Tabla principal que muestra todos los roles del sistema con:
-        - Información básica del rol
-        - Descripción y conteo de usuarios
-        - Permisos asignados
-        - Acciones de edición y eliminación
+        Selector de elementos por página
       */}
-      <Card id="roles-table-card">
+      <div id="pagination-controls" className="flex justify-end items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Mostrar</span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentRolePage(1);
+              setCurrentPermisoPage(1);
+            }}
+          >
+            <SelectTrigger id="items-per-page-select" className="w-[180px]">
+              <SelectValue placeholder="Elementos por página" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5 por página</SelectItem>
+              <SelectItem value="10">10 por página</SelectItem>
+              <SelectItem value="20">20 por página</SelectItem>
+              <SelectItem value="50">50 por página</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* 
+        BLOQUE DE COMENTARIOS: TABLAS DE ROLES Y PERMISOS
+        
+        Sección con tabs para alternar entre:
+        - Lista de roles del sistema
+        - Lista de permisos disponibles
+      */}
+      <Card id="roles-permisos-card">
         <CardHeader>
-          <CardTitle id="tabla-roles-title">Lista de Roles</CardTitle>
+          <CardTitle id="roles-permisos-title">Gestión de Roles y Permisos</CardTitle>
+          <p className="text-gray-600">Administra los roles del sistema y sus permisos asociados</p>
         </CardHeader>
         <CardContent>
-          <Table id="roles-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Rol</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Usuarios</TableHead>
-                <TableHead>Permisos</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {roles.map((role) => (
-                <TableRow key={role.id} id={`role-row-${role.id}`}>
-                  <TableCell id={`role-name-${role.id}`}>
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4" />
-                      <span className="font-medium">{role.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell id={`role-description-${role.id}`}>{role.description}</TableCell>
-                  <TableCell id={`role-users-${role.id}`}>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>{role.userCount}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell id={`role-permissions-${role.id}`}>
-                    <Badge variant="secondary" id={`permissions-badge-${role.id}`}>
-                      {role.permissions.includes("all") ? "Todos" : `${role.permissions.length} permisos`}
-                    </Badge>
-                  </TableCell>
-                  <TableCell id={`role-actions-${role.id}`}>
-                    <div className="flex gap-1">
-                      <Link href={`/dashboard/usuarios/roles/${role.id}`}>
-                        <Button variant="ghost" size="sm" id={`edit-role-${role.id}`}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteRole(role.id)}
-                        disabled={role.userCount > 0}
-                        id={`delete-role-${role.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Tabs defaultValue="roles" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="roles" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Roles
+              </TabsTrigger>
+              <TabsTrigger value="permisos" className="flex items-center gap-2">
+                <Key className="w-4 h-4" />
+                Permisos
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Tab de Roles */}
+            <TabsContent value="roles" className="mt-0 space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Mostrando {startRoleIndex + 1}-{Math.min(endRoleIndex, roles.length)} de {roles.length} roles
+              </div>
+              <Table id="roles-table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Rol</TableHead>
+                    <TableHead>Usuarios</TableHead>
+                    <TableHead>Permisos</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedRoles.map((role) => (
+                    <TableRow key={role.id} id={`role-row-${role.id}`}>
+                      <TableCell id={`role-name-${role.id}`}>
+                        <div className="flex items-center gap-2">
+                          <Shield className="w-4 h-4" />
+                          <span className="font-medium">{role.nombre}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell id={`role-users-${role.id}`}>
+                        <div className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          <span>{role.cantidad_usuarios}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell id={`role-permissions-${role.id}`}>
+                        <Badge variant="secondary" id={`permissions-badge-${role.id}`}>
+                          {role.cantidad_permisos} permisos
+                        </Badge>
+                      </TableCell>
+                      <TableCell id={`role-actions-${role.id}`}>
+                        <div className="flex gap-1">
+                          <Link href={`/dashboard/usuarios/roles/${role.id}`}>
+                            <Button variant="ghost" size="sm" id={`edit-role-${role.id}`}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteRole(role.id)}
+                            id={`delete-role-${role.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {renderPagination(currentRolePage, totalRolePages, setCurrentRolePage)}
+            </TabsContent>
+            
+            {/* Tab de Permisos */}
+            <TabsContent value="permisos" className="mt-0 space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Mostrando {startPermisoIndex + 1}-{Math.min(endPermisoIndex, permisos.length)} de {permisos.length} permisos
+              </div>
+              <Table id="permisos-table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Permiso</TableHead>
+                    <TableHead>Descripción</TableHead>
+                    <TableHead>Roles Asignados</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedPermisos.map((permiso) => (
+                    <TableRow key={permiso.id} id={`permiso-row-${permiso.id}`}>
+                      <TableCell id={`permiso-name-${permiso.id}`}>
+                        <div className="flex items-center gap-2">
+                          <Key className="w-4 h-4 text-gray-500" />
+                          <span className="font-medium">{permiso.nombre}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell id={`permiso-descripcion-${permiso.id}`}>
+                        <span className="text-sm text-gray-600">{permiso.descripcion}</span>
+                      </TableCell>
+                      <TableCell id={`permiso-roles-${permiso.id}`}>
+                        <Badge variant="outline" id={`roles-count-badge-${permiso.id}`}>
+                          {permiso.cantidad_roles} {permiso.cantidad_roles === 1 ? 'rol' : 'roles'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {renderPagination(currentPermisoPage, totalPermisoPages, setCurrentPermisoPage)}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
@@ -327,6 +718,9 @@ export default function RolesClient({}: RolesClientProps) {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" id="create-role-dialog">
           <DialogHeader>
             <DialogTitle id="create-role-title">Crear Nuevo Rol</DialogTitle>
+            <DialogDescription>
+              Define un nuevo rol y asigna los permisos correspondientes.
+            </DialogDescription>
           </DialogHeader>
           <div id="create-role-form" className="space-y-4">
             {/* Campo de nombre del rol */}
@@ -340,16 +734,7 @@ export default function RolesClient({}: RolesClientProps) {
               />
             </div>
 
-            {/* Campo de descripción */}
-            <div id="role-description-field">
-              <label className="text-sm font-medium">Descripción</label>
-              <Input
-                id="role-description-input"
-                value={newRole.description}
-                onChange={(e) => updateNewRole("description", e.target.value)}
-                placeholder="Descripción del rol"
-              />
-            </div>
+          
 
             {/* Sección de permisos */}
             <div id="permissions-section">
@@ -374,7 +759,7 @@ export default function RolesClient({}: RolesClientProps) {
                             onCheckedChange={() => togglePermission(permission.id)}
                           />
                           <label htmlFor={`checkbox-${permission.id}`} className="text-sm">
-                            {permission.name}
+                            {permission.nombre}
                           </label>
                         </div>
                       ))}
@@ -396,6 +781,69 @@ export default function RolesClient({}: RolesClientProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 
+        BLOQUE DE COMENTARIOS: MODAL DE CREACIÓN DE PERMISOS
+        
+        Dialog modal que permite crear nuevos permisos con:
+        - Formulario de información básica (nombre, descripción)
+        - Validación y confirmación de creación
+      */}
+      <Dialog open={isCreatePermissionModalOpen} onOpenChange={setIsCreatePermissionModalOpen}>
+        <DialogContent className="max-w-md" id="create-permission-dialog">
+          <DialogHeader>
+            <DialogTitle id="create-permission-title">Crear Nuevo Permiso</DialogTitle>
+            <DialogDescription>
+              Define un nuevo permiso que podrá ser asignado a los roles.
+            </DialogDescription>
+          </DialogHeader>
+          <div id="create-permission-form" className="space-y-4">
+            {/* Campo de nombre del permiso */}
+            <div id="permission-name-field">
+              <label className="text-sm font-medium">Nombre del Permiso *</label>
+              <Input
+                id="permission-name-input"
+                value={newPermission.name}
+                onChange={(e) => updateNewPermission("name", e.target.value)}
+                placeholder="Ej: ver_reportes"
+              />
+            </div>
+
+            {/* Campo de descripción */}
+            <div id="permission-description-field">
+              <label className="text-sm font-medium">Descripción *</label>
+              <Input
+                id="permission-description-input"
+                value={newPermission.description}
+                onChange={(e) => updateNewPermission("description", e.target.value)}
+                placeholder="Descripción del permiso"
+              />
+            </div>
+
+            {/* Botones de acción */}
+            <div id="permission-modal-actions" className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={closeCreatePermissionModal} id="cancel-permission-button">
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleCreatePermission} 
+                disabled={!newPermission.name || !newPermission.description} 
+                id="confirm-permission-button"
+              >
+                Crear Permiso
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de error */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        title="Error en gestión de roles"
+        errorMessage={errorModal.message}
+      />
     </div>
   );
 }

@@ -14,6 +14,21 @@ RETURNS VOID AS $$
 DECLARE
     v_correo_id INTEGER;
 BEGIN
+    -- Eliminar pagos asociados a las ventas del usuario
+    DELETE FROM pago
+    WHERE fk_venta IN (SELECT id FROM venta WHERE fk_usuario = p_usuario_id);
+    
+    -- Eliminar estados de venta asociados a las ventas del usuario
+    DELETE FROM status_venta
+    WHERE fk_venta IN (SELECT id FROM venta WHERE fk_usuario = p_usuario_id);
+    
+    -- Eliminar detalles de presentación asociados a las ventas del usuario
+    DELETE FROM detalle_presentacion
+    WHERE fk_venta IN (SELECT id FROM venta WHERE fk_usuario = p_usuario_id);
+
+    -- Eliminar ventas asociadas al usuario
+    DELETE FROM venta WHERE fk_usuario = p_usuario_id;
+
     -- Eliminar relaciones del usuario en otras tablas
     DELETE FROM empleado_usuario WHERE fk_usuario = p_usuario_id;
     DELETE FROM cliente_usuario WHERE fk_usuario = p_usuario_id;
@@ -30,5 +45,8 @@ BEGIN
         DELETE FROM correo WHERE id = v_correo_id;
     END IF;
 
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error al eliminar el usuario con ID %: %', p_usuario_id, SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
