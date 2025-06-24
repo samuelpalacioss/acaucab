@@ -117,10 +117,10 @@ export default function Autopago() {
     fetchProducts();
   }, []);
 
-  // Timer para pasar a la siguiente pantalla luego de bienvenida al cliente
+  // Carga los productos cuando se muestra la bienvenida al cliente y luego avanza
   useEffect(() => {
     if (currentStep === Step.CLIENT_WELCOME) {
-      const timer = setTimeout(async () => {
+      const loadProductsAndProceed = async () => {
         /** Cargar productos solo cuando el usuario está autenticado y va a la selección */
         setIsLoadingProducts(true);
         try {
@@ -135,11 +135,11 @@ export default function Autopago() {
           setProducts([]);
         } finally {
           setIsLoadingProducts(false);
+          setCurrentStep(Step.PRODUCT_SELECTION);
         }
+      };
 
-        setCurrentStep(Step.PRODUCT_SELECTION);
-      }, 4000); // 4 seconds
-      return () => clearTimeout(timer);
+      loadProductsAndProceed();
     }
   }, [currentStep]);
 
