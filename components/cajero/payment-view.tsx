@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Eye,
   FileCheck,
+  Calculator,
 } from "lucide-react";
 import { TarjetaForm } from "../steps/tarjeta-form";
 import { BancoSelector, getBancoNombre } from "@/components/ui/banco-selector";
@@ -27,9 +28,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import OrderSummaryCard from "./order-summary-card";
 import { Separator } from "@radix-ui/react-select";
 import { CarritoItemType } from "@/lib/schemas";
+
+const denominationsMap = {
+  bolivares: [1, 5, 10, 20, 50, 100, 200, 500],
+  dolares: [1, 2, 5, 10, 20, 50, 100],
+  euros: [1, 2, 5, 10, 20, 50, 100, 200],
+};
+
+const currencySymbols = {
+  bolivares: "Bs",
+  dolares: "$",
+  euros: "€",
+};
+
+const exchangeRates = {
+  dolares: 1,
+  euros: 1.08, // 1 EUR = 1.08 USD
+  bolivares: 1 / 100, // 100 Bs = 1 USD
+};
 
 export type PaymentMethod = "tarjetaCredito" | "tarjetaDebito" | "efectivo" | "cheque" | "puntos";
 
@@ -86,10 +106,12 @@ export default function PaymentView({
   const [selectedTab, setSelectedTab] = useState<string>("tarjeta");
   const [cardType, setCardType] = useState<"credito" | "debito">("credito");
   const [cashReceived, setCashReceived] = useState("");
-  const [denomination, setDenomination] = useState<"dolares" | "euros" | "bolivares">("bolivares");
+  const [denomination, setDenomination] = useState<"bolivares" | "dolares" | "euros">("dolares");
 
   // Calculate cash change
   const cashReceivedNum = Number.parseFloat(cashReceived) || 0;
+  const cashReceivedInUSD = cashReceivedNum * exchangeRates[denomination];
+  const totalInUSD = total;
 
   // Card payment state
   const [cardData, setCardData] = useState<any>({});
@@ -131,8 +153,8 @@ export default function PaymentView({
   const isCashAmountValid = () => {
     if (!cashReceived) return true;
     // Compare amounts in cents to avoid floating point issues
-    const amountInCents = Math.round(cashReceivedNum * 100);
-    const totalInCents = Math.round(total * 100);
+    const amountInCents = Math.round(cashReceivedInUSD * 100);
+    const totalInCents = Math.round(totalInUSD * 100);
     return amountInCents > 0 && amountInCents <= totalInCents;
   };
 
@@ -198,9 +220,8 @@ export default function PaymentView({
         amountPaid = typeof cardAmount === "number" ? cardAmount : total;
         break;
       case "efectivo":
-        const received = Number.parseFloat(cashReceived);
-        details = { cashReceived: received };
-        amountPaid = Math.min(received, total);
+        details = { cashReceived: cashReceivedNum }; // Storing amount in selected currency
+        amountPaid = Math.min(cashReceivedInUSD, total);
         break;
       case "cheque":
         details = { numeroCheque, numeroCuenta, banco: getBancoNombre(bancoCheque) };
@@ -242,6 +263,14 @@ export default function PaymentView({
   const handleCardValidationChange = useCallback((isValid: boolean) => {
     setIsCardValid(isValid);
   }, []);
+
+  const handleAddDenomination = (amount: number) => {
+    setCashReceived((prev) => (Number(prev || 0) + amount).toString());
+  };
+
+  const handleClearCash = () => {
+    setCashReceived("");
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -394,14 +423,15 @@ export default function PaymentView({
                   </TabsContent>
 
                   <TabsContent value="efectivo" className="space-y-4">
-                    <div className="flex gap-4 items-end">
+                    <div className="flex gap-4 items-start">
                       <div className="space-y-2 flex-1">
                         <Label htmlFor="denomination">Denominación</Label>
                         <Select
                           value={denomination}
-                          onValueChange={(value: "bolivares" | "dolares" | "euros") =>
-                            setDenomination(value)
-                          }
+                          onValueChange={(value: "bolivares" | "dolares" | "euros") => {
+                            setDenomination(value);
+                            setCashReceived(""); // Reset amount on currency change
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccione la denominación" />
@@ -412,58 +442,81 @@ export default function PaymentView({
                             <SelectItem value="bolivares">Bolívares</SelectItem>
                           </SelectContent>
                         </Select>
+                        <div className="h-5" />
                       </div>
                       <div className="space-y-2 flex-1">
                         <Label htmlFor="cashReceived">Monto recibido</Label>
-                        <Input
-                          id="cashReceived"
-                          type="number"
-                          min={0.01}
-                          max={total}
-                          step="0.01"
-                          placeholder={`${total.toFixed(2)}`}
-                          value={cashReceived}
-                          onChange={(e) => setCashReceived(e.target.value)}
-                          className={!isCashAmountValid() ? "border-red-500" : ""}
-                          required
-                        />
-                        {!isCashAmountValid() && cashReceived && (
-                          <p className="text-sm text-red-500">
-                            El monto no puede ser mayor al restante por pagar (${total.toFixed(2)})
-                          </p>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="cashReceived"
+                            type="number"
+                            placeholder="Use la calculadora"
+                            value={cashReceived}
+                            readOnly
+                            className={!isCashAmountValid() ? "border-red-500" : ""}
+                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="icon" className="shrink-0">
+                                <Calculator className="h-4 w-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto">
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium">Agregar Billetes/Monedas</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {denominationsMap[denomination].map((value) => (
+                                    <Button
+                                      key={value}
+                                      variant="outline"
+                                      onClick={() => handleAddDenomination(value)}
+                                      className="w-full"
+                                    >
+                                      {currencySymbols[denomination]} {value}
+                                    </Button>
+                                  ))}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleClearCash}
+                                  className="w-full text-red-500 hover:text-red-600"
+                                >
+                                  Limpiar
+                                </Button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="h-5">
+                          {!isCashAmountValid() && cashReceived && (
+                            <p className="text-sm text-red-500">
+                              El monto no puede ser mayor al restante por pagar (${total.toFixed(2)}
+                              )
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
                     <div className="p-4 bg-gray-50 rounded-md">
                       <div className="flex justify-between">
                         <span>Recibido en efectivo:</span>
-                        <span>${(Number.parseFloat(cashReceived) || 0).toFixed(2)}</span>
+                        <span>
+                          {currencySymbols[denomination]} {cashReceivedNum.toFixed(2)} ($
+                          {cashReceivedInUSD.toFixed(2)})
+                        </span>
                       </div>
                       <hr className="my-2 border-t border-gray-200" />
-                      {Number.parseFloat(cashReceived) > 0 &&
-                        amountPaid + Number.parseFloat(cashReceived) > (originalTotal || total) && (
-                          <div className="flex justify-between font-bold text-green-600">
-                            <span>Cambio:</span>
-                            <span>
-                              $
-                              {(
-                                amountPaid +
-                                Number.parseFloat(cashReceived) -
-                                (originalTotal || total)
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-                        )}
-                      {Number.parseFloat(cashReceived) > 0 &&
-                        amountPaid + Number.parseFloat(cashReceived) < (originalTotal || total) && (
+                      {cashReceivedNum > 0 &&
+                        amountPaid + cashReceivedInUSD < (originalTotal || total) && (
                           <div className="flex justify-between font-bold text-red-600">
                             <span>Faltaría por pagar:</span>
                             <span>
                               $
                               {(
                                 (originalTotal || total) -
-                                (amountPaid + Number.parseFloat(cashReceived))
+                                (amountPaid + cashReceivedInUSD)
                               ).toFixed(2)}
                             </span>
                           </div>
