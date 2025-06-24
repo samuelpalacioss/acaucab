@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,15 +23,20 @@ import { CarritoItemType } from "@/lib/schemas";
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
 interface PaymentDetails {
-  cardNumber?: string;
-  cardExpiry?: string;
-  cardName?: string;
+  // Tarjeta properties matching TarjetaDetails
+  nombreTitular?: string;
+  numeroTarjeta?: string;
+  fechaExpiracion?: string;
+  // Efectivo properties
   cashReceived?: number;
   cashChange?: number;
+  // Pago móvil properties
   phoneNumber?: string;
   confirmationCode?: string;
+  // Puntos properties
   customerId?: string;
   pointsToUse?: number;
+  // Common property
   amountPaid?: number;
 }
 
@@ -119,18 +124,16 @@ export default function PaymentView({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = () => {
     let details: PaymentDetails = {};
     let amountPaid = 0;
 
     switch (selectedTab) {
       case "tarjeta":
         details = {
-          cardNumber: cardData.numeroTarjeta,
-          cardExpiry: cardData.fechaExpiracion,
-          cardName: cardData.nombreTitular,
+          nombreTitular: cardData.nombreTitular,
+          numeroTarjeta: cardData.numeroTarjeta?.replace(/\s/g, "") || "", // Remove spaces
+          fechaExpiracion: cardData.fechaExpiracion,
         };
         amountPaid = typeof cardAmount === "number" ? cardAmount : total;
         break;
@@ -170,6 +173,15 @@ export default function PaymentView({
   const subtotal = total / 1.16;
   const iva = total - subtotal;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  /** Funciones estables para evitar bucles infinitos en TarjetaForm */
+  const handleCardDataChange = useCallback((data: any) => {
+    setCardData(data);
+  }, []);
+
+  const handleCardValidationChange = useCallback((isValid: boolean) => {
+    setIsCardValid(isValid);
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -246,9 +258,12 @@ export default function PaymentView({
                   </TabsTrigger>
                 </TabsList>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-6">
                   <TabsContent value="tarjeta" className="space-y-4">
-                    <TarjetaForm onDataChange={setCardData} onValidationChange={setIsCardValid} />
+                    <TarjetaForm
+                      onDataChange={handleCardDataChange}
+                      onValidationChange={handleCardValidationChange}
+                    />
                     <div className="space-y-2">
                       <Label htmlFor="cardAmount">Monto a pagar</Label>
                       <Input
@@ -400,10 +415,15 @@ export default function PaymentView({
                     )}
                   </TabsContent>
 
-                  <Button type="submit" className="w-full mt-6" disabled={!isFormValid()}>
+                  <Button
+                    type="button"
+                    className="w-full mt-6"
+                    disabled={!isFormValid()}
+                    onClick={handleSubmit}
+                  >
                     Completar pago <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
-                </form>
+                </div>
               </Tabs>
             </CardContent>
           </Card>

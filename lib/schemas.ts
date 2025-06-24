@@ -88,3 +88,46 @@ export const carritoItemSchema = presentacionSchema.extend({
 });
 
 export type CarritoItemType = z.infer<typeof carritoItemSchema>;
+
+// Para tarjeta
+export interface TarjetaDetails {
+  nombreTitular: string;
+  numeroTarjeta: string;
+  fechaExpiracion: string;
+  amountPaid: number;
+}
+
+// Para efectivo
+export interface EfectivoDetails {
+  denominacion: 'dolares' | 'euros' | 'bolivares';
+  montoRecibido: number;
+  cambio: number;
+  amountPaid: number;
+}
+
+// Para pago móvil
+export interface PagoMovilDetails {
+  telefono: string;
+  banco: string;
+  cedula: string;
+  amountPaid: number;
+}
+
+// Para puntos
+export interface PuntosDetails {
+  puntosUtilizados: number;
+  equivalenciaBs: number;
+  amountPaid: number;
+}
+
+export type PaymentDetails = TarjetaDetails | EfectivoDetails | PagoMovilDetails | PuntosDetails;
+
+export type PaymentMethodType = 'tarjeta' | 'efectivo' | 'pagoMovil' | 'puntos';
+
+/**
+ * Interface para los métodos de pago - tal como se usan en Autopago.tsx
+ */
+export interface PaymentMethod {
+  method: PaymentMethodType;
+  details: PaymentDetails;
+}

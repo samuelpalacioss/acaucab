@@ -11,9 +11,9 @@ type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
 /** Interfaz para los detalles del pago */
 interface PaymentDetails {
-  cardNumber?: string;
-  cardExpiry?: string;
-  cardName?: string;
+  nombreTitular?: string;
+  numeroTarjeta?: string;
+  fechaExpiracion?: string;
   cashReceived?: number;
   cashChange?: number;
   phoneNumber?: string;
@@ -129,10 +129,10 @@ export default function PaymentMethodSummary({
                       <div>
                         <p className="font-semibold">
                           {getPaymentMethodName(payment.method)}
-                          {payment.method === "tarjeta" && payment.details.cardNumber && (
+                          {payment.method === "tarjeta" && payment.details.numeroTarjeta && (
                             <span className="ml-2 font-normal text-gray-500">
-                              {getCardType(payment.details.cardNumber)} -{" "}
-                              {payment.details.cardNumber.replace(/\s/g, "").slice(-4)}
+                              {getCardType(payment.details.numeroTarjeta)} -{" "}
+                              {payment.details.numeroTarjeta.replace(/\s/g, "").slice(-4)}
                             </span>
                           )}
                         </p>

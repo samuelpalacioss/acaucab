@@ -8,7 +8,18 @@ import PaymentView from "./cajero/payment-view";
 import { beers } from "@/app/(marketing)/productos/page";
 import PaymentMethodSummary from "./cajero/payment-method-summary";
 import { getClienteByDoc } from "@/api/get-cliente-by-doc";
-import { ClienteType, DocType, CarritoItemType, PresentacionType } from "@/lib/schemas";
+import {
+  ClienteType,
+  CarritoItemType,
+  DocType,
+  TarjetaDetails,
+  EfectivoDetails,
+  PagoMovilDetails,
+  PuntosDetails,
+  PaymentMethod,
+  PaymentMethodType,
+  PresentacionType,
+} from "@/lib/schemas";
 import {
   Select,
   SelectContent,
@@ -18,11 +29,12 @@ import {
 } from "@/components/ui/select";
 import { Loader, X } from "lucide-react";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { useVentaStore } from "@/store/venta-store";
 
-type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
+type LocalPaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
 
 interface Payment {
-  method: PaymentMethod;
+  method: LocalPaymentMethod;
   details: any; // Debería ser PaymentDetails, pero lo mantenemos flexible
 }
 
@@ -36,16 +48,56 @@ enum Step {
   PAYMENT_SUMMARY = "payment_summary",
 }
 
+/** Función mejorada para debuggear el store de venta en puntos clave */
+const logVentaStore = (action?: string) => {
+  const state = useVentaStore.getState();
+  console.group(`🛒 VENTA STORE ${action ? `- ${action}` : ""}`);
+  console.log(
+    "👤 Cliente:",
+    state.cliente?.nombre_completo || state.cliente?.denominacion_comercial || "No seleccionado"
+  );
+  console.log("📄 Documento:", `${state.docType}-${state.documento}`);
+  console.log("🛍️ Items en carrito:", state.carrito.length);
+  state.carrito.forEach((item, index) => {
+    console.log(`   ${index + 1}. ${item.nombre_cerveza} x${item.quantity} - $${item.precio}`);
+  });
+  console.log("💳 Métodos de pago:", state.metodosPago.length);
+  state.metodosPago.forEach((pago, index) => {
+    console.log(`   ${index + 1}. ${pago.method}:`, pago.details);
+  });
+  console.log("🔢 Venta ID:", state.ventaId);
+  console.log("⏳ Creando venta:", state.isCreatingVenta);
+  console.log("❌ Error:", state.error);
+  console.groupEnd();
+};
+
 export default function Autopago() {
+  /** Estado del store de venta */
+  const {
+    cliente,
+    docType,
+    documento,
+    carrito,
+    metodosPago,
+    setCliente,
+    setDocType,
+    setDocumento,
+    setMetodosPago,
+    agregarAlCarrito,
+    actualizarCantidad,
+    eliminarDelCarrito,
+    limpiarCarrito,
+    crearVentaCompleta,
+    resetStore,
+    isCreatingVenta,
+    error: storeError,
+  } = useVentaStore();
+
+  /** Estado local del componente */
   const [currentStep, setCurrentStep] = useState<Step>(Step.WELCOME);
-  const [documento, setDocumento] = useState("");
-  const [docType, setDocType] = useState<DocType>("V");
-  const [cliente, setCliente] = useState<ClienteType | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [cart, setCart] = useState<CarritoItemType[]>([]);
   const [products, setProducts] = useState<CarritoItemType[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
@@ -67,6 +119,8 @@ export default function Autopago() {
       }
     }
 
+    // Log estado inicial del store
+    logVentaStore("AUTOPAGO INICIADO - ESTADO INICIAL");
     fetchProducts();
   }, []);
 
@@ -100,40 +154,42 @@ export default function Autopago() {
     ? products.filter((product) => product.tipo_cerveza === selectedCategory)
     : products;
 
-  // Calculate totals
-  const subtotal = cart.reduce((sum, product) => sum + product.precio * product.quantity, 0);
+  /** Calcular totales usando datos del store */
+  const subtotal = carrito.reduce((sum, product) => sum + product.precio * product.quantity, 0);
   const iva = subtotal * 0.16;
   const total = subtotal + iva;
-  const totalPaid = payments.reduce((sum, payment) => sum + (payment.details.amountPaid || 0), 0);
+  const totalPaid = metodosPago.reduce(
+    (sum, payment) => sum + (payment.details.amountPaid || 0),
+    0
+  );
   const remainingTotal = total - totalPaid;
 
-  // Handle quantity changes
+  /** Funciones del carrito usando el store */
   const handleUpdateQuantity = (sku: string, newQuantity: number) => {
     console.log("🔄 handleUpdateQuantity called with:", { sku, newQuantity }); // Debug log
-    console.log("🔄 Current cart:", cart); // Debug log
+    console.log("🔄 Current carrito:", carrito); // Debug log
     console.log(
       "🔄 Products available:",
       products.map((p) => ({ sku: p.sku, name: p.nombre_cerveza }))
     ); // Debug log
 
     if (newQuantity <= 0) {
-      setCart(cart.filter((product) => product.sku !== sku));
+      eliminarDelCarrito(sku);
+      logVentaStore("PRODUCTO ELIMINADO");
     } else {
-      const existingItem = cart.find((item) => item.sku === sku);
+      const existingItem = carrito.find((item) => item.sku === sku);
       if (existingItem) {
         console.log("🔄 Updating existing cart item"); // Debug log
-        setCart(
-          cart.map((product) =>
-            product.sku === sku ? { ...product, quantity: newQuantity } : product
-          )
-        );
+        actualizarCantidad(sku, newQuantity);
+        logVentaStore("CANTIDAD ACTUALIZADA");
       } else {
         // Find the product in the products list and add it to cart
         const productToAdd = products.find((p) => p.sku === sku);
         console.log("🔄 Product to add:", productToAdd); // Debug log
         if (productToAdd) {
           console.log("🔄 Adding new product to cart"); // Debug log
-          setCart([...cart, { ...productToAdd, quantity: newQuantity }]);
+          agregarAlCarrito({ ...productToAdd, quantity: newQuantity });
+          logVentaStore("PRODUCTO AGREGADO");
         } else {
           console.log("❌ Product not found in products list!"); // Debug log
         }
@@ -142,20 +198,16 @@ export default function Autopago() {
   };
 
   const handleRemoveItem = (sku: string) => {
-    setCart(cart.filter((product) => product.sku !== sku));
+    eliminarDelCarrito(sku);
+    logVentaStore("ITEM REMOVIDO DEL CARRITO");
   };
 
   const handleClearCart = () => {
-    setCart([]);
+    limpiarCarrito();
+    logVentaStore("CARRITO LIMPIADO");
   };
 
-  const calculateSubtotal = () => {
-    return products.reduce((sum, product) => sum + product.precio * product.quantity, 0);
-  };
-
-  const calculateTotalItems = () => {
-    return products.reduce((sum, product) => sum + product.quantity, 0);
-  };
+  /** Las funciones de cálculo se movieron al store y se calculan directamente en el componente */
 
   async function handleDocumentoSubmit() {
     if (documento.length === 0) return;
@@ -171,6 +223,7 @@ export default function Autopago() {
 
       if (clienteEncontrado !== null) {
         setCliente(clienteEncontrado);
+        logVentaStore("CLIENTE AUTENTICADO");
         setCurrentStep(Step.CLIENT_WELCOME);
       } else {
         setError("Cliente no encontrado. Por favor, verifique los datos.");
@@ -249,11 +302,11 @@ export default function Autopago() {
                   disabled={isLoading}
                   onClick={() => {
                     if (num === "Borrar") {
-                      setDocumento((prev) => prev.slice(0, -1));
+                      setDocumento(documento.slice(0, -1));
                     } else if (num === "Enter") {
                       handleDocumentoSubmit();
                     } else if (typeof num === "number") {
-                      setDocumento((prev) => prev + num);
+                      setDocumento(documento + num);
                     }
                   }}
                 >
@@ -294,7 +347,7 @@ export default function Autopago() {
         return (
           <CheckoutCajero
             onCheckout={() => setCurrentStep(Step.PAYMENT)}
-            cart={cart}
+            cart={carrito}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
@@ -305,13 +358,30 @@ export default function Autopago() {
       case Step.PAYMENT:
         return (
           <PaymentView
-            items={cart}
+            items={carrito}
             total={remainingTotal > 0 ? remainingTotal : total}
             originalTotal={total}
             amountPaid={totalPaid}
-            existingPayments={payments}
-            onComplete={(method, details) => {
-              setPayments([...payments, { method, details }]);
+            existingPayments={metodosPago}
+            onComplete={(method: PaymentMethodType, details: any) => {
+              const newPayment: PaymentMethod = {
+                method,
+                details: { ...details },
+              };
+
+              // Type guard para detalles de tarjeta
+              if (method === "tarjeta") {
+                newPayment.details = details as TarjetaDetails;
+              } else if (method === "efectivo") {
+                newPayment.details = details as EfectivoDetails;
+              } else if (method === "pagoMovil") {
+                newPayment.details = details as PagoMovilDetails;
+              } else if (method === "puntos") {
+                newPayment.details = details as PuntosDetails;
+              }
+
+              setMetodosPago([...metodosPago, newPayment]);
+              logVentaStore(`PAGO AGREGADO - ${method.toUpperCase()}`);
               // Si el pago no cubre el total, vuelve a la vista de pago.
               // Esta lógica necesita ser más robusta, calculando si el total ha sido cubierto.
               // Por ahora, siempre vamos al resumen.
@@ -325,22 +395,37 @@ export default function Autopago() {
       case Step.PAYMENT_SUMMARY:
         return (
           <PaymentMethodSummary
-            payments={payments}
-            items={cart}
+            payments={metodosPago}
+            items={carrito}
             total={total}
-            onConfirm={() => {
-              console.log("Pago completado con:", payments);
-              // Resetear el estado
-              setCurrentStep(Step.WELCOME);
-              setCart([]);
-              setDocumento("");
-              setPayments([]);
+            onConfirm={async () => {
+              console.log("Creando venta con:", metodosPago);
+              logVentaStore("INICIANDO CREACIÓN DE VENTA");
+
+              /** Crear la venta completa usando el store */
+              const success = await crearVentaCompleta(total);
+
+              if (success) {
+                console.log("✅ Venta creada exitosamente");
+                logVentaStore("VENTA CREADA EXITOSAMENTE");
+                // Resetear el estado
+                setCurrentStep(Step.WELCOME);
+                resetStore();
+                logVentaStore("STORE RESETEADO");
+              } else {
+                console.error("❌ Error al crear la venta");
+                logVentaStore("ERROR AL CREAR VENTA");
+                // Mostrar error al usuario
+                setError(storeError || "Error al procesar la venta");
+              }
             }}
             onBack={() => setCurrentStep(Step.PAYMENT)}
             onDeletePayment={(paymentIndex) => {
               /** Eliminar el pago específico del array de pagos */
-              const updatedPayments = payments.filter((_, index) => index !== paymentIndex);
-              setPayments(updatedPayments);
+              const paymentToDelete = metodosPago[paymentIndex];
+              const updatedPayments = metodosPago.filter((_, index) => index !== paymentIndex);
+              setMetodosPago(updatedPayments);
+              logVentaStore(`PAGO ELIMINADO - ${paymentToDelete?.method?.toUpperCase()}`);
 
               // /** Si no quedan pagos, volver a la selección de productos */
               // if (updatedPayments.length === 0) {
