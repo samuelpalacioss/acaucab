@@ -1,14 +1,24 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Banknote, Smartphone, Award, ArrowRight, ArrowLeft, Eye } from "lucide-react";
+import {
+  CreditCard,
+  Banknote,
+  Smartphone,
+  Award,
+  ArrowRight,
+  ArrowLeft,
+  Eye,
+  FileCheck,
+} from "lucide-react";
 import { TarjetaForm } from "../steps/tarjeta-form";
+import { BancoSelector, getBancoNombre } from "@/components/ui/banco-selector";
 import {
   Select,
   SelectContent,
@@ -16,22 +26,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import OrderSummaryCard from "./order-summary-card";
 import { Separator } from "@radix-ui/react-select";
 import { CarritoItemType } from "@/lib/schemas";
 
-type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
+export type PaymentMethod = "tarjetaCredito" | "tarjetaDebito" | "efectivo" | "cheque" | "puntos";
 
 interface PaymentDetails {
-  cardNumber?: string;
-  cardExpiry?: string;
-  cardName?: string;
+  // Tarjeta properties matching TarjetaDetails
+  nombreTitular?: string;
+  numeroTarjeta?: string;
+  fechaExpiracion?: string;
+  banco?: string;
+  // Efectivo properties
   cashReceived?: number;
-  cashChange?: number;
-  phoneNumber?: string;
-  confirmationCode?: string;
+
+  // Cheque properties
+  numeroCheque?: string;
+  numeroCuenta?: string;
+  // Puntos properties
   customerId?: string;
   pointsToUse?: number;
+  // Common property
   amountPaid?: number;
 }
 
@@ -66,19 +83,26 @@ export default function PaymentView({
   onCancel,
   onViewSummary,
 }: PaymentViewProps) {
-  const [selectedTab, setSelectedTab] = useState<PaymentMethod>("tarjeta");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("efectivo");
+  const [selectedTab, setSelectedTab] = useState<string>("tarjeta");
+  const [cardType, setCardType] = useState<"credito" | "debito">("credito");
   const [cashReceived, setCashReceived] = useState("");
   const [denomination, setDenomination] = useState<"dolares" | "euros" | "bolivares">("bolivares");
 
   // Calculate cash change
   const cashReceivedNum = Number.parseFloat(cashReceived) || 0;
-  const cashChange = cashReceivedNum > total ? cashReceivedNum - total : 0;
 
   // Card payment state
   const [cardData, setCardData] = useState<any>({});
   const [isCardValid, setIsCardValid] = useState(false);
   const [cardAmount, setCardAmount] = useState<number | string>("");
+  const [selectedBank, setSelectedBank] = useState<string>("");
+  const [submitted, setSubmitted] = useState(false);
+
+  // Cheque payment state
+  const [numeroCheque, setNumeroCheque] = useState("");
+  const [numeroCuenta, setNumeroCuenta] = useState("");
+  const [bancoCheque, setBancoCheque] = useState("");
+  const [chequeAmount, setChequeAmount] = useState<number | string>("");
 
   // Mobile payment state
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -92,26 +116,53 @@ export default function PaymentView({
 
   // Validation functions
   const isCardAmountValid = () => {
+    if (!cardAmount) return true;
     const amount = typeof cardAmount === "number" ? cardAmount : parseFloat(cardAmount.toString());
-    return !cardAmount || (amount > 0 && amount <= total);
+    // Compare amounts in cents to avoid floating point issues
+    const amountInCents = Math.round(amount * 100);
+    const totalInCents = Math.round(total * 100);
+    return amountInCents > 0 && amountInCents <= totalInCents;
+  };
+
+  const isBankSelected = () => {
+    return selectedBank.length > 0;
   };
 
   const isCashAmountValid = () => {
-    return !cashReceived || (cashReceivedNum > 0 && cashReceivedNum <= total);
+    if (!cashReceived) return true;
+    // Compare amounts in cents to avoid floating point issues
+    const amountInCents = Math.round(cashReceivedNum * 100);
+    const totalInCents = Math.round(total * 100);
+    return amountInCents > 0 && amountInCents <= totalInCents;
+  };
+
+  const isChequeFormValid = () => {
+    return numeroCheque.trim() !== "" && numeroCuenta.trim() !== "" && bancoCheque.trim() !== "";
+  };
+
+  const isChequeAmountValid = () => {
+    if (!chequeAmount) return true;
+    const amount =
+      typeof chequeAmount === "number" ? chequeAmount : parseFloat(chequeAmount.toString());
+    const amountInCents = Math.round(amount * 100);
+    const totalInCents = Math.round(total * 100);
+    return amountInCents > 0 && amountInCents <= totalInCents;
   };
 
   const isPointsAmountValid = () => {
-    //  tasa BCV
-    const pointsInDollars = pointsToUse / 100;
-    return pointsToUse === 0 || (pointsToUse > 0 && pointsInDollars <= total);
+    // Tasa: 100 puntos = 1$. Comparar valor en la misma unidad (puntos o "centavos de dolar-punto").
+    const totalInPoints = Math.round(total * 100);
+    return pointsToUse >= 0 && pointsToUse <= totalInPoints;
   };
 
   const isFormValid = () => {
     switch (selectedTab) {
       case "tarjeta":
-        return isCardValid && isCardAmountValid();
+        return isCardValid && isCardAmountValid() && isBankSelected();
       case "efectivo":
         return isCashAmountValid() && cashReceivedNum > 0;
+      case "cheque":
+        return isChequeFormValid() && isChequeAmountValid();
       case "puntos":
         return isPointsAmountValid() && pointsToUse > 0;
       default:
@@ -119,29 +170,41 @@ export default function PaymentView({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
+    setSubmitted(true);
+    if (!isFormValid()) {
+      return;
+    }
 
     let details: PaymentDetails = {};
     let amountPaid = 0;
+    let paymentMethod: PaymentMethod;
 
-    switch (selectedTab) {
-      case "tarjeta":
+    if (selectedTab === "tarjeta") {
+      paymentMethod = cardType === "credito" ? "tarjetaCredito" : "tarjetaDebito";
+    } else {
+      paymentMethod = selectedTab as PaymentMethod;
+    }
+
+    switch (paymentMethod) {
+      case "tarjetaCredito":
+      case "tarjetaDebito":
         details = {
-          cardNumber: cardData.numeroTarjeta,
-          cardExpiry: cardData.fechaExpiracion,
-          cardName: cardData.nombreTitular,
+          nombreTitular: cardData.nombreTitular,
+          numeroTarjeta: cardData.numeroTarjeta?.replace(/\s/g, "") || "", // Remove spaces
+          fechaExpiracion: cardData.fechaExpiracion,
+          banco: getBancoNombre(selectedBank),
         };
         amountPaid = typeof cardAmount === "number" ? cardAmount : total;
         break;
       case "efectivo":
         const received = Number.parseFloat(cashReceived);
-        details = { cashReceived: received, cashChange: cashChange };
+        details = { cashReceived: received };
         amountPaid = Math.min(received, total);
         break;
-      case "pagoMovil":
-        details = { phoneNumber, confirmationCode };
-        amountPaid = total; // Pago móvil paga el total
+      case "cheque":
+        details = { numeroCheque, numeroCuenta, banco: getBancoNombre(bancoCheque) };
+        amountPaid = typeof chequeAmount === "number" && chequeAmount > 0 ? chequeAmount : total;
         break;
       case "puntos":
         details = { customerId, pointsToUse };
@@ -149,7 +212,7 @@ export default function PaymentView({
         break;
     }
 
-    onComplete(selectedTab, { ...details, amountPaid });
+    onComplete(paymentMethod, { ...details, amountPaid });
   };
 
   // Mock function to simulate fetching customer points
@@ -170,6 +233,15 @@ export default function PaymentView({
   const subtotal = total / 1.16;
   const iva = total - subtotal;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  /** Funciones estables para evitar bucles infinitos en TarjetaForm */
+  const handleCardDataChange = useCallback((data: any) => {
+    setCardData(data);
+  }, []);
+
+  const handleCardValidationChange = useCallback((isValid: boolean) => {
+    setIsCardValid(isValid);
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -197,7 +269,7 @@ export default function PaymentView({
               <Tabs
                 defaultValue="tarjeta"
                 value={selectedTab}
-                onValueChange={(value) => setSelectedTab(value as PaymentMethod)}
+                onValueChange={(value) => setSelectedTab(value)}
                 className="w-full"
               >
                 <TabsList className="flex w-full mb-6 bg-gray-100 rounded-lg p-1 min-h-[64px]">
@@ -231,6 +303,20 @@ export default function PaymentView({
                   </TabsTrigger>
 
                   <TabsTrigger
+                    value="cheque"
+                    className="
+                    flex-1 flex flex-col items-center justify-center gap-2 py-2 text-base
+                    data-[state=active]:bg-transparent
+                    data-[state=active]:shadow-none
+                    data-[state=active]:border-none
+                    data-[state=active]:py-2
+                    transition
+                  "
+                  >
+                    <FileCheck className="h-6 w-6 mb-0" />
+                    <span>Cheque</span>
+                  </TabsTrigger>
+                  <TabsTrigger
                     value="puntos"
                     className="
                     flex-1 flex flex-col items-center justify-center gap-2 py-2 text-base
@@ -246,29 +332,64 @@ export default function PaymentView({
                   </TabsTrigger>
                 </TabsList>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-6 max-w-2xl">
                   <TabsContent value="tarjeta" className="space-y-4">
-                    <TarjetaForm onDataChange={setCardData} onValidationChange={setIsCardValid} />
                     <div className="space-y-2">
-                      <Label htmlFor="cardAmount">Monto a pagar</Label>
-                      <Input
-                        id="cardAmount"
-                        type="number"
-                        min="0.01"
-                        max={total}
-                        step="0.01"
-                        placeholder={total.toFixed(2)}
-                        value={cardAmount}
-                        onChange={(e) =>
-                          setCardAmount(e.target.value ? Number(e.target.value) : "")
-                        }
-                        className={!isCardAmountValid() ? "border-red-500" : ""}
-                      />
-                      {!isCardAmountValid() && cardAmount && (
-                        <p className="text-sm text-red-500">
-                          El monto no puede ser mayor al total (${total.toFixed(2)})
-                        </p>
-                      )}
+                      <Label>Tipo de Tarjeta</Label>
+                      <RadioGroup
+                        defaultValue="credito"
+                        value={cardType}
+                        onValueChange={(value: "credito" | "debito") => setCardType(value)}
+                        className="flex items-center space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="credito" id="credito" />
+                          <Label htmlFor="credito">Crédito</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="debito" id="debito" />
+                          <Label htmlFor="debito">Débito</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    <TarjetaForm
+                      onDataChange={handleCardDataChange}
+                      onValidationChange={handleCardValidationChange}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bankSelector">Banco Emisor</Label>
+                        <BancoSelector
+                          value={selectedBank}
+                          onValueChange={setSelectedBank}
+                          placeholder="Seleccione el banco"
+                          className={submitted && !isBankSelected() ? "border-red-500" : ""}
+                        />
+                        {submitted && !isBankSelected() && (
+                          <p className="text-sm text-red-500">Debe seleccionar un banco</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cardAmount">Monto a pagar</Label>
+                        <Input
+                          id="cardAmount"
+                          type="number"
+                          min="0.01"
+                          max={total}
+                          step="0.01"
+                          placeholder={total.toFixed(2)}
+                          value={cardAmount}
+                          onChange={(e) =>
+                            setCardAmount(e.target.value ? Number(e.target.value) : "")
+                          }
+                          className={!isCardAmountValid() ? "border-red-500" : ""}
+                        />
+                        {!isCardAmountValid() && cardAmount && (
+                          <p className="text-sm text-red-500">
+                            El monto no puede ser mayor al restante por pagar (${total.toFixed(2)})
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </TabsContent>
 
@@ -308,7 +429,7 @@ export default function PaymentView({
                         />
                         {!isCashAmountValid() && cashReceived && (
                           <p className="text-sm text-red-500">
-                            El monto no puede ser mayor al total (${total.toFixed(2)})
+                            El monto no puede ser mayor al restante por pagar (${total.toFixed(2)})
                           </p>
                         )}
                       </div>
@@ -350,6 +471,70 @@ export default function PaymentView({
                     </div>
                   </TabsContent>
 
+                  <TabsContent value="cheque" className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="numeroCheque">Número de Cheque</Label>
+                        <Input
+                          id="numeroCheque"
+                          value={numeroCheque}
+                          onChange={(e) => setNumeroCheque(e.target.value)}
+                          placeholder="000123456"
+                          className={submitted && !numeroCheque.trim() ? "border-red-500" : ""}
+                        />
+                        {submitted && !numeroCheque.trim() && (
+                          <p className="text-sm text-red-500">Campo requerido</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="numeroCuenta">Número de Cuenta</Label>
+                        <Input
+                          id="numeroCuenta"
+                          value={numeroCuenta}
+                          onChange={(e) => setNumeroCuenta(e.target.value)}
+                          placeholder="01020123456789012345"
+                          className={submitted && !numeroCuenta.trim() ? "border-red-500" : ""}
+                        />
+                        {submitted && !numeroCuenta.trim() && (
+                          <p className="text-sm text-red-500">Campo requerido</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bancoCheque">Banco Emisor</Label>
+                      <BancoSelector
+                        value={bancoCheque}
+                        onValueChange={setBancoCheque}
+                        placeholder="Seleccione el banco"
+                        className={submitted && !bancoCheque.trim() ? "border-red-500" : ""}
+                      />
+                      {submitted && !bancoCheque.trim() && (
+                        <p className="text-sm text-red-500">Debe seleccionar un banco</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="chequeAmount">Monto del cheque</Label>
+                      <Input
+                        id="chequeAmount"
+                        type="number"
+                        min="0.01"
+                        max={total}
+                        step="0.01"
+                        placeholder={total.toFixed(2)}
+                        value={chequeAmount}
+                        onChange={(e) =>
+                          setChequeAmount(e.target.value ? Number(e.target.value) : "")
+                        }
+                        className={!isChequeAmountValid() ? "border-red-500" : ""}
+                      />
+                      {!isChequeAmountValid() && chequeAmount ? (
+                        <p className="text-sm text-red-500">
+                          El monto no puede ser mayor al restante por pagar (${total.toFixed(2)})
+                        </p>
+                      ) : null}
+                    </div>
+                  </TabsContent>
+
                   <TabsContent value="puntos" className="space-y-4">
                     <div className="p-4 bg-gray-50 rounded-md text-sm mb-4">
                       <p className="font-medium">Equivalencia de puntos: 1 punto = 1 Bs.</p>
@@ -374,8 +559,8 @@ export default function PaymentView({
                       />
                       {!isPointsAmountValid() && pointsToUse > 0 && (
                         <p className="text-sm text-red-500">
-                          Los puntos no pueden exceder el total (máximo {(total * 100).toFixed(0)}{" "}
-                          puntos)
+                          Los puntos no pueden exceder el restante por pagar (máx:{" "}
+                          {(total * 100).toFixed(0)} puntos)
                         </p>
                       )}
                     </div>
@@ -400,10 +585,15 @@ export default function PaymentView({
                     )}
                   </TabsContent>
 
-                  <Button type="submit" className="w-full mt-6" disabled={!isFormValid()}>
+                  <Button
+                    type="button"
+                    className="w-full mt-6"
+                    onClick={handleSubmit}
+                    disabled={!isFormValid()}
+                  >
                     Completar pago <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
-                </form>
+                </div>
               </Tabs>
             </CardContent>
           </Card>

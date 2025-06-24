@@ -88,3 +88,57 @@ export const carritoItemSchema = presentacionSchema.extend({
 });
 
 export type CarritoItemType = z.infer<typeof carritoItemSchema>;
+
+// Para tarjeta
+export interface TarjetaDetails {
+  nombreTitular: string;
+  numeroTarjeta: string;
+  fechaExpiracion: string;
+  banco: string;
+  amountPaid: number;
+  tipo?: string;
+}
+
+// Para efectivo
+export interface EfectivoDetails {
+  denominacion: 'dolares' | 'euros' | 'bolivares';
+  montoRecibido: number;
+  cambio: number;
+  amountPaid: number;
+}
+
+// Para pago móvil
+export interface PagoMovilDetails {
+  telefono: string;
+  banco: string;
+  cedula: string;
+  amountPaid: number;
+}
+
+// Para puntos
+export interface PuntosDetails {
+  puntosUtilizados: number;
+  equivalenciaBs: number;
+  amountPaid: number;
+}
+
+export type PaymentDetails = TarjetaDetails | EfectivoDetails | PagoMovilDetails | PuntosDetails;
+
+export type PaymentMethodType = 'tarjeta' | 'efectivo' | 'pagoMovil' | 'puntos';
+
+/**
+ * Interface para los métodos de pago - tal como se usan en Autopago.tsx
+ */
+export interface PaymentMethod {
+  method: PaymentMethodType;
+  details: PaymentDetails;
+}
+
+export const loginSchema = z.object({
+  email: z.string().email({ message: "Por favor ingrese un email válido" }),
+  password: z
+    .string()
+    .min(8, { message: "La contraseña debe tener al menos 8 caracteres" }),
+});
+
+export type loginType = z.infer<typeof loginSchema>;

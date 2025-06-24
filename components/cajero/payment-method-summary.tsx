@@ -4,48 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
 import OrderSummaryCard from "./order-summary-card";
-import { CarritoItemType } from "@/lib/schemas";
+import { Separator } from "@radix-ui/react-select";
+import { CarritoItemType, PaymentMethod, PaymentDetails } from "@/lib/schemas";
+import { getBancoNombre } from "@/components/ui/banco-selector";
 
-/** Tipos para el método de pago */
-type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
+/**
+ * Interface para los detalles del pago
+ */
 
-/** Interfaz para los detalles del pago */
-interface PaymentDetails {
-  cardNumber?: string;
-  cardExpiry?: string;
-  cardName?: string;
-  cashReceived?: number;
-  cashChange?: number;
-  phoneNumber?: string;
-  confirmationCode?: string;
-  customerId?: string;
-  pointsToUse?: number;
-  amountPaid?: number;
-}
-
-/** Interfaz para un solo pago */
-interface Payment {
-  method: PaymentMethod;
-  details: PaymentDetails;
-}
-
-/** Props del componente PaymentMethodSummary */
+/**
+ * Helper para obtener el nombre legible del método de pago
+ */
 interface PaymentMethodSummaryProps {
-  payments: Payment[];
+  payments: PaymentMethod[];
   items: CarritoItemType[];
   total: number;
   onConfirm: () => void;
   onBack: () => void;
   /** Función para eliminar un método de pago específico */
-  onDeletePayment?: (paymentIndex: number) => void;
+  onDeletePayment?: (index: number) => void;
 }
-
-const getCardType = (cardNumber: string): string => {
-  if (cardNumber.startsWith("4")) return "Visa";
-  if (cardNumber.startsWith("5")) return "Mastercard";
-  if (cardNumber.startsWith("3")) return "American Express";
-  return "Tarjeta";
-};
 
 /** Componente que muestra un resumen del método de pago seleccionado */
 export default function PaymentMethodSummary({
@@ -56,19 +34,28 @@ export default function PaymentMethodSummary({
   onBack,
   onDeletePayment,
 }: PaymentMethodSummaryProps) {
-  const getPaymentMethodName = (method: PaymentMethod) => {
+  const getPaymentMethodName = (method: string) => {
     switch (method) {
-      case "tarjeta":
-        return "Tarjeta";
+      case "tarjetaCredito":
+        return "Tarjeta de Crédito";
+      case "tarjetaDebito":
+        return "Tarjeta de Débito";
       case "efectivo":
         return "Efectivo";
-      case "pagoMovil":
-        return "Pago Móvil";
+      case "cheque":
+        return "Cheque";
       case "puntos":
         return "Puntos";
       default:
-        return "Método de Pago";
+        return "Desconocido";
     }
+  };
+
+  const getCardType = (cardNumber: string): string => {
+    if (cardNumber.startsWith("4")) return "Visa";
+    if (cardNumber.startsWith("5")) return "Mastercard";
+    if (cardNumber.startsWith("3")) return "American Express";
+    return "Tarjeta";
   };
 
   const sortedPayments = [...payments].sort((a, b) =>
@@ -76,18 +63,18 @@ export default function PaymentMethodSummary({
   );
 
   const calculateFinalTotal = () => {
-    if (payments.some((p) => p.method === "puntos" && p.details.pointsToUse)) {
-      return total - payments.reduce((acc, p) => acc + (p.details.pointsToUse || 0) / 100, 0);
+    if (payments.some((p) => p.method === "puntos" && (p.details as any).pointsToUse)) {
+      return (
+        total - payments.reduce((acc, p) => acc + ((p.details as any).pointsToUse || 0) / 100, 0)
+      );
     }
     return total;
   };
 
   const finalTotal = calculateFinalTotal();
-  const totalPaid = payments.reduce((acc, p) => acc + (p.details.amountPaid || 0), 0);
+  const totalPaid = payments.reduce((acc, p) => acc + ((p.details as any).amountPaid || 0), 0);
 
   const faltaPorPagar = total - totalPaid > 0 ? total - totalPaid : 0;
-  const subtotal = total / 1.16;
-  const iva = total - subtotal;
 
   return (
     <div className="container mx-auto p-4">
@@ -108,14 +95,7 @@ export default function PaymentMethodSummary({
             <CardContent>
               {/* Lista de Métodos de Pago */}
               {sortedPayments.map((payment, sortedIndex) => {
-                // Encontrar el índice original en el array de pagos sin ordenar
-                const originalIndex = payments.findIndex(
-                  (p, i) =>
-                    p === payment ||
-                    (p.method === payment.method &&
-                      p.details.amountPaid === payment.details.amountPaid &&
-                      JSON.stringify(p.details) === JSON.stringify(payment.details))
-                );
+                const originalIndex = payments.findIndex((p) => p === payment);
 
                 return (
                   <div
@@ -129,14 +109,16 @@ export default function PaymentMethodSummary({
                       <div>
                         <p className="font-semibold">
                           {getPaymentMethodName(payment.method)}
-                          {payment.method === "tarjeta" && payment.details.cardNumber && (
-                            <span className="ml-2 font-normal text-gray-500">
-                              {getCardType(payment.details.cardNumber)} -{" "}
-                              {payment.details.cardNumber.replace(/\s/g, "").slice(-4)}
-                            </span>
-                          )}
+                          {payment.method.includes("tarjeta") &&
+                            (payment.details as any).numeroTarjeta && (
+                              <span className="ml-2 font-normal text-gray-500">
+                                {getCardType((payment.details as any).numeroTarjeta)} -{" "}
+                                {(payment.details as any).numeroTarjeta
+                                  .replace(/\s/g, "")
+                                  .slice(-4)}
+                              </span>
+                            )}
                         </p>
-                        {/** Solo permitir eliminar efectivo y puntos */}
                         {onDeletePayment &&
                           (payment.method === "efectivo" || payment.method === "puntos") && (
                             <button
@@ -149,7 +131,7 @@ export default function PaymentMethodSummary({
                       </div>
                     </div>
                     <p className="font-semibold text-base">
-                      ${payment.details.amountPaid?.toFixed(2) || "0.00"}
+                      {`$${((payment.details as any).amountPaid || 0).toFixed(2)}`}
                     </p>
                   </div>
                 );
@@ -160,6 +142,7 @@ export default function PaymentMethodSummary({
                 variant="outline"
                 className="w-full mt-4 flex items-center gap-2"
                 onClick={onBack}
+                disabled={faltaPorPagar === 0}
               >
                 <PlusCircle className="h-4 w-4" />
                 Agregar Método de Pago
@@ -187,6 +170,7 @@ export default function PaymentMethodSummary({
             onClick={onConfirm}
             className="w-full bg-black text-white hover:bg-gray-800"
             size="lg"
+            disabled={faltaPorPagar > 0.01}
           >
             Finalizar Compra
           </Button>

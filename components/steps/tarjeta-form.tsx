@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect } from "react";
+import { useEffect, useCallback, useRef } from "react";
 
 // Define the form schema
 const formSchema = z.object({
@@ -53,14 +53,12 @@ const formSchema = z.object({
 
 interface TarjetaFormProps {
   maxWidth?: string;
-  onSubmit?: (data: z.infer<typeof formSchema>) => void;
   onDataChange?: (data: z.infer<typeof formSchema>) => void;
   onValidationChange?: (isValid: boolean) => void;
 }
 
 export function TarjetaForm({
   maxWidth = "max-w-2xl",
-  onSubmit,
   onDataChange,
   onValidationChange,
 }: TarjetaFormProps) {
@@ -75,30 +73,53 @@ export function TarjetaForm({
     },
   });
 
-  const watchedData = form.watch();
   const { isValid } = form.formState;
 
-  useEffect(() => {
-    if (onDataChange) {
-      onDataChange(watchedData);
-    }
-  }, [watchedData, onDataChange]);
+  /** Referencias para evitar bucles infinitos */
+  const lastDataRef = useRef<string>("");
+  const lastValidRef = useRef<boolean>(false);
 
-  useEffect(() => {
-    if (onValidationChange) {
+  /** Función estable para notificar cambios de datos */
+  const notifyDataChange = useCallback(() => {
+    if (onDataChange) {
+      const currentData = form.getValues();
+      const currentDataString = JSON.stringify(currentData);
+
+      // Solo notificar si los datos realmente cambiaron
+      if (currentDataString !== lastDataRef.current) {
+        lastDataRef.current = currentDataString;
+        onDataChange(currentData);
+      }
+    }
+  }, [onDataChange, form]);
+
+  /** Función estable para notificar cambios de validación */
+  const notifyValidationChange = useCallback(() => {
+    if (onValidationChange && isValid !== lastValidRef.current) {
+      lastValidRef.current = isValid;
       onValidationChange(isValid);
     }
-  }, [isValid, onValidationChange]);
+  }, [onValidationChange, isValid]);
 
-  const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    if (onSubmit) {
-      onSubmit(data);
-    }
-  };
+  /** Suscripción a cambios del formulario */
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      notifyDataChange();
+      notifyValidationChange();
+    });
+
+    // Notificar estado inicial
+    notifyDataChange();
+    notifyValidationChange();
+
+    return () => subscription.unsubscribe();
+  }, [form, notifyDataChange, notifyValidationChange]);
+
+  // handleSubmit ya no es necesario - el submit se maneja desde el componente padre
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <div className="space-y-8">
         <div>
           <h2 className="text-xl font-semibold mb-6">Información de Tarjeta</h2>
           <div className={`space-y-6 ${maxWidth}`}>
@@ -192,7 +213,7 @@ export function TarjetaForm({
             </div>
           </div>
         </div>
-      </form>
+      </div>
     </FormProvider>
   );
 }
