@@ -17,30 +17,337 @@ INSERT INTO rol (nombre) VALUES
     ('Jefe de Marketing');
 
 INSERT INTO permiso (nombre, descripción) VALUES
-/* Gestion de usuarios */
-    ('crear_usuario', 'Permite crear nuevos usuarios en el sistema'),
-    ('editar_usuario', 'Permite modificar información de usuarios existentes'),
-    ('eliminar_usuario', 'Permite eliminar usuarios del sistema'),
-    ('ver_usuarios', 'Permite ver la lista de usuarios'),
-    ('gestionar_roles', 'Permite gestionar roles y sus permisos'),
-    ('gestionar_miembros', 'Permite gestionar miembros de la organización'),
-    ('gestionar_clientes', 'Permite gestionar clientes del sistema'),
-    /* Gestion de ventas */
-    ('iniciar_venta', 'Permite iniciar una nueva venta física'),
-    ('procesar_pago', 'Permite procesar el pago de una venta'),
-    ('anular_venta', 'Permite anular una venta en proceso'),
-    ('imprimir_factura', 'Permite imprimir la factura de una venta'),
-    ('cerrar_caja', 'Permite realizar el cierre de caja diario'),
-    ('ver_historial_ventas', 'Permite consultar el historial de ventas realizadas'),
-    /* Gestion de compras (Jefe de Compras)*/
-    ('aceptar_orden_compra', 'Permite aceptar una orden de compra'),
-    ('rechazar_orden_compra', 'Permite rechazar una orden de compra'),
-    ('ver_ordenes_compra', 'Permite ver las ordenes de compra'),
-    ('gestionar_proveedores', 'Permite gestionar proveedores'),
-    ('ver_historial_compras', 'Permite consultar el historial de compras realizadas'),
-    ('ver_pedidos', 'Permite ver todos los pedidos'),
-    /* Gestion de Pasillos (Jefe de Pasillos)*/
-    ('aceptar_orden_reposición', 'Permite aceptar una orden de reposición');
+/* Gestión de afiliacion */
+('crear_afiliacion',   'Permite crear nuevas afiliaciones en el sistema'),
+('editar_afiliacion',  'Permite modificar afiliaciones existentes'),
+('eliminar_afiliacion','Permite eliminar afiliaciones del sistema'),
+('leer_afiliacion',    'Permite ver las afiliaciones'),
+/* Gestión de almacen */
+('crear_almacen',      'Permite crear nuevos almacenes en el sistema'),
+('editar_almacen',     'Permite modificar almacenes existentes'),
+('eliminar_almacen',   'Permite eliminar almacenes del sistema'),
+('leer_almacen',       'Permite ver los almacenes'),
+/* Gestión de beneficio */
+('crear_beneficio',    'Permite crear nuevos beneficios en el sistema'),
+('editar_beneficio',   'Permite modificar beneficios existentes'),
+('eliminar_beneficio', 'Permite eliminar beneficios del sistema'),
+('leer_beneficio',     'Permite ver los beneficios'),
+/* Gestión de beneficio_nomina */
+('crear_beneficio_nomina',    'Permite crear relaciones beneficio-nómina'),
+('editar_beneficio_nomina',   'Permite modificar relaciones beneficio-nómina'),
+('eliminar_beneficio_nomina', 'Permite eliminar relaciones beneficio-nómina'),
+('leer_beneficio_nomina',     'Permite ver las relaciones beneficio-nómina'),
+/* Gestión de caracteristica */
+('crear_caracteristica',   'Permite crear nuevas características'),
+('editar_caracteristica',  'Permite modificar características existentes'),
+('eliminar_caracteristica','Permite eliminar características'),
+('leer_caracteristica',    'Permite ver las características'),
+/* Gestión de cargo */
+('crear_cargo',    'Permite crear nuevos cargos'),
+('editar_cargo',   'Permite modificar cargos existentes'),
+('eliminar_cargo', 'Permite eliminar cargos'),
+('leer_cargo',     'Permite ver los cargos'),
+/* Gestión de cerveza */
+('crear_cerveza',    'Permite crear nuevas cervezas'),
+('editar_cerveza',   'Permite modificar cervezas existentes'),
+('eliminar_cerveza', 'Permite eliminar cervezas'),
+('leer_cerveza',     'Permite ver las cervezas'),
+/* Gestión de cerveza_caracteristica */
+('crear_cerveza_caracteristica',    'Permite crear vínculos cerveza-característica'),
+('editar_cerveza_caracteristica',   'Permite modificar vínculos cerveza-característica'),
+('eliminar_cerveza_caracteristica', 'Permite eliminar vínculos cerveza-característica'),
+('leer_cerveza_caracteristica',     'Permite ver los vínculos cerveza-característica'),
+/* Gestión de cliente_juridico */
+('crear_cliente_juridico',    'Permite crear clientes jurídicos'),
+('editar_cliente_juridico',   'Permite modificar clientes jurídicos'),
+('eliminar_cliente_juridico', 'Permite eliminar clientes jurídicos'),
+('leer_cliente_juridico',     'Permite ver los clientes jurídicos'),
+/* Gestión de cliente_metodo_pago */
+('crear_cliente_metodo_pago',    'Permite registrar métodos de pago de clientes'),
+('editar_cliente_metodo_pago',   'Permite modificar métodos de pago de clientes'),
+('eliminar_cliente_metodo_pago', 'Permite eliminar métodos de pago de clientes'),
+('leer_cliente_metodo_pago',     'Permite ver los métodos de pago de clientes'),
+/* Gestión de cliente_natural */
+('crear_cliente_natural',    'Permite crear clientes naturales'),
+('editar_cliente_natural',   'Permite modificar clientes naturales'),
+('eliminar_cliente_natural', 'Permite eliminar clientes naturales'),
+('leer_cliente_natural',     'Permite ver los clientes naturales'),
+/* Gestión de cliente_usuario */
+('crear_cliente_usuario',    'Permite asociar clientes a usuarios'),
+('editar_cliente_usuario',   'Permite modificar asociaciones cliente-usuario'),
+('eliminar_cliente_usuario', 'Permite eliminar asociaciones cliente-usuario'),
+('leer_cliente_usuario',     'Permite ver las asociaciones cliente-usuario'),
+/* Gestión de color */
+('crear_color',    'Permite crear colores'),
+('editar_color',   'Permite modificar colores'),
+('eliminar_color', 'Permite eliminar colores'),
+('leer_color',     'Permite ver los colores'),
+/* Gestión de correo */
+('crear_correo',    'Permite registrar correos electrónicos'),
+('editar_correo',   'Permite modificar correos electrónicos'),
+('eliminar_correo', 'Permite eliminar correos electrónicos'),
+('leer_correo',     'Permite ver los correos electrónicos'),
+/* Gestión de departamento */
+('crear_departamento',    'Permite crear departamentos'),
+('editar_departamento',   'Permite modificar departamentos'),
+('eliminar_departamento', 'Permite eliminar departamentos'),
+('leer_departamento',     'Permite ver los departamentos'),
+/* Gestión de descuento */
+('crear_descuento',    'Permite crear descuentos de presentación'),
+('editar_descuento',   'Permite modificar descuentos de presentación'),
+('eliminar_descuento', 'Permite eliminar descuentos de presentación'),
+('leer_descuento',     'Permite ver los descuentos de presentación'),
+/* Gestión de detalle_evento */
+('crear_detalle_evento',    'Permite registrar detalles de venta en eventos'),
+('editar_detalle_evento',   'Permite modificar detalles de venta en eventos'),
+('eliminar_detalle_evento', 'Permite eliminar detalles de venta en eventos'),
+('leer_detalle_evento',     'Permite ver los detalles de venta en eventos'),
+/* Gestión de detalle_presentacion */
+('crear_detalle_presentacion',    'Permite registrar detalles de venta de presentaciones'),
+('editar_detalle_presentacion',   'Permite modificar detalles de venta de presentaciones'),
+('eliminar_detalle_presentacion', 'Permite eliminar detalles de venta de presentaciones'),
+('leer_detalle_presentacion',     'Permite ver los detalles de venta de presentaciones'),
+/* Gestión de empleado */
+('crear_empleado',    'Permite crear empleados'),
+('editar_empleado',   'Permite modificar empleados'),
+('eliminar_empleado', 'Permite eliminar empleados'),
+('leer_empleado',     'Permite ver los empleados'),
+/* Gestión de empleado_usuario */
+('crear_empleado_usuario',    'Permite vincular empleados a usuarios'),
+('editar_empleado_usuario',   'Permite modificar vínculos empleado-usuario'),
+('eliminar_empleado_usuario', 'Permite eliminar vínculos empleado-usuario'),
+('leer_empleado_usuario',     'Permite ver los vínculos empleado-usuario'),
+/* Gestión de evento */
+('crear_evento',    'Permite crear eventos'),
+('editar_evento',   'Permite modificar eventos'),
+('eliminar_evento', 'Permite eliminar eventos'),
+('leer_evento',     'Permite ver los eventos'),
+/* Gestión de evento_cliente */
+('crear_evento_cliente',    'Permite asociar clientes a eventos'),
+('editar_evento_cliente',   'Permite modificar asociaciones evento-cliente'),
+('eliminar_evento_cliente', 'Permite eliminar asociaciones evento-cliente'),
+('leer_evento_cliente',     'Permite ver las asociaciones evento-cliente'),
+/* Gestión de horario */
+('crear_horario',    'Permite crear horarios'),
+('editar_horario',   'Permite modificar horarios'),
+('eliminar_horario', 'Permite eliminar horarios'),
+('leer_horario',     'Permite ver los horarios'),
+/* Gestión de horario_nomina */
+('crear_horario_nomina',    'Permite vincular horarios a nómina'),
+('editar_horario_nomina',   'Permite modificar vínculos horario-nómina'),
+('eliminar_horario_nomina', 'Permite eliminar vínculos horario-nómina'),
+('leer_horario_nomina',     'Permite ver los vínculos horario-nómina'),
+/* Gestión de ingrediente */
+('crear_ingrediente',    'Permite crear ingredientes'),
+('editar_ingrediente',   'Permite modificar ingredientes'),
+('eliminar_ingrediente', 'Permite eliminar ingredientes'),
+('leer_ingrediente',     'Permite ver los ingredientes'),
+/* Gestión de inventario */
+('crear_inventario',    'Permite crear registros de inventario'),
+('editar_inventario',   'Permite modificar registros de inventario'),
+('eliminar_inventario', 'Permite eliminar registros de inventario'),
+('leer_inventario',     'Permite ver el inventario'),
+/* Gestión de invitado */
+('crear_invitado',    'Permite crear invitados'),
+('editar_invitado',   'Permite modificar invitados'),
+('eliminar_invitado', 'Permite eliminar invitados'),
+('leer_invitado',     'Permite ver los invitados'),
+/* Gestión de invitado_evento */
+('crear_invitado_evento',    'Permite registrar asistencia de invitados a eventos'),
+('editar_invitado_evento',   'Permite modificar asistencia de invitados a eventos'),
+('eliminar_invitado_evento', 'Permite eliminar asistencia de invitados a eventos'),
+('leer_invitado_evento',     'Permite ver la asistencia de invitados a eventos'),
+/* Gestión de lugar */
+('crear_lugar',    'Permite crear lugares'),
+('editar_lugar',   'Permite modificar lugares'),
+('eliminar_lugar', 'Permite eliminar lugares'),
+('leer_lugar',     'Permite ver los lugares'),
+/* Gestión de lugar_tienda */
+('crear_lugar_tienda',    'Permite crear zonas internas de tienda'),
+('editar_lugar_tienda',   'Permite modificar zonas internas de tienda'),
+('eliminar_lugar_tienda', 'Permite eliminar zonas internas de tienda'),
+('leer_lugar_tienda',     'Permite ver las zonas internas de tienda'),
+/* Gestión de lugar_tienda_inventario */
+('crear_lugar_tienda_inventario',    'Permite asignar inventario a zonas de tienda'),
+('editar_lugar_tienda_inventario',   'Permite modificar asignaciones de inventario en tienda'),
+('eliminar_lugar_tienda_inventario', 'Permite eliminar asignaciones de inventario en tienda'),
+('leer_lugar_tienda_inventario',     'Permite ver las asignaciones de inventario en tienda'),
+/* Gestión de mensualidad */
+('crear_mensualidad',    'Permite crear mensualidades'),
+('editar_mensualidad',   'Permite modificar mensualidades'),
+('eliminar_mensualidad', 'Permite eliminar mensualidades'),
+('leer_mensualidad',     'Permite ver las mensualidades'),
+/* Gestión de metodo_pago */
+('crear_metodo_pago',    'Permite crear métodos de pago'),
+('editar_metodo_pago',   'Permite modificar métodos de pago'),
+('eliminar_metodo_pago', 'Permite eliminar métodos de pago'),
+('leer_metodo_pago',     'Permite ver los métodos de pago'),
+/* Gestión de miembro */
+('crear_miembro',    'Permite crear miembros/proveedores'),
+('editar_miembro',   'Permite modificar miembros/proveedores'),
+('eliminar_miembro', 'Permite eliminar miembros/proveedores'),
+('leer_miembro',     'Permite ver los miembros/proveedores'),
+/* Gestión de miembro_metodo_pago */
+('crear_miembro_metodo_pago',    'Permite asignar métodos de pago a miembros'),
+('editar_miembro_metodo_pago',   'Permite modificar métodos de pago de miembros'),
+('eliminar_miembro_metodo_pago', 'Permite eliminar métodos de pago de miembros'),
+('leer_miembro_metodo_pago',     'Permite ver los métodos de pago de miembros'),
+/* Gestión de miembro_presentacion_cerveza */
+('crear_miembro_presentacion_cerveza',    'Permite asociar presentaciones a miembros'),
+('editar_miembro_presentacion_cerveza',   'Permite modificar asociaciones presentaciones-miembros'),
+('eliminar_miembro_presentacion_cerveza', 'Permite eliminar asociaciones presentaciones-miembros'),
+('leer_miembro_presentacion_cerveza',     'Permite ver las asociaciones presentaciones-miembros'),
+/* Gestión de miembro_usuario */
+('crear_miembro_usuario',    'Permite vincular miembros a usuarios'),
+('editar_miembro_usuario',   'Permite modificar vínculos miembro-usuario'),
+('eliminar_miembro_usuario', 'Permite eliminar vínculos miembro-usuario'),
+('leer_miembro_usuario',     'Permite ver los vínculos miembro-usuario'),
+/* Gestión de nomina */
+('crear_nomina',    'Permite crear nóminas'),
+('editar_nomina',   'Permite modificar nóminas'),
+('eliminar_nomina', 'Permite eliminar nóminas'),
+('leer_nomina',     'Permite ver las nóminas'),
+/* Gestión de orden_de_compra */
+('crear_orden_de_compra',    'Permite crear órdenes de compra'),
+('editar_orden_de_compra',   'Permite modificar órdenes de compra'),
+('eliminar_orden_de_compra', 'Permite eliminar órdenes de compra'),
+('leer_orden_de_compra',     'Permite ver las órdenes de compra'),
+/* Gestión de orden_de_reposicion */
+('crear_orden_de_reposicion',    'Permite crear órdenes de reposición'),
+('editar_orden_de_reposicion',   'Permite modificar órdenes de reposición'),
+('eliminar_orden_de_reposicion', 'Permite eliminar órdenes de reposición'),
+('leer_orden_de_reposicion',     'Permite ver las órdenes de reposición'),
+/* Gestión de pago */
+('crear_pago',    'Permite registrar pagos'),
+('editar_pago',   'Permite modificar pagos'),
+('eliminar_pago', 'Permite eliminar pagos'),
+('leer_pago',     'Permite ver los pagos'),
+/* Gestión de periodo_descuento */
+('crear_periodo_descuento',    'Permite crear periodos de descuento'),
+('editar_periodo_descuento',   'Permite modificar periodos de descuento'),
+('eliminar_periodo_descuento', 'Permite eliminar periodos de descuento'),
+('leer_periodo_descuento',     'Permite ver los periodos de descuento'),
+/* Gestión de permiso */
+('crear_permiso',    'Permite crear permisos'),
+('editar_permiso',   'Permite modificar permisos'),
+('eliminar_permiso', 'Permite eliminar permisos'),
+('leer_permiso',     'Permite ver los permisos'),
+/* Gestión de permiso_rol */
+('crear_permiso_rol',    'Permite asignar permisos a roles'),
+('editar_permiso_rol',   'Permite modificar permisos de roles'),
+('eliminar_permiso_rol', 'Permite eliminar permisos de roles'),
+('leer_permiso_rol',     'Permite ver los permisos asignados a roles'),
+/* Gestión de persona_contacto */
+('crear_persona_contacto',    'Permite crear personas contacto'),
+('editar_persona_contacto',   'Permite modificar personas contacto'),
+('eliminar_persona_contacto', 'Permite eliminar personas contacto'),
+('leer_persona_contacto',     'Permite ver las personas contacto'),
+/* Gestión de presentacion */
+('crear_presentacion',    'Permite crear presentaciones de producto'),
+('editar_presentacion',   'Permite modificar presentaciones de producto'),
+('eliminar_presentacion', 'Permite eliminar presentaciones de producto'),
+('leer_presentacion',     'Permite ver las presentaciones de producto'),
+/* Gestión de presentacion_cerveza */
+('crear_presentacion_cerveza',    'Permite vincular cervezas a presentaciones'),
+('editar_presentacion_cerveza',   'Permite modificar vínculos cerveza-presentación'),
+('eliminar_presentacion_cerveza', 'Permite eliminar vínculos cerveza-presentación'),
+('leer_presentacion_cerveza',     'Permite ver los vínculos cerveza-presentación'),
+/* Gestión de registro_biometrico */
+('crear_registro_biometrico',    'Permite crear registros biométricos'),
+('editar_registro_biometrico',   'Permite modificar registros biométricos'),
+('eliminar_registro_biometrico', 'Permite eliminar registros biométricos'),
+('leer_registro_biometrico',     'Permite ver los registros biométricos'),
+/* Gestión de rol */
+('crear_rol',    'Permite crear roles'),
+('editar_rol',   'Permite modificar roles'),
+('eliminar_rol', 'Permite eliminar roles'),
+('leer_rol',     'Permite ver los roles'),
+/* Gestión de status */
+('crear_status',    'Permite crear estados'),
+('editar_status',   'Permite modificar estados'),
+('eliminar_status', 'Permite eliminar estados'),
+('leer_status',     'Permite ver los estados'),
+/* Gestión de status_mensualidad */
+('crear_status_mensualidad',    'Permite crear estados de mensualidad'),
+('editar_status_mensualidad',   'Permite modificar estados de mensualidad'),
+('eliminar_status_mensualidad', 'Permite eliminar estados de mensualidad'),
+('leer_status_mensualidad',     'Permite ver los estados de mensualidad'),
+/* Gestión de status_orden */
+('crear_status_orden',    'Permite crear estados de orden'),
+('editar_status_orden',   'Permite modificar estados de orden'),
+('eliminar_status_orden', 'Permite eliminar estados de orden'),
+('leer_status_orden',     'Permite ver los estados de orden'),
+/* Gestión de status_venta */
+('crear_status_venta',    'Permite crear estados de venta'),
+('editar_status_venta',   'Permite modificar estados de venta'),
+('eliminar_status_venta', 'Permite eliminar estados de venta'),
+('leer_status_venta',     'Permite ver los estados de venta'),
+/* Gestión de stock_miembro */
+('crear_stock_miembro',    'Permite registrar stock de miembros'),
+('editar_stock_miembro',   'Permite modificar stock de miembros'),
+('eliminar_stock_miembro', 'Permite eliminar stock de miembros'),
+('leer_stock_miembro',     'Permite ver el stock de miembros'),
+/* Gestión de tasa */
+('crear_tasa',    'Permite crear tasas de cambio'),
+('editar_tasa',   'Permite modificar tasas de cambio'),
+('eliminar_tasa', 'Permite eliminar tasas de cambio'),
+('leer_tasa',     'Permite ver las tasas de cambio'),
+/* Gestión de telefono */
+('crear_telefono',    'Permite registrar teléfonos'),
+('editar_telefono',   'Permite modificar teléfonos'),
+('eliminar_telefono', 'Permite eliminar teléfonos'),
+('leer_telefono',     'Permite ver los teléfonos'),
+/* Gestión de tienda_fisica */
+('crear_tienda_fisica',    'Permite crear tiendas físicas'),
+('editar_tienda_fisica',   'Permite modificar tiendas físicas'),
+('eliminar_tienda_fisica', 'Permite eliminar tiendas físicas'),
+('leer_tienda_fisica',     'Permite ver las tiendas físicas'),
+/* Gestión de tienda_web */
+('crear_tienda_web',    'Permite crear tiendas web'),
+('editar_tienda_web',   'Permite modificar tiendas web'),
+('eliminar_tienda_web', 'Permite eliminar tiendas web'),
+('leer_tienda_web',     'Permite ver las tiendas web'),
+/* Gestión de tipo_cerveza */
+('crear_tipo_cerveza',    'Permite crear tipos de cerveza'),
+('editar_tipo_cerveza',   'Permite modificar tipos de cerveza'),
+('eliminar_tipo_cerveza', 'Permite eliminar tipos de cerveza'),
+('leer_tipo_cerveza',     'Permite ver los tipos de cerveza'),
+/* Gestión de tipo_cerveza_ingrediente */
+('crear_tipo_cerveza_ingrediente',    'Permite asociar ingredientes a tipos de cerveza'),
+('editar_tipo_cerveza_ingrediente',   'Permite modificar asociaciones tipo-cerveza-ingrediente'),
+('eliminar_tipo_cerveza_ingrediente', 'Permite eliminar asociaciones tipo-cerveza-ingrediente'),
+('leer_tipo_cerveza_ingrediente',     'Permite ver las asociaciones tipo-cerveza-ingrediente'),
+/* Gestión de tipo_evento */
+('crear_tipo_evento',    'Permite crear tipos de evento'),
+('editar_tipo_evento',   'Permite modificar tipos de evento'),
+('eliminar_tipo_evento', 'Permite eliminar tipos de evento'),
+('leer_tipo_evento',     'Permite ver los tipos de evento'),
+/* Gestión de tipo_invitado */
+('crear_tipo_invitado',    'Permite crear tipos de invitado'),
+('editar_tipo_invitado',   'Permite modificar tipos de invitado'),
+('eliminar_tipo_invitado', 'Permite eliminar tipos de invitado'),
+('leer_tipo_invitado',     'Permite ver los tipos de invitado'),
+/* Gestión de usuario */
+('crear_usuario',    'Permite crear usuarios'),
+('editar_usuario',   'Permite modificar usuarios'),
+('eliminar_usuario', 'Permite eliminar usuarios'),
+('leer_usuario',     'Permite ver los usuarios'),
+/* Gestión de vacacion */
+('crear_vacacion',    'Permite registrar vacaciones'),
+('editar_vacacion',   'Permite modificar vacaciones'),
+('eliminar_vacacion', 'Permite eliminar vacaciones'),
+('leer_vacacion',     'Permite ver las vacaciones'),
+/* Gestión de venta */
+('crear_venta',    'Permite crear ventas'),
+('editar_venta',   'Permite modificar ventas'),
+('eliminar_venta', 'Permite eliminar ventas'),
+('leer_venta',     'Permite ver las ventas'),
+/* Gestión de venta_evento */
+('crear_venta_evento',    'Permite crear ventas en eventos'),
+('editar_venta_evento',   'Permite modificar ventas en eventos'),
+('eliminar_venta_evento', 'Permite eliminar ventas en eventos'),
+('leer_venta_evento',     'Permite ver las ventas en eventos');
+
     
 -- Administrador gets all permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
