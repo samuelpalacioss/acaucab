@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CreditCard, Banknote, Smartphone, Award, ArrowRight, ArrowLeft, Eye } from "lucide-react";
 import { TarjetaForm } from "../steps/tarjeta-form";
+import { BancoSelector } from "@/components/ui/banco-selector";
 import {
   Select,
   SelectContent,
@@ -27,6 +28,7 @@ interface PaymentDetails {
   nombreTitular?: string;
   numeroTarjeta?: string;
   fechaExpiracion?: string;
+  banco?: string;
   // Efectivo properties
   cashReceived?: number;
   cashChange?: number;
@@ -84,6 +86,8 @@ export default function PaymentView({
   const [cardData, setCardData] = useState<any>({});
   const [isCardValid, setIsCardValid] = useState(false);
   const [cardAmount, setCardAmount] = useState<number | string>("");
+  const [selectedBank, setSelectedBank] = useState<string>("");
+  const [submitted, setSubmitted] = useState(false);
 
   // Mobile payment state
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -101,6 +105,10 @@ export default function PaymentView({
     return !cardAmount || (amount > 0 && amount <= total);
   };
 
+  const isBankSelected = () => {
+    return selectedBank.length > 0;
+  };
+
   const isCashAmountValid = () => {
     return !cashReceived || (cashReceivedNum > 0 && cashReceivedNum <= total);
   };
@@ -114,7 +122,7 @@ export default function PaymentView({
   const isFormValid = () => {
     switch (selectedTab) {
       case "tarjeta":
-        return isCardValid && isCardAmountValid();
+        return isCardValid && isCardAmountValid() && isBankSelected();
       case "efectivo":
         return isCashAmountValid() && cashReceivedNum > 0;
       case "puntos":
@@ -125,6 +133,11 @@ export default function PaymentView({
   };
 
   const handleSubmit = () => {
+    setSubmitted(true);
+    if (!isFormValid()) {
+      return;
+    }
+
     let details: PaymentDetails = {};
     let amountPaid = 0;
 
@@ -134,6 +147,7 @@ export default function PaymentView({
           nombreTitular: cardData.nombreTitular,
           numeroTarjeta: cardData.numeroTarjeta?.replace(/\s/g, "") || "", // Remove spaces
           fechaExpiracion: cardData.fechaExpiracion,
+          banco: selectedBank,
         };
         amountPaid = typeof cardAmount === "number" ? cardAmount : total;
         break;
@@ -258,32 +272,46 @@ export default function PaymentView({
                   </TabsTrigger>
                 </TabsList>
 
-                <div className="space-y-6">
+                <div className="space-y-6 max-w-2xl">
                   <TabsContent value="tarjeta" className="space-y-4">
                     <TarjetaForm
                       onDataChange={handleCardDataChange}
                       onValidationChange={handleCardValidationChange}
                     />
-                    <div className="space-y-2">
-                      <Label htmlFor="cardAmount">Monto a pagar</Label>
-                      <Input
-                        id="cardAmount"
-                        type="number"
-                        min="0.01"
-                        max={total}
-                        step="0.01"
-                        placeholder={total.toFixed(2)}
-                        value={cardAmount}
-                        onChange={(e) =>
-                          setCardAmount(e.target.value ? Number(e.target.value) : "")
-                        }
-                        className={!isCardAmountValid() ? "border-red-500" : ""}
-                      />
-                      {!isCardAmountValid() && cardAmount && (
-                        <p className="text-sm text-red-500">
-                          El monto no puede ser mayor al total (${total.toFixed(2)})
-                        </p>
-                      )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bankSelector">Banco Emisor</Label>
+                        <BancoSelector
+                          value={selectedBank}
+                          onValueChange={setSelectedBank}
+                          placeholder="Seleccione el banco"
+                          className={submitted && !isBankSelected() ? "border-red-500" : ""}
+                        />
+                        {submitted && !isBankSelected() && (
+                          <p className="text-sm text-red-500">Debe seleccionar un banco</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cardAmount">Monto a pagar</Label>
+                        <Input
+                          id="cardAmount"
+                          type="number"
+                          min="0.01"
+                          max={total}
+                          step="0.01"
+                          placeholder={total.toFixed(2)}
+                          value={cardAmount}
+                          onChange={(e) =>
+                            setCardAmount(e.target.value ? Number(e.target.value) : "")
+                          }
+                          className={!isCardAmountValid() ? "border-red-500" : ""}
+                        />
+                        {!isCardAmountValid() && cardAmount && (
+                          <p className="text-sm text-red-500">
+                            El monto no puede ser mayor al total (${total.toFixed(2)})
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </TabsContent>
 
@@ -415,12 +443,7 @@ export default function PaymentView({
                     )}
                   </TabsContent>
 
-                  <Button
-                    type="button"
-                    className="w-full mt-6"
-                    disabled={!isFormValid()}
-                    onClick={handleSubmit}
-                  >
+                  <Button type="button" className="w-full mt-6" onClick={handleSubmit}>
                     Completar pago <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>

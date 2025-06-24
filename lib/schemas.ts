@@ -94,6 +94,7 @@ export interface TarjetaDetails {
   nombreTitular: string;
   numeroTarjeta: string;
   fechaExpiracion: string;
+  banco: string;
   amountPaid: number;
 }
 

@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
 import OrderSummaryCard from "./order-summary-card";
+import { Separator } from "@radix-ui/react-select";
 import { CarritoItemType } from "@/lib/schemas";
+import { getBancoNombre } from "@/components/ui/banco-selector";
 
 /** Tipos para el método de pago */
 type PaymentMethod = "tarjeta" | "efectivo" | "pagoMovil" | "puntos";
@@ -14,6 +16,7 @@ interface PaymentDetails {
   nombreTitular?: string;
   numeroTarjeta?: string;
   fechaExpiracion?: string;
+  banco?: string;
   cashReceived?: number;
   cashChange?: number;
   phoneNumber?: string;
@@ -40,7 +43,7 @@ interface PaymentMethodSummaryProps {
   onDeletePayment?: (paymentIndex: number) => void;
 }
 
-const getCardType = (cardNumber: string): string => {
+export const getCardType = (cardNumber: string): string => {
   if (cardNumber.startsWith("4")) return "Visa";
   if (cardNumber.startsWith("5")) return "Mastercard";
   if (cardNumber.startsWith("3")) return "American Express";
