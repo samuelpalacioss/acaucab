@@ -32,6 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import OrderSummaryCard from "./order-summary-card";
 import { Separator } from "@radix-ui/react-select";
 import { CarritoItemType } from "@/lib/schemas";
+import type { EfectivoDetails, Currency } from "@/store/venta-store";
 
 const denominationsMap = {
   bolivares: [1, 5, 10, 20, 50, 100, 200, 500],
@@ -53,24 +54,7 @@ const exchangeRates = {
 
 export type PaymentMethod = "tarjetaCredito" | "tarjetaDebito" | "efectivo" | "cheque" | "puntos";
 
-interface PaymentDetails {
-  // Tarjeta properties matching TarjetaDetails
-  nombreTitular?: string;
-  numeroTarjeta?: string;
-  fechaExpiracion?: string;
-  banco?: string;
-  // Efectivo properties
-  cashReceived?: number;
-
-  // Cheque properties
-  numeroCheque?: string;
-  numeroCuenta?: string;
-  // Puntos properties
-  customerId?: string;
-  pointsToUse?: number;
-  // Common property
-  amountPaid?: number;
-}
+type PaymentDetails = Record<string, any>;
 
 /** Interfaz para un pago existente */
 interface ExistingPayment {
@@ -106,7 +90,8 @@ export default function PaymentView({
   const [selectedTab, setSelectedTab] = useState<string>("tarjeta");
   const [cardType, setCardType] = useState<"credito" | "debito">("credito");
   const [cashReceived, setCashReceived] = useState("");
-  const [denomination, setDenomination] = useState<"bolivares" | "dolares" | "euros">("dolares");
+  const [denomination, setDenomination] = useState<Currency>("dolares");
+  const [breakdown, setBreakdown] = useState<{ [value: string]: number }>({});
 
   // Calculate cash change
   const cashReceivedNum = Number.parseFloat(cashReceived) || 0;
@@ -217,10 +202,14 @@ export default function PaymentView({
           fechaExpiracion: cardData.fechaExpiracion,
           banco: getBancoNombre(selectedBank),
         };
-        amountPaid = typeof cardAmount === "number" ? cardAmount : total;
+        amountPaid = parseFloat((typeof cardAmount === "number" ? cardAmount : total).toFixed(2));
         break;
       case "efectivo":
-        details = { cashReceived: cashReceivedNum }; // Storing amount in selected currency
+        details = {
+          currency: denomination,
+          breakdown: breakdown,
+          amountInCurrency: cashReceivedNum,
+        };
         amountPaid = Math.min(cashReceivedInUSD, total);
         break;
       case "cheque":
@@ -233,7 +222,7 @@ export default function PaymentView({
         break;
     }
 
-    onComplete(paymentMethod, { ...details, amountPaid });
+    onComplete(paymentMethod, { ...details, amountPaid } as any);
   };
 
   // Mock function to simulate fetching customer points
@@ -266,10 +255,15 @@ export default function PaymentView({
 
   const handleAddDenomination = (amount: number) => {
     setCashReceived((prev) => (Number(prev || 0) + amount).toString());
+    setBreakdown((prev) => ({
+      ...prev,
+      [amount.toString()]: (prev[amount.toString()] || 0) + 1,
+    }));
   };
 
   const handleClearCash = () => {
     setCashReceived("");
+    setBreakdown({});
   };
 
   return (
@@ -428,9 +422,10 @@ export default function PaymentView({
                         <Label htmlFor="denomination">Denominación</Label>
                         <Select
                           value={denomination}
-                          onValueChange={(value: "bolivares" | "dolares" | "euros") => {
+                          onValueChange={(value: Currency) => {
                             setDenomination(value);
                             setCashReceived(""); // Reset amount on currency change
+                            setBreakdown({});
                           }}
                         >
                           <SelectTrigger>

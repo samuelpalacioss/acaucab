@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Loader, X } from "lucide-react";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
-import { useVentaStore } from "@/store/venta-store";
+import { useVentaStore, EfectivoDetails as StoreEfectivoDetails } from "@/store/venta-store";
 import { getCardType } from "@/lib/utils";
 
 // Steps enum for better type safety
@@ -39,6 +39,16 @@ enum Step {
   PRODUCT_SELECTION = "product_selection",
   PAYMENT = "payment",
   PAYMENT_SUMMARY = "payment_summary",
+}
+
+// Type guard para los detalles de efectivo
+function isEfectivoDetails(details: any): details is StoreEfectivoDetails {
+  return (
+    details &&
+    typeof details.currency === "string" &&
+    typeof details.breakdown === "object" &&
+    typeof details.amountInCurrency === "number"
+  );
 }
 
 /** Función mejorada para debuggear el store de venta en puntos clave */
@@ -56,7 +66,18 @@ const logVentaStore = (action?: string) => {
   });
   console.log("💳 Métodos de pago:", state.metodosPago.length);
   state.metodosPago.forEach((pago, index) => {
-    console.log(`   ${index + 1}. ${pago.method}:`, pago.details);
+    if (pago.method === "efectivo" && isEfectivoDetails(pago.details)) {
+      const breakdownString = Object.entries(pago.details.breakdown || {})
+        .map(([value, count]) => `${value}: x${count}`)
+        .join(", ");
+      console.log(
+        `   ${index + 1}. ${pago.method}: ${pago.details.amountInCurrency} ${
+          pago.details.currency
+        } (Desglose: ${breakdownString || "N/A"})`
+      );
+    } else {
+      console.log(`   ${index + 1}. ${pago.method}:`, pago.details);
+    }
   });
   console.log("🔢 Venta ID:", state.ventaId);
   console.log("⏳ Creando venta:", state.isCreatingVenta);
