@@ -1,6 +1,5 @@
-/**
- * Crea un nuevo pago en el sistema manejando diferentes tipos de transacciones
- * y métodos de pago según las reglas de negocio establecidas.
+/*
+ Crea un nuevo pago en el sistema (esta funcion maneja los distintos metodos de pago disponibles)
  */
 CREATE OR REPLACE FUNCTION fn_create_pago(
     p_monto DECIMAL(10,2),
@@ -55,7 +54,6 @@ BEGIN
         RAISE EXCEPTION 'Tipo de método de pago inválido: %. Debe ser MIEMBRO o CLIENTE', p_tipo_metodo_pago;
     END IF;
 
-    /** Insertar el nuevo pago - La DB maneja constraints automáticamente */
     INSERT INTO pago (
         monto,
         fecha_pago,
@@ -80,7 +78,7 @@ BEGIN
         p_fk_venta_evento,
         p_fk_miembro_metodo_pago_1,
         p_fk_cliente_metodo_pago_1
-    ) RETURNING id INTO v_pago_id; -- Guarda el ID del pago creado en la variable v_pago_id
+    ) RETURNING id INTO v_pago_id; 
 
     /** Retornar el ID del pago creado */
     RETURN v_pago_id;
