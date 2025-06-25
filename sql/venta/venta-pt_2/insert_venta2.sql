@@ -44,20 +44,22 @@ INSERT INTO orden_de_compra (
     fecha_entrega,
     observacion,
     fk_empleado,
-    fk_presentacion_cerveza_2,
     fk_presentacion_cerveza_1,
-    unidades
+    fk_presentacion_cerveza_2,
+    unidades,
+    fk_miembro_1,
+    fk_miembro_2
 ) VALUES
-    ('2025-01-10', '2025-01-20', 'Orden urgente para evento', 1, 1, 1, 500),      /** Botellas 330ml Destilo */
-    ('2025-01-11', '2025-01-21', 'Stock regular', 2, 2, 2, 300),                 /** Botellas 500ml Dos Leones */
-    ('2025-01-12', '2025-01-22', NULL, 3, 3, 3, 400),                           /** Latas 330ml Benitz Pale Ale */
-    ('2025-01-13', '2025-01-23', 'Para promoción especial', 4, 4, 4, 100),     /** Six-packs Candileja de Abadía */
-    ('2025-01-14', '2025-01-24', 'Pedido mayorista', 5, 5, 5, 50),            /** Cajas 24 unidades Ángel o Demonio */
-    ('2025-01-15', '2025-01-25', NULL, 1, 6, 6, 20),                             /** Barriles 20L Barricas Saison Belga */
-    ('2025-01-16', '2025-01-26', 'Para bar asociado', 2, 7, 7, 15),              /** Barriles 30L Aldarra Mantuana */
-    ('2025-01-17', '2025-01-27', 'Evento especial', 3, 8, 8, 10),                /** Barriles 50L Tröegs HopBack Amber */
-    ('2025-01-18', '2025-01-28', NULL, 4, 9, 9, 200),                            /** Growlers 1L Full Sail Amber */
-    ('2025-01-19', '2025-01-29', 'Reposición stock', 5, 10, 10, 80);           /** Cajas 12 unidades Deschutes Cinder Cone */
+    ('2024-05-10', '2024-05-17', 'Orden antigua - evento pasado', 9, 1, 1, 10000, 123456789, 'J'),      -- ID 1
+    ('2024-06-12', '2024-06-20', 'Pedido histórico', 9, 2, 2, 10000, 234567890, 'J'),                           -- ID 2
+    ('2024-07-13', '2024-07-22', 'Promoción especial pasada', 9, 5, 5, 10000, 345678901, 'V'),     -- ID 3
+    ('2024-08-15', '2024-08-23', 'Pedido anterior', 9, 6, 6, 10000, 567890123, 'V'),                             -- ID 4
+    ('2024-09-16', '2024-09-25', 'Bar asociado - pedido pasado', 9, 7, 7, 10000, 678901234, 'J'),              -- ID 5
+    ('2024-10-17', '2024-10-27', 'Evento especial anterior', 9, 8, 8, 10000, 789012345, 'V'),                -- ID 6
+    ('2024-11-18', '2024-11-28', 'Pedido regular pasado', 9, 9, 9, 10000, 890123456, 'J'),                            -- ID 7
+    ('2025-06-20', NULL, 'URGENTE - Stock crítico Zona Refrigerada', 9, 6, 16, 10000, 987654321, 'V'),                 -- ID 8
+    ('2025-06-22', NULL, 'CRÍTICO - Zona Barriles sin stock', 9, 7, 17, 10000, 456789012, 'J'),            -- ID 9
+    ('2025-06-24', NULL, 'URGENTE - Pasillo Salida agotado', 9, 8, 18, 10000, 901234567, 'V');           -- ID 10
 
 /**
  * Inserción de detalles de evento

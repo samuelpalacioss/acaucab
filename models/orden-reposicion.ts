@@ -24,6 +24,9 @@ export interface OrdenReposicion {
   /** Estado actual de la orden de reposición */
   "Estado": string;
   
+  /** Fecha del último estado de la orden de reposición */
+  "Fecha de Estado": string;
+  
   /** Nombre y apellido del empleado que solicitó la reposición */
   "Empleado": string;
   

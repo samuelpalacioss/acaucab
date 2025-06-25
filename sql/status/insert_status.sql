@@ -61,18 +61,86 @@ INSERT INTO status_mensualidad (fecha_actualización, fecha_fin, fk_status, fk_m
  * Inserts para la tabla status_orden
  * Relaciona los estados con las órdenes de compra y reposición
  * Cada orden debe tener o fk_orden_de_compra o fk_orden_reposicion, no ambos
+ * Todas las órdenes inician con status "Pendiente" (ID 1) en la fecha de creación
  */
 INSERT INTO status_orden (fecha_actualización, fecha_fin, fk_orden_de_compra, fk_status, fk_orden_de_reposicion) VALUES
-    (CURRENT_DATE - INTERVAL '25 days', NULL, 1, 1, NULL),
-    (CURRENT_DATE - INTERVAL '24 days', NULL, NULL, 2, 2), 
-    (CURRENT_DATE - INTERVAL '23 days', NULL, 3, 3, NULL),
-    (CURRENT_DATE - INTERVAL '22 days', NULL, NULL, 4, 4),
-    (CURRENT_DATE - INTERVAL '21 days', NULL, 5, 5, NULL),
-    (CURRENT_DATE - INTERVAL '20 days', NULL, NULL, 6, 6),
-    (CURRENT_DATE - INTERVAL '19 days', NULL, 7, 7, NULL),
-    (CURRENT_DATE - INTERVAL '18 days', NULL, NULL, 8, 8),
-    (CURRENT_DATE - INTERVAL '17 days', NULL, 9, 9, NULL),
-    (CURRENT_DATE - INTERVAL '16 days', NULL, NULL, 10, 10);
+    -- Orden de Compra (nueva ID 1), creada en 2024-05-10
+    ('2024-05-10', '2024-05-12', 1, 1, NULL),    -- Pendiente
+    ('2024-05-12', '2024-05-17', 1, 3, NULL),    -- Aprobado
+    ('2024-05-17', NULL,         1, 10, NULL),   -- Finalizado
+
+    -- Orden de Reposición (nueva ID 1), creada en 2024-05-10
+    ('2024-05-10', '2024-05-11', NULL, 1, 1),    -- Pendiente
+    ('2024-05-11', '2024-05-16', NULL, 3, 1),    -- Aprobado
+    ('2024-05-16', NULL,         NULL, 10, 1),   -- Finalizado
+
+    -- Orden de Reposición (nueva ID 2), creada en 2024-05-11
+    ('2024-05-11', '2024-05-13', NULL, 1, 2),    -- Pendiente
+    ('2024-05-13', '2024-05-18', NULL, 3, 2),    -- Aprobado
+    ('2024-05-18', NULL,         NULL, 10, 2),   -- Finalizado
+
+    -- Orden de Reposición (nueva ID 3), creada en 2024-05-12
+    ('2024-05-12', '2024-05-14', NULL, 1, 3),    -- Pendiente
+    ('2024-05-14', '2024-05-19', NULL, 3, 3),    -- Aprobado
+    ('2024-05-19', NULL,         NULL, 10, 3),   -- Finalizado
+
+    -- Orden de Compra (nueva ID 2), creada en 2024-06-12
+    ('2024-06-12', '2024-06-14', 2, 1, NULL),    -- Pendiente
+    ('2024-06-14', '2024-06-20', 2, 3, NULL),    -- Aprobado
+    ('2024-06-20', NULL,         2, 10, NULL),   -- Finalizado
+
+    -- Orden de Compra (nueva ID 3), creada en 2024-07-13
+    ('2024-07-13', '2024-07-15', 3, 1, NULL),    -- Pendiente
+    ('2024-07-15', '2024-07-22', 3, 3, NULL),    -- Aprobado
+    ('2024-07-22', NULL,         3, 10, NULL),   -- Finalizado
+
+    -- Orden de Compra (nueva ID 4), creada en 2024-08-15
+    ('2024-08-15', '2024-08-17', 4, 1, NULL),    -- Pendiente
+    ('2024-08-17', '2024-08-23', 4, 3, NULL),    -- Aprobado
+    ('2024-08-23', NULL,         4, 10, NULL),   -- Finalizado
+
+    -- Orden de Reposición (nueva ID 4), creada en 2024-08-15
+    ('2024-08-15', '2024-08-18', NULL, 1, 4),    -- Pendiente
+    ('2024-08-18', '2024-08-25', NULL, 3, 4),    -- Aprobado
+    ('2024-08-25', NULL,         NULL, 10, 4),   -- Finalizado
+
+    -- Orden de Compra (nueva ID 5), creada en 2024-09-16
+    ('2024-09-16', '2024-09-18', 5, 1, NULL),    -- Pendiente
+    ('2024-09-18', '2024-09-25', 5, 3, NULL),    -- Aprobado
+    ('2024-09-25', NULL,         5, 10, NULL),   -- Finalizado
+
+    -- Orden de Reposición (nueva ID 5), creada en 2024-09-16
+    ('2024-09-16', '2024-09-19', NULL, 1, 5),    -- Pendiente
+    ('2024-09-19', '2024-09-26', NULL, 3, 5),    -- Aprobado
+    ('2024-09-26', NULL,         NULL, 10, 5),   -- Finalizado
+
+    -- Orden de Compra (nueva ID 6), creada en 2024-10-17
+    ('2024-10-17', '2024-10-20', 6, 1, NULL),    -- Pendiente
+    ('2024-10-20', '2024-10-27', 6, 3, NULL),    -- Aprobado
+    ('2024-10-27', NULL,         6, 10, NULL),   -- Finalizado
+
+    -- Orden de Reposición (nueva ID 6), creada en 2024-10-17
+    ('2024-10-17', '2024-10-19', NULL, 1, 6),    -- Pendiente
+    ('2024-10-19', '2024-10-26', NULL, 3, 6),    -- Aprobado
+    ('2024-10-26', NULL,         NULL, 10, 6),   -- Finalizado
+
+    -- Orden de Compra (nueva ID 7), creada en 2024-11-18
+    ('2024-11-18', '2024-11-20', 7, 1, NULL),    -- Pendiente
+    ('2024-11-20', '2024-11-28', 7, 3, NULL),    -- Aprobado
+    ('2024-11-28', NULL,         7, 10, NULL),   -- Finalizado
+
+    -- Orden de Reposición (nueva ID 7), creada en 2024-11-18
+    ('2024-11-18', '2024-11-21', NULL, 1, 7),    -- Pendiente
+    ('2024-11-21', '2024-11-29', NULL, 3, 7),    -- Aprobado
+    ('2024-11-29', NULL,         NULL, 10, 7),   -- Finalizado
+
+    -- Órdenes de 2025 (solo pendientes, con sus nuevas IDs)
+    ('2025-06-20', NULL, 8, 1, NULL),    -- Orden compra (nueva ID 8)
+    ('2025-06-21', NULL, NULL, 1, 8),    -- Orden reposición (nueva ID 8)
+    ('2025-06-22', NULL, 9, 1, NULL),    -- Orden compra (nueva ID 9)
+    ('2025-06-23', NULL, NULL, 1, 9),    -- Orden reposición (nueva ID 9)
+    ('2025-06-24', NULL, 10, 1, NULL),   -- Orden compra (nueva ID 10)
+    ('2025-06-25', NULL, NULL, 1, 10);   -- Orden reposición (nueva ID 10)
 
 -- =============================================================================
 -- 4. INSERTS PARA LA TABLA STATUS_VENTA

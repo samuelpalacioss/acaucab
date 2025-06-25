@@ -392,7 +392,7 @@ WHERE p.nombre IN (
     'leer_orden_de_compra',
     'editar_orden_de_compra'
     'leer_inventario',
-    'editar_inventario',
+    'editar_inventario'
 );
 
 -- Jefe de Pasillos gets aisle management permissions
@@ -717,45 +717,42 @@ INSERT INTO usuario (
 ) VALUES
     -- System users
     ('admin123', 1, 14),
-    ('emp123', 2, 15),
-    ('cli123', 3, 16),
-    ('mem123', 4, 17),
     
     -- Member company users (all with role 4 - Miembro)
-    ('delta2024', 4, 3),
-    ('omega2024', 4, 4),
-    ('epsilon2024', 4, 5),
-    ('beta2024', 4, 6),
-    ('gamma2024', 4, 7),
-    ('sigma2024', 4, 8),
-    ('theta2024', 4, 9),
-    ('lambda2024', 4, 10),
-    ('zeta2024', 4, 11),
-    ('omegacom2024', 4, 12),
+    ('delta2024', 3, 3),
+    ('omega2024', 3, 4),
+    ('epsilon2024', 3, 5),
+    ('beta2024', 3, 6),
+    ('gamma2024', 3, 7),
+    ('sigma2024', 3, 8),
+    ('theta2024', 3, 9),
+    ('lambda2024', 3, 10),
+    ('zeta2024', 3, 11),
+    ('omegacom2024', 3, 12),
 
     -- Employee users (all with role 2 - Empleado)
-    ('maria2024', 2, 18),
-    ('pedro2024', 2, 19),
-    ('ana2024', 2, 20),
-    ('carlos2024', 2, 21),
-    ('laura2024', 2, 22),
-    ('roberto2024', 2, 23),
-    ('sofia2024', 2, 24),
-    ('miguel2024', 2, 25),
-    ('carmen2024', 2, 26),
+    ('maria2024', 7, 18),
+    ('pedro2024', 8, 19),
+    ('ana2024', 9, 20),
+    ('carlos2024', 7, 21),
+    ('laura2024', 10, 22),
+    ('roberto2024', 9, 23),
+    ('sofia2024', 9, 24),
+    ('miguel2024', 4, 25), -- Rol 'Jefe de Compras' para Miguel Morales
+    ('carmen2024', 6, 26), -- Rol 'Jefe de Pasillos' para Carmen Ortiz
     
     -- Users for clients
-    ('cliente_natural_2', 3, 33),
-    ('cliente_natural_3', 3, 34),
-    ('cliente_natural_4', 3, 35),
-    ('cliente_natural_5', 3, 36),
-    ('cliente_natural_6', 3, 37),
-    ('cliente_juridico_1', 3, 38),
-    ('cliente_juridico_2', 3, 39),
-    ('cliente_juridico_3', 3, 40),
-    ('cliente_juridico_4', 3, 41),
-    ('cliente_juridico_5', 3, 42),
-    ('cliente_juridico_6', 3, 43);
+    ('cliente_natural_2', 2, 33),
+    ('cliente_natural_3', 2, 34),
+    ('cliente_natural_4', 2, 35),
+    ('cliente_natural_5', 2, 36),
+    ('cliente_natural_6', 2, 37),
+    ('cliente_juridico_1', 2, 38),
+    ('cliente_juridico_2', 2, 39),
+    ('cliente_juridico_3', 2, 40),
+    ('cliente_juridico_4', 2, 41),
+    ('cliente_juridico_5', 2, 42),
+    ('cliente_juridico_6', 2, 43);
 
 /**
  * Inserts for cliente_usuario table
