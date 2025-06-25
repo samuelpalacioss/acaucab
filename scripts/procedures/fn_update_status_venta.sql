@@ -1,5 +1,12 @@
 DROP FUNCTION IF EXISTS fn_update_status_venta(INTEGER, INTEGER);
 
+/**
+ * Actualiza el estado de una venta.
+ *
+ * Esta función se encarga de dos cosas:
+ * 1. Finaliza el estado actual de la venta, estableciendo la `fecha_final`.
+ * 2. Inserta un nuevo registro para reflejar el nuevo estado de la venta.
+ */
 CREATE OR REPLACE FUNCTION fn_update_status_venta(
   p_venta_id INTEGER,
   p_status_id INTEGER
@@ -30,8 +37,8 @@ BEGIN
     RAISE EXCEPTION 'El estado con ID % no fue encontrado en la tabla `status`.', p_status_id;
   END IF;
 
-  -- Una venta en estado completado o cancelado ya llego a su fin, lanzar error
-  IF upper(v_estado_actual) IN ('COMPLETADO', 'CANCELADO') THEN
+  -- Una venta en estado cancelado ya llego a su fin, lanzar error
+  IF upper(v_estado_actual) = 'CANCELADO' THEN
       RAISE EXCEPTION 'La venta ya está en un estado final ("%") y no puede cambiar.', v_estado_actual;
   END IF;
 
