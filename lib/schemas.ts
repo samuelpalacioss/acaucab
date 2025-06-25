@@ -138,7 +138,7 @@ export const loginSchema = z.object({
   email: z.string().email({ message: "Por favor ingrese un email válido" }),
   password: z
     .string()
-    .min(8, { message: "La contraseña debe tener al menos 8 caracteres" }),
+    .min(6, { message: "La contraseña debe tener al menos 6 caracteres" }),
 });
 
 export type loginType = z.infer<typeof loginSchema>;

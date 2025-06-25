@@ -97,24 +97,42 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
 
   /**
    * Función para agrupar permisos por categoría
-   * Agrupa los permisos basándose en palabras clave en su nombre
+   * Agrupa los permisos basándose en la entidad/tabla a la que pertenecen
    */
   const groupedPermissions = permisos.reduce((acc, permission) => {
-    let category = 'Otros';
+    // Extraer el nombre de la entidad del nombre del permiso
+    // El formato es 'acción_entidad', ejemplo: 'crear_usuario' -> 'usuario'
+    const entityName = permission.nombre.split('_').slice(1).join('_');
     
-    // Determinar categoría basándose en el nombre del permiso
-    if (permission.nombre.includes('usuario') || permission.nombre.includes('roles') || 
-        permission.nombre.includes('miembros') || permission.nombre.includes('clientes')) {
-      category = 'Gestión de Usuarios';
-    } else if (permission.nombre.includes('venta') || permission.nombre.includes('pago') || 
-               permission.nombre.includes('factura') || permission.nombre.includes('caja')) {
-      category = 'Gestión de Ventas';
-    } else if (permission.nombre.includes('compra') || permission.nombre.includes('proveedores') || 
-               permission.nombre.includes('pedidos')) {
-      category = 'Gestión de Compras';
-    } else if (permission.nombre.includes('reposición')) {
-      category = 'Gestión de Pasillos';
-    }
+    // Determinar la categoría basada en la entidad
+    let category = 'Gestión de ' + entityName.charAt(0).toUpperCase() + entityName.slice(1);
+    
+    // Casos especiales de pluralización y nombres compuestos
+    if (entityName.includes('usuario')) category = 'Gestión de Usuarios';
+    if (entityName.includes('rol')) category = 'Gestión de Roles';
+    if (entityName.includes('permiso')) category = 'Gestión de Permisos';
+    if (entityName.includes('cliente')) category = 'Gestión de Clientes';
+    if (entityName.includes('empleado')) category = 'Gestión de Empleados';
+    if (entityName.includes('venta')) category = 'Gestión de Ventas';
+    if (entityName.includes('pago')) category = 'Gestión de Pagos';
+    if (entityName.includes('orden_de_compra')) category = 'Gestión de Órdenes de Compra';
+    if (entityName.includes('orden_de_reposicion')) category = 'Gestión de Órdenes de Reposición';
+    if (entityName.includes('inventario')) category = 'Gestión de Inventario';
+    if (entityName.includes('evento')) category = 'Gestión de Eventos';
+    if (entityName.includes('miembro')) category = 'Gestión de Miembros';
+    if (entityName.includes('beneficio')) category = 'Gestión de Beneficios';
+    if (entityName.includes('nomina')) category = 'Gestión de Nómina';
+    if (entityName.includes('horario')) category = 'Gestión de Horarios';
+    if (entityName.includes('vacacion')) category = 'Gestión de Vacaciones';
+    if (entityName.includes('registro_biometrico')) category = 'Gestión de Registros Biométricos';
+    if (entityName.includes('cerveza')) category = 'Gestión de Cervezas';
+    if (entityName.includes('presentacion')) category = 'Gestión de Presentaciones';
+    if (entityName.includes('almacen')) category = 'Gestión de Almacenes';
+    if (entityName.includes('tienda')) category = 'Gestión de Tiendas';
+    if (entityName.includes('descuento')) category = 'Gestión de Descuentos';
+    if (entityName.includes('status')) category = 'Gestión de Estados';
+    if (entityName.includes('tasa')) category = 'Gestión de Tasas';
+    if (entityName.includes('lugar')) category = 'Gestión de Lugares';
     
     if (!acc[category]) {
       acc[category] = [];
@@ -734,11 +752,34 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
               />
             </div>
 
-          
-
             {/* Sección de permisos */}
             <div id="permissions-section">
-              <label className="text-sm font-medium mb-3 block">Permisos</label>
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-medium">Permisos</label>
+                {/**
+                 * Botón para seleccionar o deseleccionar todos los permisos
+                 * Si ya están todos seleccionados, permite deseleccionar todos y viceversa
+                 */}
+                {(() => {
+                  const allPermissionIds = permisos.map(p => p.id);
+                  const allSelected = allPermissionIds.every(id => newRole.permissions.includes(id));
+                  return (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setNewRole(prev => ({
+                          ...prev,
+                          permissions: allSelected ? [] : allPermissionIds
+                        }));
+                      }}
+                    >
+                      {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                    </Button>
+                  );
+                })()}
+              </div>
               <div id="permissions-categories" className="space-y-4">
                 {Object.entries(groupedPermissions).map(([category, permissions]) => (
                   <div key={category} id={`category-${category.toLowerCase()}`}>

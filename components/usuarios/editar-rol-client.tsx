@@ -260,6 +260,35 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
               <CardTitle id="rol-permisos-title">Permisos del Rol</CardTitle>
             </CardHeader>
             <CardContent>
+              {/*\
+                Botón para seleccionar o deseleccionar todos los permisos
+                Si ya están todos seleccionados, permite deseleccionar todos y viceversa
+              */}
+              {/**
+               * Determinar si todos los permisos están seleccionados
+               */}
+              {(() => {
+                const allPermissionIds = todosLosPermisos.map(p => p.id);
+                const allSelected = allPermissionIds.every(id => role.permisos.includes(id));
+                return (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mb-4"
+                    disabled={isLoading}
+                    onClick={() => {
+                      setRole(prev => ({
+                        ...prev,
+                        permisos: allSelected ? [] : allPermissionIds
+                      }));
+                      setHasChanges(true);
+                    }}
+                  >
+                    {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                  </Button>
+                );
+              })()}
               <div id="permisos-categories" className="space-y-6">
                 {Object.entries(groupedPermissions).map(([category, permissions]) => (
                   <div key={category} id={`category-${category.toLowerCase()}`}>
