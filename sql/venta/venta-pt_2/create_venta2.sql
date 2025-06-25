@@ -86,6 +86,8 @@ CREATE TABLE orden_de_compra (
     fk_presentacion_cerveza_1 INTEGER NOT NULL,             /** Referencia a presentación cerveza - campo 1 */
     fk_presentacion_cerveza_2 INTEGER NOT NULL,         /** Referencia a presentación cerveza - campo 2 */
     unidades                  INTEGER NOT NULL,             /** Cantidad de unidades a ordenar */
+    fk_miembro_1              INTEGER NOT NULL,             /** Referencia al miembro 1 */
+    fk_miembro_2              CHAR(1) NOT NULL,             /** Referencia al miembro 2 */
     
     /** Constraint de clave primaria */
     CONSTRAINT orden_de_compra_pk PRIMARY KEY (id),
@@ -101,5 +103,13 @@ CREATE TABLE orden_de_compra (
     ) REFERENCES presentacion_cerveza (
         fk_presentacion,
         fk_cerveza
+    ),
+
+    CONSTRAINT orden_de_compra_fk_miembro FOREIGN KEY (
+        fk_miembro_1,
+        fk_miembro_2
+    ) REFERENCES miembro (
+        rif,
+        naturaleza_rif
     )
-);
+);  

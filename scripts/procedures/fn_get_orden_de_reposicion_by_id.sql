@@ -1,8 +1,9 @@
-DROP FUNCTION IF EXISTS fn_get_ordenes_de_reposicion();
+DROP FUNCTION IF EXISTS fn_get_orden_de_reposicion_by_id(INTEGER);
 
 /**
- * @name fn_get_ordenes_de_reposicion
- * @description Obtiene un listado detallado de todas las órdenes de reposición de inventario.
+ * @name fn_get_orden_de_reposicion_by_id
+ * @description Obtiene el detalle de una orden de reposición de inventario específica.
+ * @param p_order_id - ID de la orden de reposición a buscar.
  * @returns TABLE - Devuelve una tabla con las siguientes columnas:
  *   - "ID de Orden": Identificador único de la orden de reposición.
  *   - "Producto": Nombre del producto y su presentación (ej: "Zulia (Botella 330ml)").
@@ -15,7 +16,7 @@ DROP FUNCTION IF EXISTS fn_get_ordenes_de_reposicion();
  *   - "Empleado": Nombre y apellido del empleado que solicitó la reposición.
  *   - "Observación": Observaciones adicionales de la orden.
  */
-CREATE OR REPLACE FUNCTION fn_get_ordenes_de_reposicion()
+CREATE OR REPLACE FUNCTION fn_get_orden_de_reposicion_by_id(p_order_id INTEGER)
 RETURNS TABLE (
     "ID de Orden" INTEGER,
     "Producto" VARCHAR,
@@ -64,7 +65,7 @@ BEGIN
         cerveza c ON pc.fk_cerveza = c.id
     LEFT JOIN
         presentacion pr ON pc.fk_presentacion = pr.id
-    ORDER BY
-        o.fecha_orden DESC, o.id DESC;
+    WHERE
+        o.id = p_order_id;
 END;
-$$;
+$$; 

@@ -13,8 +13,46 @@ interface OrdenReposicionPDF {
   minimo: number;
   fecha: string;
   estado?: string;
+  fechaEstado?: string | null;
   empleado?: string;
   observacion?: string;
+}
+
+/**
+ * Logo ACAUCAB en base64 (versión simplificada en blanco y negro)
+ */
+const ACAUCAB_LOGO = 'data:image/svg+xml;base64,' + btoa(`
+<svg width="120" height="40" viewBox="0 0 390 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M41.9337 125C41.1849 125 40.7272 124.626 40.5608 123.877L37.8152 109.524C37.8152 109.358 37.732 109.233 37.5656 109.15C37.4824 109.067 37.3576 109.025 37.1912 109.025H16.8483C16.6819 109.025 16.5155 109.067 16.3491 109.15C16.2659 109.233 16.2243 109.358 16.2243 109.524L13.6035 123.877C13.5203 124.626 13.0627 125 12.2307 125H2.74566C2.32965 125 1.99684 124.875 1.74724 124.626C1.58083 124.376 1.53923 124.043 1.62243 123.627L20.218 38.7614C20.3844 38.0126 20.842 37.6382 21.5908 37.6382H32.6983C33.5303 37.6382 33.9879 38.0126 34.0711 38.7614L52.7915 123.627V123.877C52.7915 124.626 52.4171 125 51.6683 125H41.9337ZM18.346 99.0411C18.346 99.3739 18.4708 99.5403 18.7204 99.5403H35.3191C35.5687 99.5403 35.6935 99.3739 35.6935 99.0411L27.207 54.7361C27.1238 54.5697 27.0406 54.4865 26.9574 54.4865C26.8742 54.4865 26.791 54.5697 26.7078 54.7361L18.346 99.0411ZM81.228 125.998C74.4886 125.998 69.0389 123.96 64.8788 119.883C60.8019 115.723 58.7635 110.232 58.7635 103.409V59.1042C58.7635 52.2817 60.8019 46.832 64.8788 42.7551C69.0389 38.6782 74.4886 36.6398 81.228 36.6398C88.0505 36.6398 93.5002 38.6782 97.5771 42.7551C101.737 46.832 103.817 52.2817 103.817 59.1042V61.1011C103.817 61.9331 103.401 62.3491 102.569 62.3491L93.0842 62.8483C92.2522 62.8483 91.8362 62.4323 91.8362 61.6003V58.3554C91.8362 54.9441 90.8378 52.1985 88.8409 50.1185C86.9273 48.0384 84.3896 46.9984 81.228 46.9984C78.0663 46.9984 75.5286 48.0384 73.615 50.1185C71.7014 52.1985 70.7445 54.9441 70.7445 58.3554V104.283C70.7445 107.694 71.7014 110.44 73.615 112.52C75.5286 114.6 78.0663 115.64 81.228 115.64C84.3896 115.64 86.9273 114.6 88.8409 112.52C90.8378 110.44 91.8362 107.694 91.8362 104.283V101.038C91.8362 100.206 92.2522 99.7899 93.0842 99.7899L102.569 100.289C103.401 100.289 103.817 100.705 103.817 101.537V103.409C103.817 110.232 101.737 115.723 97.5771 119.883C93.5002 123.96 88.0505 125.998 81.228 125.998ZM150.405 125C149.656 125 149.198 124.626 149.032 123.877L146.286 109.524C146.286 109.358 146.203 109.233 146.037 109.15C145.953 109.067 145.829 109.025 145.662 109.025H125.319C125.153 109.025 124.987 109.067 124.82 109.15C124.737 109.233 124.695 109.358 124.695 109.524L122.074 123.877C121.991 124.626 121.534 125 120.702 125H111.217C110.801 125 110.468 124.875 110.218 124.626C110.052 124.376 110.01 124.043 110.093 123.627L128.689 38.7614C128.855 38.0126 129.313 37.6382 130.062 37.6382H141.169C142.001 37.6382 142.459 38.0126 142.542 38.7614L161.262 123.627V123.877C161.262 124.626 160.888 125 160.139 125H150.405ZM126.817 99.0411C126.817 99.3739 126.942 99.5403 127.191 99.5403H143.79C144.04 99.5403 144.165 99.3739 144.165 99.0411L135.678 54.7361C135.595 54.5697 135.512 54.4865 135.428 54.4865C135.345 54.4865 135.262 54.5697 135.179 54.7361L126.817 99.0411ZM192.781 125.998C185.293 125.998 179.261 123.669 174.685 119.009C170.192 114.267 167.945 107.985 167.945 100.164V39.1358C167.945 38.7198 168.07 38.387 168.32 38.1374C168.652 37.8046 169.027 37.6382 169.443 37.6382H184.045C184.461 37.6382 184.794 37.8046 185.043 38.1374C185.376 38.387 185.542 38.7198 185.542 39.1358V101.912C185.542 104.574 186.208 106.737 187.539 108.401C188.871 110.065 190.618 110.897 192.781 110.897C194.944 110.897 196.65 110.065 197.898 108.401C199.229 106.737 199.895 104.574 199.895 101.912V39.1358C199.895 38.7198 200.02 38.387 200.269 38.1374C200.602 37.8046 200.976 37.6382 201.392 37.6382H215.994C216.41 37.6382 216.743 37.8046 216.993 38.1374C217.325 38.387 217.492 38.7198 217.492 39.1358V100.164C217.492 107.985 215.204 114.267 210.628 119.009C206.135 123.669 200.186 125.998 192.781 125.998ZM251.003 125.998C244.264 125.998 238.814 123.96 234.654 119.883C230.577 115.723 228.539 110.232 228.539 103.409V59.1042C228.539 52.2817 230.577 46.832 234.654 42.7551C238.814 38.6782 244.264 36.6398 251.003 36.6398C257.826 36.6398 263.276 38.6782 267.352 42.7551C271.513 46.832 273.593 52.2817 273.593 59.1042V61.1011C273.593 61.9331 273.177 62.3491 272.345 62.3491L262.86 62.8483C262.028 62.8483 261.612 62.4323 261.612 61.6003V58.3554C261.612 54.9441 260.613 52.1985 258.616 50.1185C256.703 48.0384 254.165 46.9984 251.003 46.9984C247.842 46.9984 245.304 48.0384 243.39 50.1185C241.477 52.1985 240.52 54.9441 240.52 58.3554V104.283C240.52 107.694 241.477 110.44 243.39 112.52C245.304 114.6 247.842 115.64 251.003 115.64C254.165 115.64 256.703 114.6 258.616 112.52C260.613 110.44 261.612 107.694 261.612 104.283V101.038C261.612 100.206 262.028 99.7899 262.86 99.7899L272.345 100.289C273.177 100.289 273.593 100.705 273.593 101.537V103.409C273.593 110.232 271.513 115.723 267.352 119.883C263.276 123.96 257.826 125.998 251.003 125.998ZM320.18 125C319.431 125 318.974 124.626 318.807 123.877L316.062 109.524C316.062 109.358 315.978 109.233 315.812 109.15C315.729 109.067 315.604 109.025 315.438 109.025H295.095C294.928 109.025 294.762 109.067 294.596 109.15C294.512 109.233 294.471 109.358 294.471 109.524L291.85 123.877C291.767 124.626 291.309 125 290.477 125H280.992C280.576 125 280.243 124.875 279.994 124.626C279.827 124.376 279.786 124.043 279.869 123.627L298.464 38.7614C298.631 38.0126 299.088 37.6382 299.837 37.6382H310.945C311.777 37.6382 312.234 38.0126 312.317 38.7614L331.038 123.627V123.877C331.038 124.626 330.663 125 329.915 125H320.18ZM296.592 99.0411C296.592 99.3739 296.717 99.5403 296.967 99.5403H313.565C313.815 99.5403 313.94 99.3739 313.94 99.0411L305.453 54.7361C305.37 54.5697 305.287 54.4865 305.204 54.4865C305.121 54.4865 305.037 54.5697 304.954 54.7361L296.592 99.0411ZM385.77 101.163C385.77 108.734 383.606 114.6 379.28 118.76C375.037 122.92 369.42 125 362.432 125H341.59C340.757 125 340.341 124.584 340.341 123.752V38.8862C340.341 38.0542 340.757 37.6382 341.59 37.6382H360.684C368.256 37.6382 374.163 39.635 378.406 43.6287C382.733 47.5392 384.896 53.2801 384.896 60.8515C384.896 69.8373 381.693 76.0358 375.286 79.4471C374.87 79.6967 374.829 79.9047 375.161 80.0711C378.489 82.0679 381.069 84.8552 382.899 88.4328C384.813 92.0105 385.77 96.2538 385.77 101.163ZM352.822 47.9968C352.489 47.9968 352.323 48.1632 352.323 48.496V74.9542C352.323 75.287 352.489 75.4534 352.822 75.4534H360.809C364.72 75.4534 367.756 74.2886 369.92 71.9589C372.083 69.5461 373.165 66.218 373.165 61.9747C373.165 57.565 372.083 54.1537 369.92 51.7409C367.756 49.2448 364.72 47.9968 360.809 47.9968H352.822ZM361.433 114.517C365.26 114.517 368.256 113.227 370.419 110.648C372.665 108.068 373.789 104.408 373.789 99.6651C373.789 94.8394 372.707 91.0953 370.544 88.4328C368.38 85.6872 365.385 84.3144 361.558 84.3144H352.822C352.489 84.3144 352.323 84.4808 352.323 84.8136V114.017C352.323 114.35 352.489 114.517 352.822 114.517H361.433Z" fill="black"/>
+<line x1="164.055" y1="27.9242" x2="223.394" y2="27.9242" stroke="black" stroke-width="6.98105"/>
+</svg>
+`);
+
+/**
+ * Añade el header con logo y título
+ * @param doc - Instancia de jsPDF
+ * @param titulo - Título del documento
+ */
+function addHeader(doc: jsPDF, titulo: string) {
+  try {
+    // Añadir logo ACAUCAB
+    doc.addImage(ACAUCAB_LOGO, 'SVG', 15, 10, 40, 15);
+  } catch (error) {
+    // Si falla la imagen, mostrar solo el nombre de la empresa
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('ACAUCAB', 20, 20);
+  }
+  
+  // Título principal
+  doc.setFontSize(20);
+  doc.setTextColor(0, 0, 0); // Negro
+  doc.text(titulo, 105, 20, { align: 'center' });
+  
+  // Línea separadora
+  doc.setDrawColor(0, 0, 0); // Negro
+  doc.setLineWidth(0.5);
+  doc.line(20, 30, 190, 30);
 }
 
 /**
@@ -25,35 +63,35 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
   // Crear nueva instancia de jsPDF
   const doc = new jsPDF();
 
-  // Configurar fuentes y colores
-  const primaryColor: [number, number, number] = [41, 128, 185]; // Azul
-  const secondaryColor: [number, number, number] = [52, 73, 94]; // Gris oscuro
-  
-  // Título principal
-  doc.setFontSize(20);
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('Orden de Reposición', 105, 20, { align: 'center' });
+  // Añadir header con logo
+  addHeader(doc, 'Orden de Reposición');
   
   // Número de orden
   doc.setFontSize(14);
-  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-  doc.text(`Orden #${orden.id}`, 105, 30, { align: 'center' });
+  doc.setTextColor(0, 0, 0); // Negro
+  doc.text(`Orden #${orden.id}`, 105, 40, { align: 'center' });
   
   // Fecha
   doc.setFontSize(10);
-  doc.text(`Fecha: ${orden.fecha}`, 20, 45);
+  doc.text(`Fecha: ${orden.fecha}`, 20, 55);
   
   // Estado
   if (orden.estado) {
-    const estadoColor = getEstadoColor(orden.estado);
-    doc.setTextColor(estadoColor[0], estadoColor[1], estadoColor[2]);
-    doc.text(`Estado: ${orden.estado}`, 150, 45);
+    doc.setTextColor(0, 0, 0); // Negro para todo
+    doc.text(`Estado: ${orden.estado}`, 150, 55);
+    
+    // Fecha del estado
+    if (orden.fechaEstado) {
+      doc.setFontSize(8);
+      doc.text(`Actualizado: ${orden.fechaEstado}`, 150, 60);
+      doc.setFontSize(10);
+    }
   }
   
   // Información del producto
-  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+  doc.setTextColor(0, 0, 0); // Negro
   doc.setFontSize(12);
-  doc.text('Información del Producto', 20, 60);
+  doc.text('Información del Producto', 20, 70);
   
   // Tabla de información del producto
   const productInfo = [
@@ -65,7 +103,7 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
   ];
   
   autoTable(doc, {
-    startY: 65,
+    startY: 75,
     head: [],
     body: productInfo,
     theme: 'grid',
@@ -76,10 +114,15 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
     styles: {
       fontSize: 10,
       cellPadding: 5,
+      textColor: [0, 0, 0], // Negro
     },
     headStyles: {
-      fillColor: primaryColor as [number, number, number],
+      fillColor: [255, 255, 255], // Blanco
+      textColor: [0, 0, 0], // Negro
     },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245] // Gris muy claro
+    }
   });
   
   // Información adicional
@@ -87,6 +130,7 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
   
   if (orden.empleado) {
     doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0); // Negro
     doc.text('Información Adicional', 20, currentY);
     currentY += 10;
     
@@ -97,6 +141,7 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
   
   if (orden.observacion) {
     doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0); // Negro
     doc.text('Observaciones', 20, currentY);
     currentY += 10;
     
@@ -110,7 +155,7 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
   // Footer
   const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
+  doc.setTextColor(100, 100, 100); // Gris oscuro
   doc.text('Documento generado automáticamente', 105, pageHeight - 20, { align: 'center' });
   doc.text(new Date().toLocaleString('es-ES'), 105, pageHeight - 15, { align: 'center' });
   
@@ -119,21 +164,11 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
 }
 
 /**
- * Obtiene el color según el estado de la orden
+ * Obtiene el color según el estado de la orden (en escala de grises)
  */
 function getEstadoColor(estado: string): [number, number, number] {
-  switch (estado.toLowerCase()) {
-    case 'completada':
-      return [39, 174, 96]; // Verde
-    case 'en proceso':
-      return [41, 128, 185]; // Azul
-    case 'pendiente':
-      return [241, 196, 15]; // Amarillo
-    case 'cancelada':
-      return [231, 76, 60]; // Rojo
-    default:
-      return [149, 165, 166]; // Gris
-  }
+  // Todos los estados en negro para mantener el diseño en blanco y negro
+  return [0, 0, 0]; // Negro
 }
 
 /**
@@ -143,19 +178,17 @@ function getEstadoColor(estado: string): [number, number, number] {
 export function generarReportePDFOrdenes(ordenes: OrdenReposicionPDF[]) {
   const doc = new jsPDF();
   
-  // Título principal
-  doc.setFontSize(20);
-  doc.setTextColor(41, 128, 185);
-  doc.text('Reporte de Órdenes de Reposición', 105, 20, { align: 'center' });
+  // Añadir header con logo
+  addHeader(doc, 'Reporte de Órdenes de Reposición');
   
   // Fecha del reporte
   doc.setFontSize(10);
-  doc.setTextColor(52, 73, 94);
-  doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 105, 30, { align: 'center' });
+  doc.setTextColor(0, 0, 0); // Negro
+  doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 105, 40, { align: 'center' });
   
   // Resumen
   doc.setFontSize(12);
-  doc.text(`Total de órdenes: ${ordenes.length}`, 20, 45);
+  doc.text(`Total de órdenes: ${ordenes.length}`, 20, 55);
   
   // Tabla de órdenes
   const tableData = ordenes.map(orden => [
@@ -169,18 +202,22 @@ export function generarReportePDFOrdenes(ordenes: OrdenReposicionPDF[]) {
   ]);
   
   autoTable(doc, {
-    startY: 55,
+    startY: 65,
     head: [['ID', 'Producto', 'SKU', 'Ubicación', 'Cant.', 'Estado', 'Fecha']],
     body: tableData,
     theme: 'grid',
     styles: {
       fontSize: 9,
       cellPadding: 3,
+      textColor: [0, 0, 0], // Negro
     },
     headStyles: {
-      fillColor: [41, 128, 185] as [number, number, number],
-      textColor: 255,
+      fillColor: [0, 0, 0], // Negro
+      textColor: [255, 255, 255], // Blanco
       fontStyle: 'bold',
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245] // Gris muy claro
     },
     columnStyles: {
       0: { cellWidth: 15 },
@@ -196,7 +233,7 @@ export function generarReportePDFOrdenes(ordenes: OrdenReposicionPDF[]) {
   // Footer
   const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
+  doc.setTextColor(100, 100, 100); // Gris oscuro
   doc.text('Documento generado automáticamente', 105, pageHeight - 20, { align: 'center' });
   
   // Descargar el PDF
