@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,10 @@ import Link from "next/link";
 import { User, UsuariosClientProps } from "@/models/users";
 import { llamarFuncion } from "@/lib/server-actions";
 import { deleteUser } from "@/api/delete-user";
-import { updateUserRole } from "@/api/update-user-role";
 import { toast } from "sonner";
 import ErrorModal from "@/components/error-modal";
+import ProtectedRoute from "@/components/auth/protected-route";
+import { usePermissions } from "@/store/user-store";
 
 /**
  * Interface para el estado de edición de roles
@@ -32,6 +33,7 @@ interface EditingRole {
  * Maneja toda la interfaz de usuario y las interacciones de gestión de usuarios
  */
 export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
+  const { puedeCrearUsuarios, puedeVerRoles, puedeEditarUsuarios, puedeEliminarUsuarios } = usePermissions();
   /*
    * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
    *
@@ -48,7 +50,7 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
   const [userList, setUserList] = useState(users);
   const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
     isOpen: false,
-    message: ""
+    message: "",
   });
   const router = useRouter();
 
@@ -57,8 +59,8 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
    * Tipos: string[] - Array de nombres de roles únicos filtrados
    */
   const availableRoles = roles
-    .filter(role => !['Miembro', 'Cliente', 'Administrador'].includes(role.nombre))
-    .map(role => role.nombre);
+    .filter((role) => !["Miembro", "Cliente", "Administrador"].includes(role.nombre))
+    .map((role) => role.nombre);
 
   /**
    * Función para filtrar usuarios según los criterios de búsqueda y tipo
@@ -83,9 +85,9 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
   const getUserCounts = () => {
     const counts = {
       todos: userList.length,
-      cliente: userList.filter(user => user.tipo_usuario === "Cliente").length,
-      miembro: userList.filter(user => user.tipo_usuario === "Miembro").length,
-      empleado: userList.filter(user => user.tipo_usuario === "Empleado").length,
+      cliente: userList.filter((user) => user.tipo_usuario === "Cliente").length,
+      miembro: userList.filter((user) => user.tipo_usuario === "Miembro").length,
+      empleado: userList.filter((user) => user.tipo_usuario === "Empleado").length,
     };
     return counts;
   };
@@ -101,7 +103,7 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
     if (!role) {
       setErrorModal({
         isOpen: true,
-        message: `El rol "${newRoleName}" no fue encontrado.`
+        message: `El rol "${newRoleName}" no fue encontrado.`,
       });
       return;
     }
@@ -115,32 +117,19 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
       if (success) {
         toast.success(`Rol del usuario actualizado a ${newRoleName}`);
         // Actualizar el estado local del usuario
-        setUserList(prevUsers => 
-          prevUsers.map(user => 
-            user.id_usuario === userId 
-              ? { ...user, rol_nombre: newRoleName }
-              : user
-          )
+        setUserList((prevUsers) =>
+          prevUsers.map((user) => (user.id_usuario === userId ? { ...user, rol_nombre: newRoleName } : user))
         );
       }
     } catch (error: any) {
       console.error("Error al actualizar el rol:", error);
       setErrorModal({
         isOpen: true,
-        message: error.message || "Error desconocido al actualizar el rol del usuario"
+        message: error.message || "Error desconocido al actualizar el rol del usuario",
       });
     } finally {
       setEditingRole(null);
     }
-  };
-
-  /**
-   * Función para alternar el estado (activo/inactivo) de un usuario
-   * TODO: Implementar llamada a API para cambiar el estado
-   */
-  const toggleUserStatus = (userId: number) => {
-    console.log(`Toggling status for user ${userId}`);
-    // Aquí se debería implementar la llamada a la API
   };
 
   /**
@@ -168,16 +157,16 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
 
     if (confirmation) {
       try {
-        toast.loading('Eliminando usuario...');
+        toast.loading("Eliminando usuario...");
         await deleteUser(userId);
         setUserList((prevUsers) => prevUsers.filter((user) => user.id_usuario !== userId));
         router.refresh();
-        toast.success('Usuario eliminado con éxito.');
+        toast.success("Usuario eliminado con éxito.");
       } catch (error: any) {
         console.error("Error al eliminar usuario:", error);
         setErrorModal({
           isOpen: true,
-          message: error.message || "Error desconocido al eliminar el usuario"
+          message: error.message || "Error desconocido al eliminar el usuario",
         });
       }
     }
@@ -205,15 +194,13 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
             <TableRow key={user.id_usuario} id={`usuario-row-${user.id_usuario}`}>
               <TableCell id={`usuario-info-${user.id_usuario}`}>
                 <div>
-                  <div className="font-medium">{user.nombre_completo || 'Sin nombre'}</div>
+                  <div className="font-medium">{user.nombre_completo || "Sin nombre"}</div>
                   <div className="text-sm text-gray-600">{user.email}</div>
-                  <div className="text-sm text-gray-500">{user.telefono || 'Sin teléfono'}</div>
+                  <div className="text-sm text-gray-500">{user.telefono || "Sin teléfono"}</div>
                 </div>
               </TableCell>
               <TableCell id={`usuario-tipo-${user.id_usuario}`}>
-                <Badge variant="outline">
-                  {user.tipo_usuario}
-                </Badge>
+                <Badge variant="outline">{user.tipo_usuario}</Badge>
               </TableCell>
               <TableCell id={`usuario-rol-${user.id_usuario}`}>
                 <div className="flex items-center gap-2">
@@ -224,14 +211,16 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
                     {user.rol_nombre}
                   </Badge>
                   {/* Mostrar botón de editar rol para todos los tipos de usuario */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingRole({ userId: user.id_usuario, currentRole: user.rol_nombre })}
-                    id={`edit-rol-${user.id_usuario}`}
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
+                  {puedeEditarUsuarios() && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingRole({ userId: user.id_usuario, currentRole: user.rol_nombre })}
+                      id={`edit-rol-${user.id_usuario}`}
+                    >
+                      <Edit className="w-3 h-3" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
               <TableCell id={`usuario-acciones-${user.id_usuario}`}>
@@ -241,14 +230,16 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
                       <Eye className="w-4 h-4" />
                     </Button>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteUser(user.id_usuario)}
-                    id={`toggle-status-${user.id_usuario}`}
-                  >
-                    <UserX className="w-4 h-4" />
-                  </Button>
+                  {puedeEliminarUsuarios() && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteUser(user.id_usuario)}
+                      id={`toggle-status-${user.id_usuario}`}
+                    >
+                      <UserX className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
@@ -259,163 +250,166 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
   };
 
   return (
-    <div id="usuarios-container" className="p-6 space-y-6">
-      {/* Encabezado con título y acciones principales */}
-      <div id="usuarios-header" className="flex justify-between items-center">
-        <div id="header-info">
-          <h1 id="usuarios-title" className="text-2xl font-bold">
-            Gestión de Usuarios
-          </h1>
-          <p id="usuarios-description" className="text-gray-600">
-            Administra usuarios, roles y permisos del sistema
-          </p>
+    <ProtectedRoute requiredPermissions={["leer_usuario"]} redirectTo="/unauthorized">
+      <div id="usuarios-container" className="p-6 space-y-6">
+        {/* Encabezado con título y acciones principales */}
+        <div id="usuarios-header" className="flex justify-between items-center">
+          <div id="header-info">
+            <h1 id="usuarios-title" className="text-2xl font-bold">
+              Gestión de Usuarios
+            </h1>
+            <p id="usuarios-description" className="text-gray-600">
+              Administra usuarios, roles y permisos del sistema
+            </p>
+          </div>
+          <div id="header-actions" className="flex gap-2">
+            {puedeVerRoles() && (
+              <Link href="/dashboard/usuarios/roles">
+                <Button variant="outline" id="gestionar-roles-button">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Gestionar Roles
+                </Button>
+              </Link>
+            )}
+            {puedeCrearUsuarios() && (
+              <Link href="/dashboard/usuarios/nuevo">
+                <Button id="nuevo-usuario-button">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nuevo Usuario
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
-        <div id="header-actions" className="flex gap-2">
-          <Link href="/dashboard/usuarios/roles">
-            <Button variant="outline" id="gestionar-roles-button">
-              <Settings className="w-4 h-4 mr-2" />
-              Gestionar Roles
-            </Button>
-          </Link>
-          <Link href="/dashboard/usuarios/nuevo">
-            <Button id="nuevo-usuario-button">
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo Usuario
-            </Button>
-          </Link>
+
+        {/* Tarjetas de estadísticas */}
+        <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card id="total-usuarios-card">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{userCounts.todos}</div>
+              <div className="text-sm text-gray-600">Total Usuarios</div>
+            </CardContent>
+          </Card>
+
+          <Card id="clientes-card">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{userCounts.cliente}</div>
+              <div className="text-sm text-gray-600">Clientes</div>
+            </CardContent>
+          </Card>
+
+          <Card id="miembros-card">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{userCounts.miembro}</div>
+              <div className="text-sm text-gray-600">Miembros</div>
+            </CardContent>
+          </Card>
+
+          <Card id="empleados-card">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{userCounts.empleado}</div>
+              <div className="text-sm text-gray-600">Empleados</div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Tarjetas de estadísticas */}
-      <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card id="total-usuarios-card">
+        {/* Sección de filtros */}
+        <Card id="filtros-card">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">{userCounts.todos}</div>
-            <div className="text-sm text-gray-600">Total Usuarios</div>
-          </CardContent>
-        </Card>
-        
-        <Card id="clientes-card">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{userCounts.cliente}</div>
-            <div className="text-sm text-gray-600">Clientes</div>
-          </CardContent>
-        </Card>
-
-        <Card id="miembros-card">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{userCounts.miembro}</div>
-            <div className="text-sm text-gray-600">Miembros</div>
-          </CardContent>
-        </Card>
-
-        <Card id="empleados-card">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{userCounts.empleado}</div>
-            <div className="text-sm text-gray-600">Empleados</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Sección de filtros */}
-      <Card id="filtros-card">
-        <CardContent className="p-4">
-          <div id="filtros-container" className="flex flex-col md:flex-row gap-4">
-            <div id="search-container" className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  id="search-input"
-                  placeholder="Buscar por nombre o email..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10"
-                />
+            <div id="filtros-container" className="flex flex-col md:flex-row gap-4">
+              <div id="search-container" className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    id="search-input"
+                    placeholder="Buscar por nombre o email..."
+                    value={searchTerm}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
             </div>
-            
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Lista de usuarios con tabs */}
-      <Card id="usuarios-table-card">
-        <CardHeader>
-          <CardTitle id="tabla-titulo">Lista de Usuarios</CardTitle>
-          <p className="text-gray-600">Administra usuarios registrados en el sistema</p>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="empleado">Empleados</TabsTrigger>
-              <TabsTrigger value="cliente">Clientes</TabsTrigger>
-              <TabsTrigger value="miembro">Miembros</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="todos" className="mt-0">
-              {renderUserTable("todos")}
-            </TabsContent>
-            
-            <TabsContent value="empleado" className="mt-0">
-              {renderUserTable("empleado")}
-            </TabsContent>
-            
-            <TabsContent value="cliente" className="mt-0">
-              {renderUserTable("cliente")}
-            </TabsContent>
-            
-            <TabsContent value="miembro" className="mt-0">
-              {renderUserTable("miembro")}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+        {/* Lista de usuarios con tabs */}
+        <Card id="usuarios-table-card">
+          <CardHeader>
+            <CardTitle id="tabla-titulo">Lista de Usuarios</CardTitle>
+            <p className="text-gray-600">Administra usuarios registrados en el sistema</p>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="todos">Todos</TabsTrigger>
+                <TabsTrigger value="empleado">Empleados</TabsTrigger>
+                <TabsTrigger value="cliente">Clientes</TabsTrigger>
+                <TabsTrigger value="miembro">Miembros</TabsTrigger>
+              </TabsList>
 
-      {/* Modal de edición de roles */}
-      <Dialog open={!!editingRole} onOpenChange={closeEditModal}>
-        <DialogContent id="edit-role-dialog">
-          <DialogHeader>
-            <DialogTitle id="edit-role-title">Cambiar Rol de Usuario</DialogTitle>
-            <DialogDescription>
-              Selecciona el nuevo rol para este usuario.
-            </DialogDescription>
-          </DialogHeader>
-          <div id="edit-role-content" className="space-y-4">
-            <div id="role-selector-container">
-              <label className="text-sm font-medium">Nuevo Rol</label>
-              <Select onValueChange={(value) => handleRoleChange(editingRole?.userId || 0, value)}>
-                <SelectTrigger id="new-role-selector">
-                  <SelectValue placeholder="Seleccionar rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableRoles.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <TabsContent value="todos" className="mt-0">
+                {renderUserTable("todos")}
+              </TabsContent>
+
+              <TabsContent value="empleado" className="mt-0">
+                {renderUserTable("empleado")}
+              </TabsContent>
+
+              <TabsContent value="cliente" className="mt-0">
+                {renderUserTable("cliente")}
+              </TabsContent>
+
+              <TabsContent value="miembro" className="mt-0">
+                {renderUserTable("miembro")}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Modal de edición de roles */}
+        <Dialog open={!!editingRole} onOpenChange={closeEditModal}>
+          <DialogContent id="edit-role-dialog">
+            <DialogHeader>
+              <DialogTitle id="edit-role-title">Cambiar Rol de Usuario</DialogTitle>
+              <DialogDescription>Selecciona el nuevo rol para este usuario.</DialogDescription>
+            </DialogHeader>
+            <div id="edit-role-content" className="space-y-4">
+              <div id="role-selector-container">
+                <label className="text-sm font-medium">Nuevo Rol</label>
+                <Select onValueChange={(value) => handleRoleChange(editingRole?.userId || 0, value)}>
+                  <SelectTrigger id="new-role-selector">
+                    <SelectValue placeholder="Seleccionar rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRoles.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div id="modal-actions" className="flex justify-end gap-2">
+                <Button variant="outline" onClick={closeEditModal} id="cancelar-button">
+                  Cancelar
+                </Button>
+                <Button onClick={closeEditModal} id="guardar-cambios-button">
+                  Guardar Cambios
+                </Button>
+              </div>
             </div>
-            <div id="modal-actions" className="flex justify-end gap-2">
-              <Button variant="outline" onClick={closeEditModal} id="cancelar-button">
-                Cancelar
-              </Button>
-              <Button onClick={closeEditModal} id="guardar-cambios-button">
-                Guardar Cambios
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
 
-      {/* Modal de error */}
-      <ErrorModal
-        isOpen={errorModal.isOpen}
-        onClose={() => setErrorModal({ isOpen: false, message: "" })}
-        title="Error en la operación"
-        errorMessage={errorModal.message}
-      />
-    </div>
+        {/* Modal de error */}
+        <ErrorModal
+          isOpen={errorModal.isOpen}
+          onClose={() => setErrorModal({ isOpen: false, message: "" })}
+          title="Error en la operación"
+          errorMessage={errorModal.message}
+        />
+      </div>
+    </ProtectedRoute>
   );
 }

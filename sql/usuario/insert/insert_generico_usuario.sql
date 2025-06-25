@@ -211,6 +211,9 @@ INSERT INTO permiso (nombre, descripción) VALUES
 ('editar_orden_de_compra',   'Permite modificar órdenes de compra'),
 ('eliminar_orden_de_compra', 'Permite eliminar órdenes de compra'),
 ('leer_orden_de_compra',     'Permite ver las órdenes de compra'),
+/* Gestión de orden_de_compra_proveedor */
+('leer_orden_de_compra_proveedor',     'Permite ver las órdenes de compra de proveedores'),
+('editar_orden_de_compra_proveedor',   'Permite modificar las órdenes de compra de proveedores'),
 /* Gestión de orden_de_reposicion */
 ('crear_orden_de_reposicion',    'Permite crear órdenes de reposición'),
 ('editar_orden_de_reposicion',   'Permite modificar órdenes de reposición'),
@@ -364,7 +367,7 @@ WHERE p.nombre IN ('crear_venta', 'crear_venta_evento', 'leer_presentacion_cerve
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Miembro'), p.id 
 FROM permiso p
-WHERE p.nombre IN ('leer_orden_de_compra', 'editar_orden_de_compra');
+WHERE p.nombre IN ('leer_orden_de_compra_proveedor', 'editar_orden_de_compra_proveedor');
 
 -- Jefe de Compras gets purchase management permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)

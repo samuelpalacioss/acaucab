@@ -19,12 +19,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { ArrowLeft, Plus, Edit, Trash2, Shield, Users, Key } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Shield, Users, Key, Search } from "lucide-react";
 import Link from "next/link";
 import { Rol, PermisoSistema } from "@/models/roles";
 import { llamarFuncion } from "@/lib/server-actions";
 import { toast } from "sonner";
 import ErrorModal from "@/components/error-modal";
+import { usePermissions } from "@/store/user-store";
 
 /**
  * Interface para las props del componente
@@ -62,6 +63,7 @@ interface NewPermissionData {
  * Maneja toda la interfaz de usuario y las interacciones de gestión de roles y permisos
  */
 export default function RolesClient({ roles, permisos }: RolesClientProps) {
+  const { puedeVerRoles, puedeVerPermisos, puedeEliminarRoles, puedeCrearRoles, puedeCrearPermisos } = usePermissions();
   /*
    * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
    *
@@ -71,6 +73,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
    * - editingRole: Rol actualmente en edición
    * - newRole: Datos del nuevo rol a crear
    * - newPermission: Datos del nuevo permiso a crear
+   * - searchPermissions: Término de búsqueda para filtrar permisos
    * - Estados de paginación para roles y permisos
    */
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -85,6 +88,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
     name: "",
     description: "",
   });
+  const [searchPermissions, setSearchPermissions] = useState("");
 
   // Estados para paginación
   const [currentRolePage, setCurrentRolePage] = useState(1);
@@ -92,48 +96,57 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
     isOpen: false,
-    message: ""
+    message: "",
   });
+
+  /**
+   * Función para filtrar permisos basándose en el término de búsqueda
+   */
+  const filteredPermissions = permisos.filter(
+    (permission) =>
+      permission.nombre.toLowerCase().includes(searchPermissions.toLowerCase()) ||
+      permission.descripcion.toLowerCase().includes(searchPermissions.toLowerCase())
+  );
 
   /**
    * Función para agrupar permisos por categoría
    * Agrupa los permisos basándose en la entidad/tabla a la que pertenecen
    */
-  const groupedPermissions = permisos.reduce((acc, permission) => {
+  const groupedPermissions = filteredPermissions.reduce((acc, permission) => {
     // Extraer el nombre de la entidad del nombre del permiso
     // El formato es 'acción_entidad', ejemplo: 'crear_usuario' -> 'usuario'
-    const entityName = permission.nombre.split('_').slice(1).join('_');
-    
+    const entityName = permission.nombre.split("_").slice(1).join("_");
+
     // Determinar la categoría basada en la entidad
-    let category = 'Gestión de ' + entityName.charAt(0).toUpperCase() + entityName.slice(1);
-    
+    let category = "Gestión de " + entityName.charAt(0).toUpperCase() + entityName.slice(1);
+
     // Casos especiales de pluralización y nombres compuestos
-    if (entityName.includes('usuario')) category = 'Gestión de Usuarios';
-    if (entityName.includes('rol')) category = 'Gestión de Roles';
-    if (entityName.includes('permiso')) category = 'Gestión de Permisos';
-    if (entityName.includes('cliente')) category = 'Gestión de Clientes';
-    if (entityName.includes('empleado')) category = 'Gestión de Empleados';
-    if (entityName.includes('venta')) category = 'Gestión de Ventas';
-    if (entityName.includes('pago')) category = 'Gestión de Pagos';
-    if (entityName.includes('orden_de_compra')) category = 'Gestión de Órdenes de Compra';
-    if (entityName.includes('orden_de_reposicion')) category = 'Gestión de Órdenes de Reposición';
-    if (entityName.includes('inventario')) category = 'Gestión de Inventario';
-    if (entityName.includes('evento')) category = 'Gestión de Eventos';
-    if (entityName.includes('miembro')) category = 'Gestión de Miembros';
-    if (entityName.includes('beneficio')) category = 'Gestión de Beneficios';
-    if (entityName.includes('nomina')) category = 'Gestión de Nómina';
-    if (entityName.includes('horario')) category = 'Gestión de Horarios';
-    if (entityName.includes('vacacion')) category = 'Gestión de Vacaciones';
-    if (entityName.includes('registro_biometrico')) category = 'Gestión de Registros Biométricos';
-    if (entityName.includes('cerveza')) category = 'Gestión de Cervezas';
-    if (entityName.includes('presentacion')) category = 'Gestión de Presentaciones';
-    if (entityName.includes('almacen')) category = 'Gestión de Almacenes';
-    if (entityName.includes('tienda')) category = 'Gestión de Tiendas';
-    if (entityName.includes('descuento')) category = 'Gestión de Descuentos';
-    if (entityName.includes('status')) category = 'Gestión de Estados';
-    if (entityName.includes('tasa')) category = 'Gestión de Tasas';
-    if (entityName.includes('lugar')) category = 'Gestión de Lugares';
-    
+    if (entityName.includes("usuario")) category = "Gestión de Usuarios";
+    if (entityName.includes("rol")) category = "Gestión de Roles";
+    if (entityName.includes("permiso")) category = "Gestión de Permisos";
+    if (entityName.includes("cliente")) category = "Gestión de Clientes";
+    if (entityName.includes("empleado")) category = "Gestión de Empleados";
+    if (entityName.includes("venta")) category = "Gestión de Ventas";
+    if (entityName.includes("pago")) category = "Gestión de Pagos";
+    if (entityName.includes("orden_de_compra")) category = "Gestión de Órdenes de Compra";
+    if (entityName.includes("orden_de_reposicion")) category = "Gestión de Órdenes de Reposición";
+    if (entityName.includes("inventario")) category = "Gestión de Inventario";
+    if (entityName.includes("evento")) category = "Gestión de Eventos";
+    if (entityName.includes("miembro")) category = "Gestión de Miembros";
+    if (entityName.includes("beneficio")) category = "Gestión de Beneficios";
+    if (entityName.includes("nomina")) category = "Gestión de Nómina";
+    if (entityName.includes("horario")) category = "Gestión de Horarios";
+    if (entityName.includes("vacacion")) category = "Gestión de Vacaciones";
+    if (entityName.includes("registro_biometrico")) category = "Gestión de Registros Biométricos";
+    if (entityName.includes("cerveza")) category = "Gestión de Cervezas";
+    if (entityName.includes("presentacion")) category = "Gestión de Presentaciones";
+    if (entityName.includes("almacen")) category = "Gestión de Almacenes";
+    if (entityName.includes("tienda")) category = "Gestión de Tiendas";
+    if (entityName.includes("descuento")) category = "Gestión de Descuentos";
+    if (entityName.includes("status")) category = "Gestión de Estados";
+    if (entityName.includes("tasa")) category = "Gestión de Tasas";
+    if (entityName.includes("lugar")) category = "Gestión de Lugares";
+
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -154,14 +167,14 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
     try {
       const response = await llamarFuncion("fn_create_rol", {
         p_nombre: newRole.name.trim(),
-        p_permission_ids: newRole.permissions
+        p_permission_ids: newRole.permissions,
       });
 
       if (response !== null && response !== undefined) {
         toast.success("Rol creado exitosamente");
         setIsCreateModalOpen(false);
         setNewRole({ name: "", description: "", permissions: [] });
-        
+
         // Recargar la página para mostrar el nuevo rol
         setTimeout(() => {
           window.location.reload();
@@ -169,14 +182,14 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
       } else {
         setErrorModal({
           isOpen: true,
-          message: "Error al crear el rol"
+          message: "Error al crear el rol",
         });
       }
     } catch (error: any) {
       console.error("Error creating role:", error);
       setErrorModal({
         isOpen: true,
-        message: error.message || "Error desconocido al crear el rol"
+        message: error.message || "Error desconocido al crear el rol",
       });
     }
   };
@@ -194,14 +207,14 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
     try {
       const response = await llamarFuncion("fn_create_permission", {
         p_nombre: newPermission.name.trim(),
-        p_descripcion: newPermission.description.trim()
+        p_descripcion: newPermission.description.trim(),
       });
 
       if (response !== null && response !== undefined) {
         toast.success("Permiso creado exitosamente");
         setIsCreatePermissionModalOpen(false);
         setNewPermission({ name: "", description: "" });
-        
+
         // Recargar la página para mostrar el nuevo permiso
         setTimeout(() => {
           window.location.reload();
@@ -209,14 +222,14 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
       } else {
         setErrorModal({
           isOpen: true,
-          message: "Error al crear el permiso"
+          message: "Error al crear el permiso",
         });
       }
     } catch (error: any) {
       console.error("Error creating permission:", error);
       setErrorModal({
         isOpen: true,
-        message: error.message || "Error desconocido al crear el permiso"
+        message: error.message || "Error desconocido al crear el permiso",
       });
     }
   };
@@ -236,13 +249,13 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
    */
   const handleDeleteRole = async (roleId: number) => {
     // Buscar el rol para obtener su nombre
-    const role = roles.find(r => r.id === roleId);
+    const role = roles.find((r) => r.id === roleId);
     const roleName = role ? role.nombre : `ID ${roleId}`;
 
     // Confirmar la eliminación con el usuario
     const confirmDelete = window.confirm(
       `¿Estás seguro de que deseas eliminar el rol "${roleName}"?\n\n` +
-      `Esta acción no se puede deshacer y eliminará todas las asociaciones de permisos del rol.`
+        `Esta acción no se puede deshacer y eliminará todas las asociaciones de permisos del rol.`
     );
 
     if (!confirmDelete) {
@@ -252,22 +265,21 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
     try {
       // Llamar a la función de PostgreSQL para eliminar el rol
       await llamarFuncion("fn_delete_role", {
-        p_id: roleId
+        p_id: roleId,
       });
 
       toast.success(`Rol "${roleName}" eliminado exitosamente`);
-      
+
       // Recargar la página para mostrar los cambios
       setTimeout(() => {
         window.location.reload();
       }, 500);
-
     } catch (error: any) {
       console.error("Error deleting role:", error);
-      
+
       // Mostrar mensaje de error específico
       let errorMessage = "Error desconocido al eliminar el rol";
-      
+
       if (error.message && error.message.includes("está asignado a uno o más usuarios")) {
         errorMessage = `No se puede eliminar el rol "${roleName}" porque está asignado a uno o más usuarios. Primero reasigna o elimina los usuarios que tienen este rol.`;
       } else if (error.message) {
@@ -276,7 +288,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
 
       setErrorModal({
         isOpen: true,
-        message: errorMessage
+        message: errorMessage,
       });
     }
   };
@@ -320,6 +332,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
     setNewRole({ name: "", description: "", permissions: [] });
+    setSearchPermissions("");
   };
 
   /**
@@ -526,14 +539,18 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={openCreateModal} id="nuevo-rol-button">
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Rol
-          </Button>
-          <Button onClick={openCreatePermissionModal} variant="outline" id="nuevo-permiso-button">
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Permiso
-          </Button>
+          {puedeCrearRoles() && (
+            <Button onClick={openCreateModal} id="nuevo-rol-button">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Rol
+            </Button>
+          )}
+          {puedeCrearPermisos() && (
+            <Button onClick={openCreatePermissionModal} variant="outline" id="nuevo-permiso-button">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Permiso
+            </Button>
+          )}
         </div>
       </div>
 
@@ -616,110 +633,109 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
         <CardContent>
           <Tabs defaultValue="roles" className="w-full">
             <TabsList className="mb-4">
-              <TabsTrigger value="roles" className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                Roles
-              </TabsTrigger>
-              <TabsTrigger value="permisos" className="flex items-center gap-2">
-                <Key className="w-4 h-4" />
-                Permisos
-              </TabsTrigger>
+              {puedeVerRoles() && (
+                <TabsTrigger value="roles" className="flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Roles
+                </TabsTrigger>
+              )}
+              {puedeVerPermisos() && (
+                <TabsTrigger value="permisos" className="flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  Permisos
+                </TabsTrigger>
+              )}
             </TabsList>
-            
+
             {/* Tab de Roles */}
-            <TabsContent value="roles" className="mt-0 space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Mostrando {startRoleIndex + 1}-{Math.min(endRoleIndex, roles.length)} de {roles.length} roles
-              </div>
-              <Table id="roles-table">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Usuarios</TableHead>
-                    <TableHead>Permisos</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedRoles.map((role) => (
-                    <TableRow key={role.id} id={`role-row-${role.id}`}>
-                      <TableCell id={`role-name-${role.id}`}>
-                        <div className="flex items-center gap-2">
-                          <Shield className="w-4 h-4" />
-                          <span className="font-medium">{role.nombre}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell id={`role-users-${role.id}`}>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          <span>{role.cantidad_usuarios}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell id={`role-permissions-${role.id}`}>
-                        <Badge variant="secondary" id={`permissions-badge-${role.id}`}>
-                          {role.cantidad_permisos} permisos
-                        </Badge>
-                      </TableCell>
-                      <TableCell id={`role-actions-${role.id}`}>
-                        <div className="flex gap-1">
-                          <Link href={`/dashboard/usuarios/roles/${role.id}`}>
-                            <Button variant="ghost" size="sm" id={`edit-role-${role.id}`}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteRole(role.id)}
-                            id={`delete-role-${role.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            {puedeVerRoles() && (
+              <TabsContent value="roles" className="mt-0 space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Mostrando {startRoleIndex + 1}-{Math.min(endRoleIndex, roles.length)} de {roles.length} roles
+                </div>
+                <Table id="roles-table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Rol</TableHead>
+                      <TableHead>Usuarios</TableHead>
+                      <TableHead>Permisos</TableHead>
+                      <TableHead>Acciones</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {renderPagination(currentRolePage, totalRolePages, setCurrentRolePage)}
-            </TabsContent>
-            
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedRoles.map((role) => (
+                      <TableRow key={role.id} id={`role-row-${role.id}`}>
+                        <TableCell id={`role-name-${role.id}`}>{role.nombre}</TableCell>
+                        <TableCell id={`role-users-${role.id}`}>{role.cantidad_usuarios}</TableCell>
+                        <TableCell id={`role-permissions-${role.id}`}>
+                          <Badge variant="outline">{role.cantidad_permisos} permisos</Badge>
+                        </TableCell>
+                        <TableCell id={`role-actions-${role.id}`}>
+                          <div className="flex gap-1">
+                            <Link href={`/dashboard/usuarios/roles/${role.id}`}>
+                              <Button variant="ghost" size="sm" id={`edit-role-${role.id}`}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                            {puedeEliminarRoles() && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteRole(role.id)}
+                                id={`delete-role-${role.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {renderPagination(currentRolePage, totalRolePages, setCurrentRolePage)}
+              </TabsContent>
+            )}
+
             {/* Tab de Permisos */}
-            <TabsContent value="permisos" className="mt-0 space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Mostrando {startPermisoIndex + 1}-{Math.min(endPermisoIndex, permisos.length)} de {permisos.length} permisos
-              </div>
-              <Table id="permisos-table">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Permiso</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead>Roles Asignados</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedPermisos.map((permiso) => (
-                    <TableRow key={permiso.id} id={`permiso-row-${permiso.id}`}>
-                      <TableCell id={`permiso-name-${permiso.id}`}>
-                        <div className="flex items-center gap-2">
-                          <Key className="w-4 h-4 text-gray-500" />
-                          <span className="font-medium">{permiso.nombre}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell id={`permiso-descripcion-${permiso.id}`}>
-                        <span className="text-sm text-gray-600">{permiso.descripcion}</span>
-                      </TableCell>
-                      <TableCell id={`permiso-roles-${permiso.id}`}>
-                        <Badge variant="outline" id={`roles-count-badge-${permiso.id}`}>
-                          {permiso.cantidad_roles} {permiso.cantidad_roles === 1 ? 'rol' : 'roles'}
-                        </Badge>
-                      </TableCell>
+            {puedeVerPermisos() && (
+              <TabsContent value="permisos" className="mt-0 space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Mostrando {startPermisoIndex + 1}-{Math.min(endPermisoIndex, permisos.length)} de {permisos.length}{" "}
+                  permisos
+                </div>
+                <Table id="permisos-table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Permiso</TableHead>
+                      <TableHead>Descripción</TableHead>
+                      <TableHead>Roles Asignados</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {renderPagination(currentPermisoPage, totalPermisoPages, setCurrentPermisoPage)}
-            </TabsContent>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedPermisos.map((permiso) => (
+                      <TableRow key={permiso.id} id={`permiso-row-${permiso.id}`}>
+                        <TableCell id={`permiso-name-${permiso.id}`}>
+                          <div className="flex items-center gap-2">
+                            <Key className="w-4 h-4 text-gray-500" />
+                            <span className="font-medium">{permiso.nombre}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell id={`permiso-descripcion-${permiso.id}`}>
+                          <span className="text-sm text-gray-600">{permiso.descripcion}</span>
+                        </TableCell>
+                        <TableCell id={`permiso-roles-${permiso.id}`}>
+                          <Badge variant="outline" id={`roles-count-badge-${permiso.id}`}>
+                            {permiso.cantidad_roles} {permiso.cantidad_roles === 1 ? "rol" : "roles"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {renderPagination(currentPermisoPage, totalPermisoPages, setCurrentPermisoPage)}
+              </TabsContent>
+            )}
           </Tabs>
         </CardContent>
       </Card>
@@ -736,9 +752,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" id="create-role-dialog">
           <DialogHeader>
             <DialogTitle id="create-role-title">Crear Nuevo Rol</DialogTitle>
-            <DialogDescription>
-              Define un nuevo rol y asigna los permisos correspondientes.
-            </DialogDescription>
+            <DialogDescription>Define un nuevo rol y asigna los permisos correspondientes.</DialogDescription>
           </DialogHeader>
           <div id="create-role-form" className="space-y-4">
             {/* Campo de nombre del rol */}
@@ -756,58 +770,90 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
             <div id="permissions-section">
               <div className="flex justify-between items-center mb-3">
                 <label className="text-sm font-medium">Permisos</label>
-                {/**
-                 * Botón para seleccionar o deseleccionar todos los permisos
-                 * Si ya están todos seleccionados, permite deseleccionar todos y viceversa
-                 */}
-                {(() => {
-                  const allPermissionIds = permisos.map(p => p.id);
-                  const allSelected = allPermissionIds.every(id => newRole.permissions.includes(id));
-                  return (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setNewRole(prev => ({
-                          ...prev,
-                          permissions: allSelected ? [] : allPermissionIds
-                        }));
-                      }}
-                    >
-                      {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
-                    </Button>
-                  );
-                })()}
               </div>
-              <div id="permissions-categories" className="space-y-4">
-                {Object.entries(groupedPermissions).map(([category, permissions]) => (
-                  <div key={category} id={`category-${category.toLowerCase()}`}>
-                    <h4 className="font-medium text-sm mb-2">{category}</h4>
-                    <div
-                      id={`permissions-grid-${category.toLowerCase()}`}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-4"
-                    >
-                      {permissions.map((permission) => (
-                        <div
-                          key={permission.id}
-                          id={`permission-${permission.id}`}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={`checkbox-${permission.id}`}
-                            checked={newRole.permissions.includes(permission.id)}
-                            onCheckedChange={() => togglePermission(permission.id)}
-                          />
-                          <label htmlFor={`checkbox-${permission.id}`} className="text-sm">
-                            {permission.nombre}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+
+              {/* Campo de búsqueda de permisos */}
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar permisos por nombre o descripción..."
+                    value={searchPermissions}
+                    onChange={(e) => setSearchPermissions(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+                {searchPermissions && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Mostrando {filteredPermissions.length} de {permisos.length} permisos
                   </div>
-                ))}
+                )}
               </div>
+
+              {/**
+               * Botón para seleccionar o deseleccionar todos los permisos
+               * Si ya están todos seleccionados, permite deseleccionar todos y viceversa
+               */}
+              {(() => {
+                const allPermissionIds = filteredPermissions.map((p) => p.id);
+                const allSelected = allPermissionIds.every((id) => newRole.permissions.includes(id));
+                return (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mb-4"
+                    disabled={filteredPermissions.length === 0}
+                    onClick={() => {
+                      setNewRole((prev) => ({
+                        ...prev,
+                        permissions: allSelected
+                          ? prev.permissions.filter((id) => !allPermissionIds.includes(id))
+                          : [...new Set([...prev.permissions, ...allPermissionIds])],
+                      }));
+                    }}
+                  >
+                    {allSelected ? "Deseleccionar mostrados" : "Seleccionar mostrados"}
+                  </Button>
+                );
+              })()}
+
+              {filteredPermissions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No se encontraron permisos que coincidan con "{searchPermissions}"
+                </div>
+              ) : (
+                <div id="permissions-categories" className="space-y-4">
+                  {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                    <div key={category} id={`category-${category.toLowerCase()}`}>
+                      <h4 className="font-medium text-sm mb-2">{category}</h4>
+                      <div
+                        id={`permissions-grid-${category.toLowerCase()}`}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-4"
+                      >
+                        {permissions.map((permission) => (
+                          <div
+                            key={permission.id}
+                            id={`permission-${permission.id}`}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`checkbox-${permission.id}`}
+                              checked={newRole.permissions.includes(permission.id)}
+                              onCheckedChange={() => togglePermission(permission.id)}
+                            />
+                            <label htmlFor={`checkbox-${permission.id}`} className="text-sm">
+                              {permission.descripcion.startsWith("Permite ")
+                                ? permission.descripcion.slice(8)
+                                : permission.descripcion}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Botones de acción */}
@@ -834,9 +880,7 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
         <DialogContent className="max-w-md" id="create-permission-dialog">
           <DialogHeader>
             <DialogTitle id="create-permission-title">Crear Nuevo Permiso</DialogTitle>
-            <DialogDescription>
-              Define un nuevo permiso que podrá ser asignado a los roles.
-            </DialogDescription>
+            <DialogDescription>Define un nuevo permiso que podrá ser asignado a los roles.</DialogDescription>
           </DialogHeader>
           <div id="create-permission-form" className="space-y-4">
             {/* Campo de nombre del permiso */}
@@ -866,9 +910,9 @@ export default function RolesClient({ roles, permisos }: RolesClientProps) {
               <Button variant="outline" onClick={closeCreatePermissionModal} id="cancel-permission-button">
                 Cancelar
               </Button>
-              <Button 
-                onClick={handleCreatePermission} 
-                disabled={!newPermission.name || !newPermission.description} 
+              <Button
+                onClick={handleCreatePermission}
+                disabled={!newPermission.name || !newPermission.description}
                 id="confirm-permission-button"
               >
                 Crear Permiso

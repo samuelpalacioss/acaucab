@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import NuevoUsuarioClient from "@/components/usuarios/nuevo-usuario-client";
 import { llamarFuncion } from "@/lib/server-actions";
@@ -18,11 +18,11 @@ export default async function NuevoUsuarioPage() {
 
   try {
     // Obtener personas sin usuario
-    const personas = await llamarFuncion('fn_get_personas');
+    const personas = await llamarFuncion("fn_get_personas");
     personasDisponibles = personas || [];
 
     // Obtener roles disponibles
-    const roles = await llamarFuncion('fn_get_roles');
+    const roles = await llamarFuncion("fn_get_roles");
     rolesDisponibles = roles || [];
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -35,10 +35,7 @@ export default async function NuevoUsuarioPage() {
         Componente cliente que maneja toda la interfaz de usuario
         de la creación de usuarios y las interacciones del formulario 
       */}
-      <NuevoUsuarioClient 
-        personasDisponibles={personasDisponibles}
-        roles={rolesDisponibles}
-      />
+      <NuevoUsuarioClient personasDisponibles={personasDisponibles} roles={rolesDisponibles} />
     </main>
   );
 }

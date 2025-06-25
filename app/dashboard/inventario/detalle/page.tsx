@@ -1,22 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import type { DateRange } from "react-day-picker"
-import { Search, Download, ArrowUpDown, AlertTriangle, RefreshCcw, Package, Archive, Filter, Plus, Tag, FileText } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DateRangePicker } from "@/components/date-range-picker"
-import { TopProductsChart } from "@/components/top-products-chart"
-import { CriticalStockModal } from "@/components/critical-stock-modal"
-import { AlertsModal } from "@/components/alerts-modal"
+import { useState } from "react";
+import type { DateRange } from "react-day-picker";
+import {
+  Search,
+  Download,
+  ArrowUpDown,
+  AlertTriangle,
+  RefreshCcw,
+  Package,
+  Archive,
+  Filter,
+  Plus,
+  Tag,
+  FileText,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateRangePicker } from "@/components/date-range-picker";
+import { TopProductsChart } from "@/components/top-products-chart";
+import { CriticalStockModal } from "@/components/critical-stock-modal";
+import { AlertsModal } from "@/components/alerts-modal";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 export default function InventoryPage() {
-  const [date, setDate] = useState<DateRange | undefined>(undefined)
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
 
-  const [isCriticalStockModalOpen, setIsCriticalStockModalOpen] = useState(false)
+  const [isCriticalStockModalOpen, setIsCriticalStockModalOpen] = useState(false);
 
   // Datos de ejemplo para alertas de reposición
   const alertasReposicion = [
@@ -73,267 +86,271 @@ export default function InventoryPage() {
       stock: 7,
       minimo: 20,
       fecha: "20/04/2025",
-    }
-  ]
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Gestión de Inventario</h1>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Actualizar
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
+    <ProtectedRoute requiredPermissions={["leer_inventario"]} redirectTo="/unauthorized">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Gestión de Inventario</h1>
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Actualizar
+            </Button>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Stock total en Almacén */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock total en Almacén</CardTitle>
-            <Badge variant="outline">Tiempo real</Badge>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center space-x-4">
-              <div className="text-center">
-                <div className="flex items-center justify-center h-24 w-24 rounded-full border-8">
-                  <div className="text-3xl font-bold">925</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Stock total en Almacén */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Stock total en Almacén</CardTitle>
+              <Badge variant="outline">Tiempo real</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center space-x-4">
+                <div className="text-center">
+                  <div className="flex items-center justify-center h-24 w-24 rounded-full border-8">
+                    <div className="text-3xl font-bold">925</div>
+                  </div>
+                  <div className="mt-2 text-sm">Unidades totales</div>
                 </div>
-                <div className="mt-2 text-sm">Unidades totales</div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  <span className="text-sm">12 Tipos de Cerveza</span>
-                </div>
-
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stock en Anaquel */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock en Anaquel</CardTitle>
-            <Badge variant="outline">Tiempo real</Badge>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center space-x-4">
-              <div className="text-center">
-                <div className="flex items-center justify-center h-24 w-24 rounded-full border-8">
-                  <div className="text-3xl font-bold">520</div>
-                </div>
-                <div className="mt-2 text-sm">Unidades en tienda</div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  <span className="text-sm">10 Tipos de Cerveza</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">36%</Badge>
-                  <span className="text-sm">Del inventario total</span>
-                </div>
-            
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stock Crítico */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock crítico</CardTitle>
-            <Badge variant="outline">Día</Badge>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center space-x-4">
-              <div className="text-center">
-                <div className="flex items-center justify-center h-24 w-24 rounded-full border-8">
-                  <div className="text-3xl font-bold">14</div>
-                </div>
-                <div className="mt-2 text-sm">SKUs &lt; 100 </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="text-sm">Cerveza Tipo A - 45 </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="text-sm">Cerveza Tipo B - 78 </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="text-sm">Cerveza Tipo C - 23 </span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    <span className="text-sm">12 Tipos de Cerveza</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-4 text-center">
-              <Button variant="outline" size="sm" onClick={() => setIsCriticalStockModalOpen(true)}>
-                Ver lista completa
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Top 5 Productos y Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+          {/* Stock en Anaquel */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Stock en Anaquel</CardTitle>
+              <Badge variant="outline">Tiempo real</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center space-x-4">
+                <div className="text-center">
+                  <div className="flex items-center justify-center h-24 w-24 rounded-full border-8">
+                    <div className="text-3xl font-bold">520</div>
+                  </div>
+                  <div className="mt-2 text-sm">Unidades en tienda</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    <span className="text-sm">10 Tipos de Cerveza</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">36%</Badge>
+                    <span className="text-sm">Del inventario total</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
+          {/* Stock Crítico */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Stock crítico</CardTitle>
+              <Badge variant="outline">Día</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center space-x-4">
+                <div className="text-center">
+                  <div className="flex items-center justify-center h-24 w-24 rounded-full border-8">
+                    <div className="text-3xl font-bold">14</div>
+                  </div>
+                  <div className="mt-2 text-sm">SKUs &lt; 100 </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-sm">Cerveza Tipo A - 45 </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-sm">Cerveza Tipo B - 78 </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-sm">Cerveza Tipo C - 23 </span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 text-center">
+                <Button variant="outline" size="sm" onClick={() => setIsCriticalStockModalOpen(true)}>
+                  Ver lista completa
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top 5 Productos y Filtros */}
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Alertas de Reposición</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Productos en anaquel con alerta de reposición física en pasillo (menos de 20 unidades)
+                </p>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {alertasReposicion.slice(0, 2).map((alerta) => (
+                    <div
+                      key={alerta.id}
+                      className="flex items-center justify-between border rounded-md p-3 bg-amber-50"
+                    >
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-medium">{alerta.producto}</div>
+                          <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            <Tag className="h-3 w-3" /> {alerta.sku}
+                          </div>
+                          <div className="text-sm mt-1">Ubicación: {alerta.ubicacion}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-muted-foreground">{alerta.fecha}</div>
+                        <div className="font-medium text-amber-600 mt-1">
+                          {alerta.stock} / {alerta.minimo} unidades
+                        </div>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          <FileText className="h-3 w-3 mr-1" />
+                          Ver Orden PDF
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end">
+                  <AlertsModal alerts={alertasReposicion} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabla de Productos */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Alertas de Reposición</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Registro de Inventario</CardTitle>
+              <div className="flex items-center gap-2">
+                <DateRangePicker date={date} setDate={setDate} />
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filtrar
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Productos en anaquel con alerta de reposición física en pasillo (menos de 20 unidades)
-              </p>
-              
-              <div className="grid grid-cols-1 gap-3">
-                {alertasReposicion.slice(0, 2).map((alerta) => (
-                  <div key={alerta.id} className="flex items-center justify-between border rounded-md p-3 bg-amber-50">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-medium">{alerta.producto}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-2">
-                          <Tag className="h-3 w-3" /> {alerta.sku}
-                        </div>
-                        <div className="text-sm mt-1">Ubicación: {alerta.ubicacion}</div>
-                      </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <div className="flex items-center">
+                      SKU
+                      <ArrowUpDown className="ml-1 h-4 w-4" />
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">{alerta.fecha}</div>
-                      <div className="font-medium text-amber-600 mt-1">
-                        {alerta.stock} / {alerta.minimo} unidades
-                      </div>
-                      <Button variant="outline" size="sm" className="mt-2">
-                        <FileText className="h-3 w-3 mr-1" />
-                        Ver Orden PDF
-                      </Button>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center">
+                      Nombre
+                      <ArrowUpDown className="ml-1 h-4 w-4" />
                     </div>
-                  </div>
+                  </TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>
+                    <div className="flex items-center">
+                      Stock Total
+                      <ArrowUpDown className="ml-1 h-4 w-4" />
+                    </div>
+                  </TableHead>
+                  <TableHead>En Almacén</TableHead>
+                  <TableHead>En Anaquel</TableHead>
+
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inventoryData.map((item) => (
+                  <TableRow key={item.sku}>
+                    <TableCell>{item.sku}</TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{item.category}</TableCell>
+                    <TableCell>
+                      <StockIndicator stock={item.totalStock} threshold={item.reorderPoint} />
+                    </TableCell>
+                    <TableCell>{item.warehouseStock}</TableCell>
+                    <TableCell>{item.shelfStock}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getStockStatus(item.totalStock, item.minStock, item.reorderPoint)}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </div>
-              
-              <div className="flex justify-end">
-                <AlertsModal alerts={alertasReposicion} />
+              </TableBody>
+            </Table>
+
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">Mostrando 1-10 de 145 productos</div>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" disabled>
+                  Anterior
+                </Button>
+                <Button variant="outline" size="sm" className="px-3">
+                  1
+                </Button>
+                <Button variant="outline" size="sm" className="px-3">
+                  2
+                </Button>
+                <Button variant="outline" size="sm" className="px-3">
+                  3
+                </Button>
+                <Button variant="outline" size="sm" className="px-3">
+                  ...
+                </Button>
+                <Button variant="outline" size="sm" className="px-3">
+                  15
+                </Button>
+                <Button variant="outline" size="sm">
+                  Siguiente
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        <CriticalStockModal open={isCriticalStockModalOpen} onOpenChange={setIsCriticalStockModalOpen} />
       </div>
-
-      {/* Tabla de Productos */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Registro de Inventario</CardTitle>
-            <div className="flex items-center gap-2">
-              <DateRangePicker date={date} setDate={setDate} />
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtrar
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <div className="flex items-center">
-                    SKU
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Nombre
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Stock Total
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>En Almacén</TableHead>
-                <TableHead>En Anaquel</TableHead>
-        
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inventoryData.map((item) => (
-                <TableRow key={item.sku}>
-                  <TableCell>{item.sku}</TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>
-                    <StockIndicator stock={item.totalStock} threshold={item.reorderPoint} />
-                  </TableCell>
-                  <TableCell>{item.warehouseStock}</TableCell>
-                  <TableCell>{item.shelfStock}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{getStockStatus(item.totalStock, item.minStock, item.reorderPoint)}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">Mostrando 1-10 de 145 productos</div>
-            <div className="flex gap-1">
-              <Button variant="outline" size="sm" disabled>
-                Anterior
-              </Button>
-              <Button variant="outline" size="sm" className="px-3">
-                1
-              </Button>
-              <Button variant="outline" size="sm" className="px-3">
-                2
-              </Button>
-              <Button variant="outline" size="sm" className="px-3">
-                3
-              </Button>
-              <Button variant="outline" size="sm" className="px-3">
-                ...
-              </Button>
-              <Button variant="outline" size="sm" className="px-3">
-                15
-              </Button>
-              <Button variant="outline" size="sm">
-                Siguiente
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <CriticalStockModal open={isCriticalStockModalOpen} onOpenChange={setIsCriticalStockModalOpen} />
-    </div>
-  )
+    </ProtectedRoute>
+  );
 }
 
 function StockIndicator({ stock, threshold }: { stock: number; threshold: number }) {
-  let indicatorClass = "bg-gray-200"
+  let indicatorClass = "bg-gray-200";
 
   if (stock <= threshold) {
-    indicatorClass = "bg-gray-400"
+    indicatorClass = "bg-gray-400";
   }
 
   return (
@@ -341,16 +358,16 @@ function StockIndicator({ stock, threshold }: { stock: number; threshold: number
       <div className={`h-3 w-3 rounded-full ${indicatorClass}`}></div>
       <span>{stock}</span>
     </div>
-  )
+  );
 }
 
 function getStockStatus(totalStock: number, minStock: number, reorderPoint: number): string {
   if (totalStock <= minStock) {
-    return "Crítico"
+    return "Crítico";
   } else if (totalStock <= reorderPoint) {
-    return "Bajo"
+    return "Bajo";
   } else {
-    return "Normal"
+    return "Normal";
   }
 }
 
@@ -455,4 +472,4 @@ const inventoryData = [
     minStock: 50,
     reorderPoint: 100,
   },
-]
+];

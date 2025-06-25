@@ -200,15 +200,35 @@ export const usePermissions = () => {
     tieneAccesoDashboard,
     tieneAccesoSeccion,
     /** Helpers específicos para permisos comunes */
+    // Inventario
+    puedeVerInventario: () => tienePermiso('leer_inventario'),
+    // Ordenes de reposicion
+    puedeVerOrdenesDeReposicion: () => tienePermiso('leer_orden_de_reposicion'),
+    puedeEditarOrdenesDeReposicion: () => tienePermiso('editar_orden_de_reposicion'),
+    // Ordenes de compra
+    puedeVerOrdenesDeCompra: () => tienePermiso('leer_orden_de_compra'),
+    puedeEditarOrdenesDeCompra: () => tienePermiso('editar_orden_de_compra'),
+    // Ordenes de compra de proveedores
+    puedeVerOrdenesDeCompraProveedor: () => tienePermiso('leer_orden_de_compra_proveedor'),
+    puedeEditarOrdenesDeCompraProveedor: () => tienePermiso('editar_orden_de_compra_proveedor'),
+    // Usuarios
+    puedeVerUsuarios: () => tienePermiso('leer_usuario'),
     puedeCrearUsuarios: () => tienePermiso('crear_usuario'),
     puedeEditarUsuarios: () => tienePermiso('editar_usuario'),
     puedeEliminarUsuarios: () => tienePermiso('eliminar_usuario'),
-    puedeGestionarRoles: () => tieneAlgunPermiso(['crear_rol', 'editar_rol', 'eliminar_rol', 'leer_rol']),
+    // Roles
+    puedeVerRoles: () => tienePermiso('leer_rol'),
+    puedeCrearRoles: () => tienePermiso('crear_rol'),
+    puedeEditarRoles: () => tienePermiso('editar_rol'),
+    puedeEliminarRoles: () => tienePermiso('eliminar_rol'),
+    // Permiso_rol
+    puedeAsignarPermisoRol: () => tieneTodosPermisos(['crear_permiso_rol', 'editar_permiso_rol', 'eliminar_permiso_rol']),
+    // Permisos
+    puedeVerPermisos: () => tienePermiso('leer_permiso'),
+    puedeCrearPermisos: () => tienePermiso('crear_permiso'),
+    // Ventas
     puedeIniciarVentas: () => tienePermiso('crear_venta'),
-    puedeVerHistorialVentas: () => tienePermiso('leer_venta'),
-    puedeProcesarPagos: () => tienePermiso('crear_pago'),
-    puedeCerrarCaja: () => tieneAlgunPermiso(['leer_venta', 'leer_pago']), // Simplificado
-    puedeGestionarProveedores: () => tieneAlgunPermiso(['crear_miembro', 'editar_miembro', 'eliminar_miembro', 'leer_miembro'])
+    puedeVerVentas: () => tienePermiso('leer_venta'),
   };
 };
 

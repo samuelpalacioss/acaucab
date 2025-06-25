@@ -5,15 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, Users, Shield } from "lucide-react";
+import { ArrowLeft, Save, Users, Shield, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PermisoSistema, UsuarioPorRol } from "@/models/roles";
 import { llamarFuncion } from "@/lib/server-actions";
 import { toast } from "sonner";
 import ErrorModal from "@/components/error-modal";
-
-
+import { usePermissions } from "@/store/user-store";
 
 /**
  * Interface para las props del componente
@@ -58,6 +57,8 @@ interface RoleData {
  * Maneja toda la interfaz de usuario y las interacciones de edición de roles y permisos
  */
 export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDelRol }: EditarRolClientProps) {
+  const { puedeEditarRoles, puedeAsignarPermisoRol } = usePermissions();
+
   /*
    * BLOQUE DE COMENTARIOS: ESTADOS DEL COMPONENTE
    *
@@ -65,42 +66,71 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
    * - role: Datos del rol actual en edición
    * - hasChanges: Indica si hay cambios pendientes por guardar
    * - isLoading: Indica si se está procesando la actualización
+   * - searchPermissions: Término de búsqueda para filtrar permisos
    */
   const [role, setRole] = useState<RoleData>({
     id: roleInfo.id,
     nombre: roleInfo.nombre,
     cantidad_usuarios: roleInfo.cantidad_usuarios,
-    permisos: roleInfo.permisos_asignados.map(p => p.id)
+    permisos: roleInfo.permisos_asignados.map((p) => p.id),
   });
   const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchPermissions, setSearchPermissions] = useState("");
   const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({
     isOpen: false,
-    message: ""
+    message: "",
   });
   const router = useRouter();
 
   /**
-   * Función para agrupar permisos por categoría
-   * Agrupa los permisos basándose en palabras clave en su nombre
+   * Función para filtrar permisos basándose en el término de búsqueda
    */
-  const groupedPermissions = todosLosPermisos.reduce((acc, permission) => {
-    let category = 'Otros';
-    
-    // Determinar categoría basándose en el nombre del permiso
-    if (permission.nombre.includes('usuario') || permission.nombre.includes('roles') || 
-        permission.nombre.includes('miembros') || permission.nombre.includes('clientes')) {
-      category = 'Gestión de Usuarios';
-    } else if (permission.nombre.includes('venta') || permission.nombre.includes('pago') || 
-               permission.nombre.includes('factura') || permission.nombre.includes('caja')) {
-      category = 'Gestión de Ventas';
-    } else if (permission.nombre.includes('compra') || permission.nombre.includes('proveedores') || 
-               permission.nombre.includes('pedidos')) {
-      category = 'Gestión de Compras';
-    } else if (permission.nombre.includes('reposición')) {
-      category = 'Gestión de Pasillos';
-    }
-    
+  const filteredPermissions = todosLosPermisos.filter(
+    (permission) =>
+      permission.nombre.toLowerCase().includes(searchPermissions.toLowerCase()) ||
+      permission.descripcion.toLowerCase().includes(searchPermissions.toLowerCase())
+  );
+
+  /**
+   * Función para agrupar permisos por categoría
+   * Agrupa los permisos basándose en la entidad/tabla a la que pertenecen
+   */
+  const groupedPermissions = filteredPermissions.reduce((acc, permission) => {
+    // Extraer el nombre de la entidad del nombre del permiso
+    // El formato es 'acción_entidad', ejemplo: 'crear_usuario' -> 'usuario'
+    const entityName = permission.nombre.split("_").slice(1).join("_");
+
+    // Determinar la categoría basada en la entidad
+    let category = "Gestión de " + entityName.charAt(0).toUpperCase() + entityName.slice(1);
+
+    // Casos especiales de pluralización y nombres compuestos
+    if (entityName.includes("usuario")) category = "Gestión de Usuarios";
+    if (entityName.includes("rol")) category = "Gestión de Roles";
+    if (entityName.includes("permiso")) category = "Gestión de Permisos";
+    if (entityName.includes("cliente")) category = "Gestión de Clientes";
+    if (entityName.includes("empleado")) category = "Gestión de Empleados";
+    if (entityName.includes("venta")) category = "Gestión de Ventas";
+    if (entityName.includes("pago")) category = "Gestión de Pagos";
+    if (entityName.includes("orden_de_compra")) category = "Gestión de Órdenes de Compra";
+    if (entityName.includes("orden_de_reposicion")) category = "Gestión de Órdenes de Reposición";
+    if (entityName.includes("inventario")) category = "Gestión de Inventario";
+    if (entityName.includes("evento")) category = "Gestión de Eventos";
+    if (entityName.includes("miembro")) category = "Gestión de Miembros";
+    if (entityName.includes("beneficio")) category = "Gestión de Beneficios";
+    if (entityName.includes("nomina")) category = "Gestión de Nómina";
+    if (entityName.includes("horario")) category = "Gestión de Horarios";
+    if (entityName.includes("vacacion")) category = "Gestión de Vacaciones";
+    if (entityName.includes("registro_biometrico")) category = "Gestión de Registros Biométricos";
+    if (entityName.includes("cerveza")) category = "Gestión de Cervezas";
+    if (entityName.includes("presentacion")) category = "Gestión de Presentaciones";
+    if (entityName.includes("almacen")) category = "Gestión de Almacenes";
+    if (entityName.includes("tienda")) category = "Gestión de Tiendas";
+    if (entityName.includes("descuento")) category = "Gestión de Descuentos";
+    if (entityName.includes("status")) category = "Gestión de Estados";
+    if (entityName.includes("tasa")) category = "Gestión de Tasas";
+    if (entityName.includes("lugar")) category = "Gestión de Lugares";
+
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -129,8 +159,6 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
     setHasChanges(true);
   };
 
-
-
   /**
    * Función para guardar los cambios del rol
    * Llama a la función fn_update_rol de PostgreSQL
@@ -140,39 +168,39 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
     if (!role.nombre.trim()) {
       setErrorModal({
         isOpen: true,
-        message: 'El nombre del rol no puede estar vacío'
+        message: "El nombre del rol no puede estar vacío",
       });
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       // Llamar a la función de PostgreSQL con los parámetros necesarios
-      const result = await llamarFuncion('fn_update_rol', {
+      const result = await llamarFuncion("fn_update_rol", {
         p_rol_id: role.id,
         p_nuevo_nombre: role.nombre.trim(),
-        p_permisos_ids: role.permisos
+        p_permisos_ids: role.permisos,
       });
 
       if (result) {
         // Mostrar mensaje de éxito
-        toast.success('Rol actualizado correctamente', {
-          description: `El rol "${role.nombre}" ha sido actualizado con ${role.permisos.length} permisos.`
+        toast.success("Rol actualizado correctamente", {
+          description: `El rol "${role.nombre}" ha sido actualizado con ${role.permisos.length} permisos.`,
         });
-        
+
         // Resetear el estado de cambios
         setHasChanges(false);
-        
+
         // Refrescar la página para obtener los datos actualizados
         router.refresh();
       }
     } catch (error: any) {
       // Manejar errores
-      console.error('Error al actualizar el rol:', error);
+      console.error("Error al actualizar el rol:", error);
       setErrorModal({
         isOpen: true,
-        message: error.message || 'Ocurrió un error inesperado al actualizar el rol'
+        message: error.message || "Ocurrió un error inesperado al actualizar el rol",
       });
     } finally {
       setIsLoading(false);
@@ -204,23 +232,21 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
             </p>
           </div>
         </div>
-        <Button 
-          onClick={handleSave} 
-          disabled={!hasChanges || isLoading} 
-          id="guardar-cambios-button"
-        >
-          {isLoading ? (
-            <>
-              <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Guardar Cambios
-            </>
-          )}
-        </Button>
+        {(puedeEditarRoles() || puedeAsignarPermisoRol()) && (
+          <Button onClick={handleSave} disabled={!hasChanges || isLoading} id="guardar-cambios-button">
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Guardar Cambios
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* 
@@ -242,87 +268,119 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
               {/* Campo de nombre del rol */}
               <div id="rol-name-field">
                 <label className="text-sm font-medium">Nombre del Rol *</label>
-                <Input
-                  id="rol-name-input"
-                  value={role.nombre}
-                  onChange={(e) => updateRoleName(e.target.value)}
-                  placeholder="Nombre del rol"
-                  disabled={isLoading}
-                />
+                {puedeEditarRoles() ? (
+                  <Input
+                    id="rol-name-input"
+                    value={role.nombre}
+                    onChange={(e) => updateRoleName(e.target.value)}
+                    placeholder="Nombre del rol"
+                    disabled={isLoading}
+                  />
+                ) : (
+                  <Input id="rol-name-input" value={role.nombre} disabled={true} />
+                )}
               </div>
-
             </CardContent>
           </Card>
 
           {/* Sección de permisos del rol */}
-          <Card id="rol-permisos-card">
-            <CardHeader>
-              <CardTitle id="rol-permisos-title">Permisos del Rol</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/*\
+          {puedeAsignarPermisoRol() ? (
+            <Card id="rol-permisos-card">
+              <CardHeader>
+                <CardTitle id="rol-permisos-title">Permisos del Rol</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Campo de búsqueda de permisos */}
+                <div className="mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar permisos por nombre o descripción..."
+                      value={searchPermissions}
+                      onChange={(e) => setSearchPermissions(e.target.value)}
+                      className="pl-8"
+                    />
+                  </div>
+                  {searchPermissions && (
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      Mostrando {filteredPermissions.length} de {todosLosPermisos.length} permisos
+                    </div>
+                  )}
+                </div>
+
+                {/*\
                 Botón para seleccionar o deseleccionar todos los permisos
                 Si ya están todos seleccionados, permite deseleccionar todos y viceversa
               */}
-              {/**
-               * Determinar si todos los permisos están seleccionados
-               */}
-              {(() => {
-                const allPermissionIds = todosLosPermisos.map(p => p.id);
-                const allSelected = allPermissionIds.every(id => role.permisos.includes(id));
-                return (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mb-4"
-                    disabled={isLoading}
-                    onClick={() => {
-                      setRole(prev => ({
-                        ...prev,
-                        permisos: allSelected ? [] : allPermissionIds
-                      }));
-                      setHasChanges(true);
-                    }}
-                  >
-                    {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
-                  </Button>
-                );
-              })()}
-              <div id="permisos-categories" className="space-y-6">
-                {Object.entries(groupedPermissions).map(([category, permissions]) => (
-                  <div key={category} id={`category-${category.toLowerCase()}`}>
-                    <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
-                      <Shield className="w-4 h-4" />
-                      {category}
-                    </h4>
-                    <div
-                      id={`permissions-grid-${category.toLowerCase()}`}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-6"
+                {/**
+                 * Determinar si todos los permisos están seleccionados
+                 */}
+                {(() => {
+                  const allPermissionIds = filteredPermissions.map((p) => p.id);
+                  const allSelected = allPermissionIds.every((id) => role.permisos.includes(id));
+                  return (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mb-4"
+                      disabled={isLoading || filteredPermissions.length === 0}
+                      onClick={() => {
+                        setRole((prev) => ({
+                          ...prev,
+                          permisos: allSelected
+                            ? prev.permisos.filter((id) => !allPermissionIds.includes(id))
+                            : [...new Set([...prev.permisos, ...allPermissionIds])],
+                        }));
+                        setHasChanges(true);
+                      }}
                     >
-                      {permissions.map((permission) => (
-                        <div
-                          key={permission.id}
-                          id={`permission-${permission.id}`}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={`checkbox-${permission.id}`}
-                            checked={role.permisos.includes(permission.id)}
-                            onCheckedChange={() => togglePermission(permission.id)}
-                            disabled={isLoading}
-                          />
-                          <label htmlFor={`checkbox-${permission.id}`} className="text-sm">
-                            {permission.descripcion}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+                      {allSelected ? "Deseleccionar mostrados" : "Seleccionar mostrados"}
+                    </Button>
+                  );
+                })()}
+
+                {filteredPermissions.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No se encontraron permisos que coincidan con "{searchPermissions}"
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                ) : (
+                  <div id="permisos-categories" className="space-y-6">
+                    {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                      <div key={category} id={`category-${category.toLowerCase()}`}>
+                        <h4 className="mb-3 flex items-center gap-2 text-sm font-medium">
+                          <Shield className="h-4 w-4" />
+                          {category}
+                        </h4>
+                        <div
+                          id={`permissions-grid-${category.toLowerCase()}`}
+                          className="grid grid-cols-1 gap-3 md:grid-cols-2 ml-6"
+                        >
+                          {permissions.map((permission) => (
+                            <div
+                              key={permission.id}
+                              id={`permission-${permission.id}`}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox
+                                id={`checkbox-${permission.id}`}
+                                checked={role.permisos.includes(permission.id)}
+                                onCheckedChange={() => togglePermission(permission.id)}
+                                disabled={isLoading}
+                              />
+                              <label htmlFor={`checkbox-${permission.id}`} className="text-sm">
+                                {permission.descripcion}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
 
         {/* Columna lateral: Usuarios asignados y resumen */}
@@ -383,27 +441,30 @@ export default function EditarRolClient({ roleInfo, todosLosPermisos, usuariosDe
           </Card>
 
           {/* Resumen de permisos actuales */}
-          <Card id="permisos-actuales-card">
-            <CardHeader>
-              <CardTitle id="permisos-actuales-title" className="text-sm">
-                Permisos Actuales
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div id="permisos-actuales-count" className="text-center p-2 bg-gray-50 rounded mb-2">
-                <div className="text-lg font-bold">{role.permisos.length}</div>
-                <div className="text-xs text-gray-600">permisos asignados</div>
-              </div>
-              <div id="permisos-actuales-list" className="text-xs text-gray-600 space-y-1 max-h-32 overflow-y-auto">
-                {todosLosPermisos
-                  .filter(p => role.permisos.includes(p.id))
-                  .map(p => (
-                    <div key={p.id} className="truncate">• {p.nombre}</div>
-                  ))
-                }
-              </div>
-            </CardContent>
-          </Card>
+          {puedeAsignarPermisoRol() ? (
+            <Card id="permisos-actuales-card">
+              <CardHeader>
+                <CardTitle id="permisos-actuales-title" className="text-sm">
+                  Permisos Actuales
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div id="permisos-actuales-count" className="p-2 mb-2 text-center bg-gray-50 rounded">
+                  <div className="text-lg font-bold">{role.permisos.length}</div>
+                  <div className="text-xs text-gray-600">permisos asignados</div>
+                </div>
+                <div id="permisos-actuales-list" className="space-y-1 overflow-y-auto text-xs text-gray-600 max-h-32">
+                  {todosLosPermisos
+                    .filter((p) => role.permisos.includes(p.id))
+                    .map((p) => (
+                      <div key={p.id} className="truncate">
+                        • {p.nombre}
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {/* Indicador de cambios pendientes */}
           {hasChanges && (

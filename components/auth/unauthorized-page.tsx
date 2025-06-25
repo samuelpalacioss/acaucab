@@ -1,13 +1,11 @@
-import { ShieldAlert, ArrowLeft, Home } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Home, Link, ShieldAlert } from "lucide-react";
+import { usePermissions } from "@/store/user-store";
 
-/**
- * Página de acceso no autorizado
- * Se muestra cuando el usuario no tiene permisos para acceder a una sección
- */
 export default function UnauthorizedPage() {
+  const { tieneAccesoDashboard } = usePermissions();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
@@ -27,12 +25,14 @@ export default function UnauthorizedPage() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/dashboard">
-                <Home className="h-4 w-4 mr-2" />
-                Volver al Dashboard
-              </Link>
-            </Button>
+            {tieneAccesoDashboard() && (
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/dashboard">
+                  <Home className="h-4 w-4 mr-2" />
+                  Volver al Dashboard
+                </Link>
+              </Button>
+            )}
 
             <Button asChild variant="outline" className="w-full">
               <Link href="/login">
@@ -46,8 +46,3 @@ export default function UnauthorizedPage() {
     </div>
   );
 }
-
-export const metadata = {
-  title: "Acceso Denegado | ACAUCAB",
-  description: "No tienes permisos para acceder a esta página",
-};
