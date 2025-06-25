@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation'
 import { crearClienteServerAction } from '@/lib/supabase'
 import { LoginUsuario, LoginResponse } from '@/models/login'
+import { InventoryData } from '@/models/inventory'
+import { OrdenesReposicionData } from '@/models/orden-reposicion'
 
 
 /**
@@ -171,5 +173,39 @@ export async function procesarFormulario(
   }
 
   return resultado
+}
+
+/**
+ * ACCIONES DE INVENTARIO
+ */
+
+/**
+ * Obtener datos del inventario usando la función fn_get_inventory
+ * 
+ * @returns Array con los datos del inventario
+ */
+export async function obtenerInventario(): Promise<InventoryData> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_get_inventory')
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener inventario:', error)
+    throw new Error('Error al cargar datos del inventario')
+  }
+}
+
+/**
+ * Obtener órdenes de reposición usando la función fn_get_ordenes_de_reposicion
+ * 
+ * @returns Array con los datos de las órdenes de reposición
+ */
+export async function obtenerOrdenesReposicion(): Promise<OrdenesReposicionData> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_get_ordenes_de_reposicion')
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener órdenes de reposición:', error)
+    throw new Error('Error al cargar datos de las órdenes de reposición')
+  }
 }
  
