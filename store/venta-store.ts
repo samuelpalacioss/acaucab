@@ -45,6 +45,17 @@ export interface ChequeDetails {
 }
 
 /**
+ * Detalles específicos para un pago en efectivo con desglose de denominación.
+ */
+export type Currency = "bolivares" | "dolares" | "euros";
+
+export interface EfectivoDetails {
+  currency: Currency;
+  breakdown: { [value: string]: number }; // e.g., { "5": 2 } for two $5 bills
+  amountInCurrency: number;
+}
+
+/**
  * Interface para los datos de pago - fn_create_pago
  */
 export interface PagoData {
@@ -58,6 +69,7 @@ export interface PagoData {
   fk_cliente_metodo_pago_1?: number;
   detalles_cheque?: ChequeDetails;
   detalles_tarjeta?: TarjetaDetails;
+  detalles_efectivo?: EfectivoDetails;
 }
 
 /**
@@ -220,16 +232,25 @@ export const useVentaStore = create<VentaStore>()(
         };
         
         // Si es tarjeta, añadir el tipo de tarjeta
-        if (method === 'tarjetaCredito') {
+        if (method === "tarjetaCredito" || method === "tarjetaDebito") {
           pagoData.detalles_tarjeta = details as TarjetaDetails;
         }
 
-        if (method === 'cheque') {
+        if (method === "cheque") {
           const chequeDetails = details;
           pagoData.detalles_cheque = {
             numeroCheque: chequeDetails.numeroCheque,
             numeroCuenta: chequeDetails.numeroCuenta,
             banco: chequeDetails.banco,
+          };
+        }
+
+        if (method === "efectivo") {
+          const efectivoDetails = details as EfectivoDetails;
+          pagoData.detalles_efectivo = {
+            currency: efectivoDetails.currency,
+            breakdown: efectivoDetails.breakdown,
+            amountInCurrency: efectivoDetails.amountInCurrency,
           };
         }
         /** TODO: Llamar a la función SQL fn_create_pago */
