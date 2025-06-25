@@ -10,7 +10,7 @@ DECLARE
   v_nuevo_detalle_id INTEGER;
   existe_venta BOOLEAN;
 BEGIN  
-  SELECT EXISTS (SELECT 1 FROM venta v WHERE v.id = p_venta_id) INTO existe_venta;
+  SELECT EXISTS (SELECT FROM venta v WHERE v.id = p_venta_id LIMIT 1) INTO existe_venta;
 
   IF existe_venta THEN
     INSERT INTO detalle_presentacion(fk_venta, fk_presentacion, fk_cerveza)
