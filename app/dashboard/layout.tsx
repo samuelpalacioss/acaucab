@@ -1,17 +1,17 @@
-import type React from "react"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { MainSidebar } from "@/components/main-sidebar"
-import { TopNavbar } from "@/components/top-navbar"
-import ProtectedRoute from "@/components/auth/protected-route"
+import type React from "react";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { MainSidebar } from "@/components/main-sidebar";
+import { TopNavbar } from "@/components/top-navbar";
+import ProtectedRoute from "@/components/auth/protected-route";
 
-/** 
+/**
  * Layout principal para la sección de dashboard
  * @param {React.ReactNode} children - Componentes hijos que se renderizarán dentro del layout
  */
 export default function DashboardLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <ProtectedRoute>
@@ -25,9 +25,5 @@ export default function DashboardLayout({
         </div>
       </SidebarProvider>
     </ProtectedRoute>
-  )
+  );
 }
-
-export const metadata = {
-  generator: 'v0.dev'
-};

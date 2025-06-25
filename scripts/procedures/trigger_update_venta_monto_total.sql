@@ -1,5 +1,5 @@
 -- Primero, eliminamos el trigger existente para poder modificar la función.
-DROP TRIGGER IF EXISTS trg_actualizar_monto_venta ON detalle_presentacion;
+DROP TRIGGER IF EXISTS trigger_actualizar_monto_venta ON detalle_presentacion;
 
 -- Luego, eliminamos la función que utiliza el trigger.
 DROP FUNCTION IF EXISTS fn_actualizar_monto_total_venta();
@@ -33,7 +33,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Crear el trigger cuando se inserta o actualiza un detalle de presentación.
-CREATE TRIGGER trg_actualizar_monto_venta
+CREATE TRIGGER trigger_actualizar_monto_venta
 AFTER INSERT OR UPDATE ON detalle_presentacion
 FOR EACH ROW
 EXECUTE FUNCTION fn_actualizar_monto_total_venta(); 
