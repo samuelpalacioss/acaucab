@@ -28,6 +28,7 @@ import { CriticalStockModal } from "@/components/critical-stock-modal";
 import { AlertsModal } from "@/components/alerts-modal";
 import { InventoryData } from "@/models/inventory";
 import { OrdenesReposicionData } from "@/models/orden-reposicion";
+import { generarPDFOrdenReposicion } from "@/lib/pdf-generator";
 
 interface InventarioDetalleClientProps {
   /** Datos del inventario obtenidos desde la base de datos */
@@ -246,6 +247,11 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
     observacion: orden["Observación"],
   }));
 
+  /** Filtrar productos con stock crítico (menos de 100 unidades) */
+  const criticalStockItems = useMemo(() => {
+    return inventoryData.filter((item) => item["Stock Total"] < 100);
+  }, [inventoryData]);
+
   return (
     <div className="space-y-4">
       {/** Header con título y botones de acción */}
@@ -333,14 +339,14 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
               <div className="text-center">
                 <div className="flex items-center justify-center h-24 w-24 rounded-full border-8">
                   <div className="text-3xl font-bold">
-                    {inventoryData.filter((item) => item["Stock Total"] < 100).length}
+                    {criticalStockItems.length}
                   </div>
                 </div>
                 <div className="mt-2 text-sm">Productos &lt; 100 </div>
               </div>
               <div className="space-y-2">
-                {inventoryData
-                  .filter((item) => item["Stock Total"] < 100)
+                {criticalStockItems
+                  .sort((a, b) => a["Stock Total"] - b["Stock Total"])
                   .slice(0, 3)
                   .map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
@@ -396,18 +402,22 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline">{alerta.estado}</Badge>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => handleEditStatus(alerta.id, alerta.estado)}
-                            className="text-xs"
+                            className="text-xs border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
                           >
                             <Edit className="h-3 w-3 mr-1" />
                             Editar Estado
                           </Button>
                         </div>
                       )}
-                      <div className="flex gap-2 mt-2">
-                        <Button variant="outline" size="sm">
+                      <div className="flex gap-2 mt-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => generarPDFOrdenReposicion(alerta)}
+                        >
                           <FileText className="h-3 w-3 mr-1" />
                           Ver PDF
                         </Button>
@@ -418,7 +428,7 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
               </div>
 
               <div className="flex justify-end">
-                <AlertsModal alerts={alertasReposicion} />
+                <AlertsModal alerts={alertasReposicion} onEditStatus={handleEditStatus} />
               </div>
             </div>
           </CardContent>
@@ -617,26 +627,44 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
       </Card>
 
       {/** Modal de Stock Crítico */}
-      <CriticalStockModal open={isCriticalStockModalOpen} onOpenChange={setIsCriticalStockModalOpen} />
+      <CriticalStockModal 
+        open={isCriticalStockModalOpen} 
+        onOpenChange={setIsCriticalStockModalOpen}
+        criticalStockItems={criticalStockItems}
+      />
 
       {/** Modal de Edición de Estado de Orden */}
       <Dialog open={isEditStatusModalOpen} onOpenChange={setIsEditStatusModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white border shadow-lg">
           <DialogHeader>
-            <DialogTitle>Editar Estado de Orden</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-gray-900">Editar Estado de Orden</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">Orden ID:</p>
+              <p className="font-medium text-gray-900">#{editingOrderId}</p>
+            </div>
             <div>
-              <p className="text-sm text-muted-foreground mb-2">Orden ID: {editingOrderId}</p>
-              <p className="text-sm font-medium mb-4">Selecciona el nuevo estado para esta orden:</p>
+              <p className="text-sm font-medium mb-3 text-gray-900">Selecciona el nuevo estado para esta orden:</p>
               <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleccionar estado" />
                 </SelectTrigger>
                 <SelectContent>
                   {statusOptions.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {status}
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className={`w-2 h-2 rounded-full ${
+                            status === 'Completada' ? 'bg-green-500' :
+                            status === 'En Proceso' ? 'bg-blue-500' :
+                            status === 'Pendiente' ? 'bg-yellow-500' :
+                            status === 'Cancelada' ? 'bg-red-500' :
+                            'bg-gray-500'
+                          }`}
+                        />
+                        {status}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -644,13 +672,17 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
             </div>
           </div>
           <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={handleCancelStatusChange}>
+            <Button variant="outline" onClick={handleCancelStatusChange} className="flex-1">
               <XIcon className="h-4 w-4 mr-2" />
               Cancelar
             </Button>
-            <Button onClick={handleAcceptStatusChange}>
+            <Button 
+              onClick={handleAcceptStatusChange} 
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={!newStatus}
+            >
               <Check className="h-4 w-4 mr-2" />
-              Aceptar
+              Actualizar Estado
             </Button>
           </DialogFooter>
         </DialogContent>
