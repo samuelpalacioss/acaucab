@@ -12,6 +12,8 @@ import {
   DollarSign,
   ChevronDown,
   Home,
+  Calendar,
+  BarChart3
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,6 +29,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { usePermissions } from "@/store/user-store";
+import ProtectedRoute from "./auth/protected-route";
 
 interface MenuItem {
   title: string;
@@ -37,6 +41,7 @@ interface MenuItem {
 
 export function MainSidebar() {
   const [activeItem, setActiveItem] = useState("Dashboard");
+  const { tieneAccesoSeccion } = usePermissions();
 
   const menuItems: MenuItem[] = [
     {
@@ -78,6 +83,7 @@ export function MainSidebar() {
   ];
 
   return (
+    <ProtectedRoute requiredPermissions={['leer_usuario', 'leer_permiso', 'leer_orden_de_reposicion', 'leer_rol', 'leer_venta', 'leer_orden_de_compra', 'leer_inventario']}>
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2 justify-center ">
@@ -133,5 +139,6 @@ export function MainSidebar() {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+    </ProtectedRoute>
   );
 }

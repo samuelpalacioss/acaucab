@@ -20,15 +20,6 @@ BEGIN
     SELECT nombre INTO v_new_role_name
     FROM rol
     WHERE id = p_id_nuevo_rol;
-
-    /**
-     * @dev Valida que el nuevo rol no sea uno de los roles restringidos.
-     *      No se puede asignar 'Cliente', 'Miembro' o 'Administrador' a través de esta función.
-     */
-    IF v_new_role_name IN ('Cliente', 'Miembro', 'Administrador') THEN
-        RAISE EXCEPTION 'La asignación al rol (%) no está permitida.', v_new_role_name;
-    END IF;
-
     /**
      * @dev Si todas las validaciones pasan, actualiza el rol del usuario.
      */

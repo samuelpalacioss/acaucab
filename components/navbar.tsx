@@ -1,7 +1,21 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, User, LogOut, Settings, UserIcon, LayoutDashboard } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useUser, usePermissions } from "@/store/user-store";
+import { useLogout } from "@/components/auth/logout-button";
 
 const navLinks = [
   { href: "/eventos", label: "Eventos" },
@@ -10,6 +24,11 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  /** Datos del usuario y permisos desde el store */
+  const { nombreUsuario, emailUsuario, rolUsuario, isAuthenticated } = useUser();
+  const { tieneAccesoDashboard } = usePermissions();
+  const { logout } = useLogout();
+
   return (
     <header className="w-full py-4 border-b border-gray-200 bg-white">
       <div className="mx-auto max-w-screen-2xl px-4 md:px-6 lg:px-8 flex items-center">
@@ -32,15 +51,88 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center space-x-4 ml-auto">
-          <Link
-            href="/login"
-            className={buttonVariants({ variant: "outline", className: "font-medium" })}
-          >
-            Iniciar Sesión
-          </Link>
+          {/** Carrito de compras */}
           <Link href="/carrito" className="text-black hover:text-gray-600">
             <ShoppingCart className="h-6 w-6" />
           </Link>
+
+          {/** Si no está autenticado, mostrar botón de login */}
+          {!isAuthenticated ? (
+            <Link
+              href="/login"
+              className={buttonVariants({ variant: "outline", className: "font-medium" })}
+            >
+              Iniciar Sesión
+            </Link>
+          ) : (
+            <div className="flex items-center space-x-3">
+              {/** Botón de Dashboard si tiene permisos */}
+              {tieneAccesoDashboard() && (
+                <Link
+                  href="/dashboard"
+                  className={buttonVariants({ 
+                    variant: "default", 
+                    className: "font-medium bg-blue-600 hover:bg-blue-700" 
+                  })}
+                >
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              )}
+
+              {/** Dropdown del usuario autenticado */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gray-100 text-gray-800">
+                        {nombreUsuario ? nombreUsuario.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {nombreUsuario || "Usuario"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {emailUsuario || "No disponible"}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {/** Mostrar rol si está disponible */}
+                  {rolUsuario && (
+                    <>
+                      <DropdownMenuItem disabled>
+                        <div className="flex items-center gap-2">
+                          <UserIcon className="h-4 w-4" />
+                          <span>Rol:</span>
+                          <Badge variant="secondary" className="ml-auto">
+                            {rolUsuario}
+                          </Badge>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                 
+                  
+                  {/** Logout con confirmación */}
+                  <DropdownMenuItem 
+                    onClick={logout}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
       </div>
     </header>

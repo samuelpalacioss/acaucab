@@ -3,6 +3,7 @@ import { llamarFuncion } from "@/lib/server-actions";
 import { Status } from "@/models/status";
 import { VentaResponse, VentaExpandida, transformarVentaResponse } from "@/models/venta";
 import { getBCV } from "@/lib/bcv";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 /**
  * Página de ventas (Server Component)
@@ -55,15 +56,16 @@ export default async function VentasPage() {
     status = [];
   }
 
-
   return (
-    <main id="ventas-page" className="min-h-screen">
-      {/* 
-        Componente cliente que maneja toda la interfaz de usuario
-        de ventas y las interacciones del usuario.
-        Se pasan los datos ya procesados y validados desde el servidor.
-      */}
-      <VentasClient ventasExpandidas={ventasExpandidas} status={status} />
-    </main>
+    <ProtectedRoute requiredPermissions={['leer_venta']} redirectTo="/unauthorized">
+      <main id="ventas-page" className="min-h-screen">
+        {/* 
+          Componente cliente que maneja toda la interfaz de usuario
+          de ventas y las interacciones del usuario.
+          Se pasan los datos ya procesados y validados desde el servidor.
+        */}
+        <VentasClient ventasExpandidas={ventasExpandidas} status={status} />
+      </main>
+    </ProtectedRoute>
   );
 }

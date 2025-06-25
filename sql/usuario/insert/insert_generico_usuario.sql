@@ -5,15 +5,14 @@
 
 INSERT INTO rol (nombre) VALUES
     ('Administrador'),
-    ('Empleado'),
     ('Cliente'),
     ('Miembro'),
     ('Jefe de Compras'),
     ('Asistente de Compras'),
     ('Jefe de Pasillos'),
     ('Cajero'),
-    ('Jefe de Logística'),
-    ('Auxiliar de Logística'),
+    ('Jefe de Recursos Humanos'),
+    ('Auxiliar Recursos Humanos'),
     ('Jefe de Marketing');
 
 INSERT INTO permiso (nombre, descripción) VALUES
@@ -354,35 +353,32 @@ INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Administrador'), p.id 
 FROM permiso p;
 
--- Empleado gets basic permissions
-INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT (SELECT id FROM rol WHERE nombre = 'Empleado'), p.id 
-FROM permiso p
-WHERE p.nombre IN ('ver_usuarios', 'gestionar_clientes');
 
 -- Cliente gets minimal permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Cliente'), p.id 
 FROM permiso p
-WHERE p.nombre IN ('ver_usuarios');
+WHERE p.nombre IN ('crear_venta', 'crear_venta_evento', 'leer_presentacion_cerveza');
 
 -- Miembro gets member-specific permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Miembro'), p.id 
 FROM permiso p
-WHERE p.nombre IN ('ver_usuarios', 'gestionar_miembros');
+WHERE p.nombre IN ('leer_orden_de_compra', 'editar_orden_de_compra');
 
 -- Jefe de Compras gets purchase management permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Compras'), p.id 
 FROM permiso p
 WHERE p.nombre IN (
-    'ver_usuarios',
-    'aceptar_orden_compra',
-    'rechazar_orden_compra',
-    'ver_ordenes_compra',
-    'gestionar_proveedores',
-    'ver_historial_compras'
+    'leer_orden_de_compra',
+    'editar_orden_de_compra',
+    'crear_orden_de_compra',
+    'eliminar_orden_de_compra',
+    'leer_inventario',
+    'editar_inventario',
+    'crear_inventario',
+    'eliminar_inventario'
 );
 
 -- Asistente de Compras gets limited purchase permissions
@@ -390,9 +386,10 @@ INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Asistente de Compras'), p.id 
 FROM permiso p
 WHERE p.nombre IN (
-    'ver_usuarios',
-    'ver_ordenes_compra',
-    'ver_historial_compras'
+    'leer_orden_de_compra',
+    'editar_orden_de_compra'
+    'leer_inventario',
+    'editar_inventario',
 );
 
 -- Jefe de Pasillos gets aisle management permissions
@@ -400,8 +397,18 @@ INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Pasillos'), p.id 
 FROM permiso p
 WHERE p.nombre IN (
-    'ver_usuarios',
-    'aceptar_orden_reposición'
+    'leer_orden_de_reposicion',
+    'editar_orden_de_reposicion'
+    'crear_orden_de_reposicion'
+    'eliminar_orden_de_reposicion',
+    'leer_lugar_tienda_inventario',
+    'editar_lugar_tienda_inventario',
+    'crear_lugar_tienda_inventario',
+    'eliminar_lugar_tienda_inventario',
+    'leer_inventario',
+    'editar_inventario',
+    'crear_inventario',
+    'eliminar_inventario'
 );
 
 -- Cajero gets sales-related permissions
@@ -409,32 +416,56 @@ INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Cajero'), p.id 
 FROM permiso p
 WHERE p.nombre IN (
-    'ver_usuarios',
-    'iniciar_venta',
-    'procesar_pago',
-    'anular_venta',
-    'imprimir_factura',
-    'cerrar_caja',
-    'ver_historial_ventas'
+    'crear_venta', 'crear_venta_evento', 'leer_presentacion_cerveza', 'leer_inventario', 'leer_lugar_tienda_inventario'
 );
 
--- Jefe de Logística gets logistics management permissions
+-- Jefe de Recursos Humanos gets HR management permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Logística'), p.id 
+SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Recursos Humanos'), p.id 
 FROM permiso p
 WHERE p.nombre IN (
-    'ver_usuarios',
-    'ver_pedidos'
+    'crear_empleado',
+    'editar_empleado',
+    'eliminar_empleado',
+    'leer_empleado',
+    'crear_nomina',
+    'editar_nomina',
+    'eliminar_nomina',
+    'leer_nomina',
+    'crear_cargo',
+    'editar_cargo',
+    'eliminar_cargo',
+    'leer_cargo',
+    'crear_departamento',
+    'editar_departamento',
+    'eliminar_departamento',
+    'leer_departamento',
+    'crear_beneficio',
+    'editar_beneficio',
+    'eliminar_beneficio',
+    'leer_beneficio',
+    'crear_vacacion',
+    'editar_vacacion',
+    'eliminar_vacacion',
+    'leer_vacacion',
+    'leer_usuario'
 );
 
--- Auxiliar de Logística gets limited logistics permissions
+-- Auxiliar de Recursos Humanos gets limited HR permissions
 INSERT INTO permiso_rol (fk_rol, fk_permiso)
-SELECT (SELECT id FROM rol WHERE nombre = 'Auxiliar de Logística'), p.id 
+SELECT (SELECT id FROM rol WHERE nombre = 'Auxiliar Recursos Humanos'), p.id 
 FROM permiso p
 WHERE p.nombre IN (
-    'ver_usuarios',
-    'ver_pedidos',
-    'ver_ordenes_compra'
+    'leer_empleado',
+    'leer_nomina',
+    'leer_cargo',
+    'leer_departamento',
+    'leer_beneficio',
+    'leer_vacacion',
+    'crear_registro_biometrico',
+    'editar_registro_biometrico',
+    'leer_registro_biometrico',
+    'leer_usuario'
 );
 
 -- Jefe de Marketing gets marketing management permissions
@@ -442,8 +473,22 @@ INSERT INTO permiso_rol (fk_rol, fk_permiso)
 SELECT (SELECT id FROM rol WHERE nombre = 'Jefe de Marketing'), p.id 
 FROM permiso p
 WHERE p.nombre IN (
-    'ver_usuarios',
-    'gestionar_clientes'
+    'crear_evento',
+    'editar_evento',
+    'eliminar_evento',
+    'leer_evento',
+    'crear_cliente_natural',
+    'editar_cliente_natural',
+    'leer_cliente_natural',
+    'crear_cliente_juridico',
+    'editar_cliente_juridico',
+    'leer_cliente_juridico',
+    'leer_venta',
+    'leer_usuario',
+    'crear_descuento',
+    'editar_descuento',
+    'eliminar_descuento',
+    'leer_descuento'
 ); 
 
 /**
