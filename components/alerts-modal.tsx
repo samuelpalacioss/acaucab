@@ -9,28 +9,30 @@ import { useState } from "react";
 import { Check, XIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { actualizarEstadoOrdenReposicion } from "@/lib/server-actions";
+import { usePermissions, useUser } from "@/store/user-store";
 
 /** Función para obtener las clases de color según el estado de la orden */
 function getStatusBackgroundColor(estado: string): string {
   const estadoLower = estado.toLowerCase();
 
   switch (estadoLower) {
-    case "aprobada":
-    case "completada":
-      return "bg-green-50 border-green-200";
+    case "aprobado":
+      return "bg-green-100 border-green-200";
+    case "finalizado":
+      return "bg-teal-50 border-teal-200";
     case "pendiente":
       return "bg-yellow-50 border-yellow-200";
-    case "finalizado":
-      return "bg-white border-gray-200";
     case "en proceso":
       return "bg-blue-50 border-blue-200";
-    case "cancelada":
+    case "cancelado":
       return "bg-red-50 border-red-200";
     case "en revisión":
       return "bg-purple-50 border-purple-200";
     default:
-      return "bg-amber-50 border-amber-200"; // Color por defecto
+      return "bg-amber-50 border-amber-200";
   }
 }
 
@@ -39,21 +41,20 @@ function getStatusIconColor(estado: string): string {
   const estadoLower = estado.toLowerCase();
 
   switch (estadoLower) {
-    case "aprobada":
-    case "completada":
+    case "aprobado":
       return "text-green-500";
+    case "finalizado":
+      return "text-teal-500";
     case "pendiente":
       return "text-yellow-500";
-    case "finalizado":
-      return "text-gray-500";
     case "en proceso":
       return "text-blue-500";
-    case "cancelada":
+    case "cancelado":
       return "text-red-500";
     case "en revisión":
       return "text-purple-500";
     default:
-      return "text-amber-500"; // Color por defecto
+      return "text-amber-500";
   }
 }
 
@@ -63,16 +64,11 @@ function getAvailableStatusOptions(currentStatus: string): string[] {
 
   switch (estadoLower) {
     case "pendiente":
-      return ["Aprobada", "Cancelada"];
-    case "aprobada":
-      return []; // No se puede cambiar desde este estado
-    case "en proceso":
-      return ["finalizado", "Cancelada"];
-    case "cancelada":
-    case "finalizado":
-      return []; // No se puede cambiar desde estos estados
+      return ["Aprobado", "Cancelado"];
+    case "aprobado":
+      return ["Finalizado", "Cancelado"];
     default:
-      return ["Pendiente", "Aprobada", "En Proceso", "finalizado", "Cancelada"];
+      return [];
   }
 }
 
@@ -86,7 +82,7 @@ interface Alert {
   fecha: string;
   estado?: string;
   fechaEstado?: string | null;
-  empleado?: string;
+  empleado?: string; // Now contains user name (could be employee, client, or member)
   observacion?: string;
 }
 
@@ -101,33 +97,52 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
   const [newStatus, setNewStatus] = useState<string>("");
   const [isEditStatusModalOpen, setIsEditStatusModalOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-
+  const [quantity, setQuantity] = useState<string>("");
+  const [observation, setObservation] = useState<string>("");
+  const { puedeEditarOrdenesDeReposicion } = usePermissions();
+  const { usuario } = useUser();
+  
   /** Manejar la edición de estado desde el modal de alertas */
   const handleEditStatus = (orderId: number, currentStatus: string) => {
     setEditingOrderId(orderId);
     setNewStatus(""); // Inicializar vacío para que el usuario seleccione
+    setQuantity("");
+    setObservation("");
     setIsEditStatusModalOpen(true);
   };
 
   /** Aceptar cambio de estado */
   const handleAcceptStatusChange = async () => {
-    if (editingOrderId && newStatus) {
+    // Validar que si el estado es "Finalizado", la cantidad sea requerida
+    if (newStatus.toLowerCase() === "finalizado" && (!quantity || quantity.trim() === "")) {
+      alert("La cantidad es requerida cuando el estado es 'Finalizado'");
+      return;
+    }
+
+    if (editingOrderId && newStatus && usuario?.id) {
       setIsUpdatingStatus(true);
       try {
-        console.log("Actualizando estado de la orden:", editingOrderId, newStatus);
-        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus);
-        setIsEditStatusModalOpen(false);
-        setEditingOrderId(null);
-        setNewStatus("");
-        alert(`Estado actualizado a: ${newStatus}`);
+        const unidades = newStatus.toLowerCase() === 'finalizado' ? parseInt(quantity, 10) : undefined
+        const observacionFinal = newStatus.toLowerCase() === 'finalizado' ? observation : undefined
+
+        console.log('Actualizando estado de la orden:', editingOrderId, newStatus, 'Usuario ID:', usuario.id)
+        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus, usuario.id, unidades, observacionFinal)
+        setIsEditStatusModalOpen(false)
+        setEditingOrderId(null)
+        setNewStatus('')
+        setQuantity('')
+        setObservation('')
+        alert(`Estado actualizado a: ${newStatus}`)
         // Aquí podrías llamar a una función para refrescar los datos
-        window.location.reload(); // Temporal - idealmente usarías un estado global o callback
+        window.location.reload() // Temporal - idealmente usarías un estado global o callback
       } catch (error) {
         console.error("Error al actualizar el estado de la orden:", error);
         alert("Hubo un error al actualizar el estado de la orden. Por favor, inténtelo más tarde.");
       } finally {
         setIsUpdatingStatus(false);
       }
+    } else if (!usuario?.id) {
+      alert("No se pudo obtener la información del usuario. Por favor, inicie sesión nuevamente.");
     }
   };
 
@@ -136,6 +151,8 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
     setIsEditStatusModalOpen(false);
     setEditingOrderId(null);
     setNewStatus("");
+    setQuantity("");
+    setObservation("");
   };
 
   return (
@@ -191,7 +208,7 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
                             <span className="text-xs text-muted-foreground">Actualizado: {alerta.fechaEstado}</span>
                           )}
                         </div>
-                        {onEditStatus && getAvailableStatusOptions(alerta.estado!).length > 0 && (
+                        {onEditStatus && puedeEditarOrdenesDeReposicion() && getAvailableStatusOptions(alerta.estado!).length > 0 && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -245,6 +262,41 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/** Campos adicionales para estado "Finalizado" */}
+              {newStatus.toLowerCase() === "finalizado" && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="quantity" className="text-right">
+                      Cantidad *
+                    </Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      placeholder="Cantidad de productos"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      className="col-span-3"
+                      disabled={isUpdatingStatus}
+                      min="1"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label htmlFor="observation" className="text-right pt-2">
+                      Observación
+                    </Label>
+                    <Textarea
+                      id="observation"
+                      placeholder="Observaciones adicionales (opcional)"
+                      value={observation}
+                      onChange={(e) => setObservation(e.target.value)}
+                      className="col-span-3"
+                      disabled={isUpdatingStatus}
+                      rows={3}
+                    />
+                  </div>
+                </>
+              )}
             </div>
             <DialogFooter>
               <Button type="submit" onClick={handleAcceptStatusChange} disabled={isUpdatingStatus}>

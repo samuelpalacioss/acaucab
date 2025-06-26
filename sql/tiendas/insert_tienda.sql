@@ -83,16 +83,16 @@ INSERT INTO inventario (cantidad_almacen, fk_presentacion_cerveza_1, fk_presenta
  * Inserción de datos para el inventario de lugares de tienda
  */
 INSERT INTO lugar_tienda_inventario (cantidad, fk_lugar_tienda_1, fk_lugar_tienda_2, fk_inventario_1, fk_inventario_2, fk_inventario_3) VALUES
-(30, 1, 1, 1, 1, 1),    /** Inventario en Pasillo Principal **/
-(40, 2, 1, 2, 2, 1),    /** Inventario en Zona Refrigerada **/
+(30, 3, 1, 1, 1, 1),    /** Inventario en Pasillo Principal **/
+(40, 3, 1, 2, 2, 1),    /** Inventario en Zona Refrigerada **/
 (30, 3, 1, 3, 13, 1),    /** Inventario en Anaquel Cervezas Importadas **/
-(40, 4, 1, 4, 14, 1),    /** Inventario en Pasillo Cervezas Nacionales **/
-(100, 5, 1, 5, 5, 1),    /** Inventario en Zona Barriles **/
+(40, 6, 1, 4, 14, 1),    /** Inventario en Pasillo Cervezas Nacionales **/
+(100, 6, 1, 5, 5, 1),    /** Inventario en Zona Barriles **/
 (80, 6, 1, 6, 6, 1),    /** Inventario en Anaquel Cervezas Artesanales **/
-(60, 7, 1, 7, 7, 1),    /** Inventario en Pasillo Promociones **/
-(15, 8, 1, 8, 8, 1),    /** Inventario en Zona Six Packs **/
+(60, 9, 1, 7, 7, 1),    /** Inventario en Pasillo Promociones **/
+(15, 9, 1, 8, 8, 1),    /** Inventario en Zona Six Packs **/
 (12, 9, 1, 9, 9, 1),    /** Inventario en Anaquel Cervezas Premium **/
-(17, 10, 1, 10, 10, 1); /** Inventario en Pasillo Salida **/
+(17, 9, 1, 10, 10, 1); /** Inventario en Pasillo Salida **/
 
 /**
  * Inserción de órdenes de reposición
@@ -106,15 +106,20 @@ INSERT INTO orden_de_reposicion (
     fk_inventario_1, -- fk_inventario_1 es el fk_presentacion_cerveza_1
     fk_inventario_2, -- fk_inventario_2 es el fk_presentacion_cerveza_2
     fk_inventario_3, -- fk_inventario_3 es el fk_almacen
-    fk_empleado
+    fk_usuario
 ) VALUES
-('2024-05-10', 'Reposicion pasada', 50, 3, 1, 3, 13, 1, 10),      /** Reposicion para Anaquel Cervezas Importadas en Tienda 1 */
-('2024-05-11', 'Stock regular anterior', 30, 6, 1, 6, 6, 1, 10),      /** Reposicion para Anaquel Cervezas Artesanales en Tienda 1 */
-('2024-05-12', 'Promocion pasada', 60, 9, 1, 9, 9, 1, 10),      /** Reposicion para Anaquel Cervezas Premium en Tienda 1 */
-('2024-08-15', 'Reposicion mensual anterior', 50, 8, 1, 8, 8, 1, 10),      /** Reposicion para Zona Six Packs en Tienda 1 */
-('2024-09-16', 'Stock regular anterior', 50, 1, 1, 1, 1, 1, 10),      /** Reposicion para Pasillo Principal en Tienda 1 */
-('2024-10-17', 'Pedido especial pasado', 30, 4, 1, 4, 14, 1, 10),      /** Reposicion para Pasillo Cervezas Nacionales en Tienda 1 */
-('2024-11-18', 'Reposicion anterior', 250, 7, 1, 7, 7, 1, 10),      /** Reposicion para Pasillo Promociones en Tienda 1 */
-('2025-06-21', 'URGENTE - Zona Refrigerada stock bajo', 20, 10, 1, 10, 10, 1, 10),      /** Reposicion para Zona Refrigerada en Tienda 1 */
-('2025-06-23', 'CRÍTICO - Zona Barriles agotada', 50, 9, 1, 9, 9, 1, 10),      /** Reposicion para Zona Barriles en Tienda 1 */
-('2025-06-25', 'CRÍTICO - Pasillo Salida sin stock', 400, 8, 1, 8, 8, 1, 10);      /** Reposicion para Pasillo Salida en Tienda 1 */
+-- Órdenes asignadas al "Anaquel Cervezas Importadas" (lugar_tienda id: 3)
+('2024-05-10', 'Reposicion pasada para importadas', 50, 3, 1, 3, 13, 1, 23),
+('2024-09-16', 'Stock regular para importadas', 50, 3, 1, 1, 1, 1, 23),
+('2024-10-17', 'Pedido especial para importadas', 30, 3, 1, 2, 2, 1, 23),
+
+-- Órdenes asignadas al "Anaquel Cervezas Artesanales" (lugar_tienda id: 6)
+('2024-05-11', 'Stock regular anterior para artesanales', 30, 6, 1, 6, 6, 1, 23),
+('2024-11-18', 'Reposicion para artesanales', 250, 6, 1, 5, 5, 1, 23),
+('2025-06-21', 'URGENTE - Stock bajo para artesanales', 20, 6, 1, 4, 14, 1, 23),
+
+-- Órdenes asignadas al "Anaquel Cervezas Premium" (lugar_tienda id: 9)
+('2024-05-12', 'Promocion pasada para premium', 60, 9, 1, 9, 9, 1, 23),
+('2024-08-15', 'Reposicion mensual para premium', 50, 9, 1, 8, 8, 1, 23),
+('2025-06-23', 'CRÍTICO - Premium agotado', 50, 9, 1, 7, 7, 1, 23),
+('2025-06-25', 'CRÍTICO - Premium sin stock', 40, 9, 1, 10, 10, 1, 23);

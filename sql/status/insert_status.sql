@@ -17,19 +17,25 @@
  * Inserts para la tabla status
  * Contiene los diferentes estados que puede tener una orden o mensualidad
  */
-INSERT INTO status (nombre) VALUES
-    ('Pendiente'),
-    ('En Proceso'),
-    ('Aprobado'),
-    ('Rechazado'),
-    ('Completado'),
-    ('Cancelado'),
-    ('En Revisión'),
-    ('Devuelto'),
-    ('En Espera'),
-    ('Finalizado'),
-    ('Suspendido'),
-    ('Anulado');
+INSERT INTO status (id, nombre) VALUES
+    (1, 'Pendiente'),
+    (2, 'En Proceso'),
+    (3, 'Aprobado'),
+    (4, 'Rechazado'),
+    (5, 'Completado'),
+    (6, 'Cancelado'),
+    (7, 'En Revisión'),
+    (8, 'Devuelto'),
+    (9, 'En Espera'),
+    (10, 'Finalizado');
+
+/**
+ * Actualiza el valor de la secuencia para la tabla status.
+ * Esto es necesario después de insertar manualmente los valores de ID
+ * para asegurar que las futuras inserciones automáticas no creen conflictos.
+ * La secuencia se establece al valor máximo de ID existente en la tabla.
+ */
+SELECT setval('status_id_seq', (SELECT MAX(id) FROM status));
 
 -- =============================================================================
 -- 2. INSERTS PARA LA TABLA STATUS_MENSUALIDAD
@@ -51,7 +57,7 @@ INSERT INTO status_mensualidad (fecha_actualización, fecha_fin, fk_status, fk_m
     (CURRENT_DATE - INTERVAL '23 days', NULL, 8, 8, 789012345, 'V'),
     (CURRENT_DATE - INTERVAL '22 days', NULL, 9, 9, 890123456, 'J'),
     (CURRENT_DATE - INTERVAL '21 days', NULL, 10, 10, 901234567, 'V'),
-    (CURRENT_DATE - INTERVAL '20 days', NULL, 11, 11, 12345678, 'J');
+    (CURRENT_DATE - INTERVAL '20 days', NULL, 10, 11, 12345678, 'J');
 
 -- =============================================================================
 -- 3. INSERTS PARA LA TABLA STATUS_ORDEN
