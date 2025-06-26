@@ -208,4 +208,39 @@ export async function obtenerOrdenesReposicion(): Promise<OrdenesReposicionData>
     throw new Error('Error al cargar datos de las órdenes de reposición')
   }
 }
+
+/**
+ * Actualizar el estado de una orden de reposición
+ * 
+ * @param ordenId - ID de la orden de reposición
+ * @param nuevoEstado - Nuevo estado para la orden
+ * @returns Promise<void>
+ */
+export async function actualizarEstadoOrdenReposicion(ordenId: number, nuevoEstado: string): Promise<void> {
+  try {
+    // Mapear nombres de estados a IDs (estos deben coincidir con tu tabla status)
+    const estadosMap: Record<string, number> = {
+      'Pendiente': 1,
+      'Aprobada': 2,
+      'En proceso': 3,
+      'finalizado': 4,
+      'Cancelada': 5
+    };
+
+    const statusId = estadosMap[nuevoEstado];
+    
+    if (!statusId) {
+      throw new Error(`Estado "${nuevoEstado}" no válido`);
+    }
+
+    await llamarFuncion('fn_update_status_orden_reposicion', {
+      p_orden_id: ordenId,
+      p_status_id: statusId
+    });
+
+  } catch (error: any) {
+    console.error('Error al actualizar estado de orden:', error);
+    throw new Error(`Error al actualizar estado: ${error.message}`);
+  }
+}
  
