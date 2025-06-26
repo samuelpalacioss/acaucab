@@ -32,12 +32,21 @@ BEGIN
             FROM detalle_presentacion dp
             WHERE dp.fk_venta = NEW.fk_venta
         LOOP
-            -- Actualizar la cantidad en  lugar_tienda_inventario (ya que estamos en tienda fisica)
-            UPDATE lugar_tienda_inventario
-            SET cantidad = cantidad - detalle.cantidad
-            WHERE fk_presentacion_cerveza_1 = detalle.fk_presentacion
-              AND fk_presentacion_cerveza_2 = detalle.fk_cerveza
-              AND fk_tienda_fisica = v_tienda_id;
+            -- Actualizar la cantidad en lugar_tienda_inventario (ya que estamos en tienda fisica)
+            -- solo para lugares de tipo 'anaquel'
+            UPDATE lugar_tienda_inventario lti
+            SET cantidad = lti.cantidad - detalle.cantidad
+            WHERE 
+                lti.fk_inventario_1 = detalle.fk_presentacion
+                AND lti.fk_inventario_2 = detalle.fk_cerveza
+                AND lti.fk_tienda_fisica = v_tienda_id
+                AND EXISTS (
+                    FROM lugar_tienda lt 
+                    WHERE lt.id = lti.fk_lugar_tienda_1 
+                      AND lt.fk_tienda_fisica = lti.fk_lugar_tienda_2
+                      AND lt.tipo = 'anaquel'
+                    LIMIT 1
+                );
         END LOOP;
     END IF;
 
