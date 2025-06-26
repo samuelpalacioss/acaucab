@@ -1,8 +1,8 @@
-DROP TRIGGER IF EXISTS trigger_actualizar_inventario_venta_finalizada_tienda_fisica ON status_venta;
-DROP FUNCTION IF EXISTS fn_actualizar_inventario_venta_finalizada_tienda_fisica();
+DROP TRIGGER IF EXISTS trigger_actualizar_inventario_venta_completado_tienda_fisica ON status_venta;
+DROP FUNCTION IF EXISTS fn_actualizar_inventario_venta_completado_tienda_fisica();
 
 -- Función que se ejecutará con el trigger.
-CREATE OR REPLACE FUNCTION fn_actualizar_inventario_venta_finalizada_tienda_fisica()
+CREATE OR REPLACE FUNCTION fn_actualizar_inventario_venta_completado_tienda_fisica()
 RETURNS TRIGGER AS $$
 DECLARE
     v_status_nombre VARCHAR(50);
@@ -15,7 +15,7 @@ BEGIN
     WHERE id = NEW.fk_status;
 
   
-    IF v_status_nombre = 'Finalizada' THEN
+    IF v_status_nombre = 'Completado' THEN
         -- Obtener el ID de la tienda física de la venta
         SELECT fk_tienda_fisica INTO v_tienda_id
         FROM venta 
@@ -56,7 +56,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger que se ejecuta después de insertar un registro en la tabla 'status_venta'.
-CREATE TRIGGER trigger_actualizar_inventario_venta_finalizada_tienda_fisica
+CREATE TRIGGER trigger_actualizar_inventario_venta_completado_tienda_fisica
 AFTER INSERT ON status_venta
 FOR EACH ROW
-EXECUTE FUNCTION fn_actualizar_inventario_venta_finalizada_tienda_fisica();
+EXECUTE FUNCTION fn_actualizar_inventario_venta_completado_tienda_fisica();

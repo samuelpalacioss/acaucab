@@ -8,6 +8,7 @@ import {
 } from '@/lib/schemas';
 import { registrarPagos } from '@/api/registrar-pagos';
 import { finalizarDetallesVenta } from '@/api/finalizar-detalles-venta';
+import { CompletarVenta } from '@/api/completar-venta';
 
 
 /**
@@ -195,6 +196,12 @@ export const useVentaStore = create<VentaStore>()(
         // Si falla el registro de pagos, idealmente se debería hacer rollback de la venta y los detalles.
         // Por ahora, solo lanzamos un error.
         throw new Error('No se pudieron registrar los pagos.');
+      }
+
+      /** 4. Actualizar el status de la venta a 'Finalizada' */
+      const statusActualizado = await CompletarVenta(ventaId);
+      if (!statusActualizado) {
+        // La venta se creó, pero el status no se pudo actualizar.
       }
 
       set({ isCreatingVenta: false });

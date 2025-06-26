@@ -10,6 +10,7 @@ CREATE OR REPLACE FUNCTION fn_create_metodo_pago_cheque(
 RETURNS TABLE(nuevo_metodo_id INTEGER) AS $$
 DECLARE
   metodo_id INTEGER;
+  cliente_metodo_pago_id INTEGER;
 BEGIN
   -- Primero, intenta encontrar un método de pago existente con el mismo número de cheque.
   -- El número de cheque debe ser único.
@@ -21,9 +22,9 @@ BEGIN
     VALUES ('cheque', p_numero_cheque, p_numero_cuenta, p_banco) RETURNING id INTO metodo_id;
   END IF;
 
-  -- Anexar el método de pago al cliente.
-  PERFORM fn_anexar_cliente_metodo_pago(metodo_id, p_id_cliente, p_tipo_cliente);
+  -- Anexar el método de pago al cliente y capturar el ID de la tabla de enlace.
+  cliente_metodo_pago_id := fn_anexar_cliente_metodo_pago(metodo_id, p_id_cliente, p_tipo_cliente);
 
-  RETURN QUERY SELECT metodo_id as nuevo_metodo_id;
+  RETURN QUERY SELECT cliente_metodo_pago_id as nuevo_metodo_id;
 END 
 $$ LANGUAGE plpgsql;

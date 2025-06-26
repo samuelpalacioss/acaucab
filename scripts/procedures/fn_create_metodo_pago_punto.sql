@@ -7,15 +7,16 @@ CREATE OR REPLACE FUNCTION fn_create_metodo_pago_punto(
 RETURNS TABLE(nuevo_metodo_id INTEGER) AS $$
 DECLARE
   metodo_id INTEGER;
+  cliente_metodo_pago_id INTEGER;
 BEGIN
   -- Siempre se crea un nuevo método de pago de tipo 'punto'
   INSERT INTO metodo_pago(tipo, fecha_adquisicion, fecha_canjeo)
   VALUES ('punto', CURRENT_DATE, NULL)
   RETURNING id INTO metodo_id;
 
-  -- Anexar el método de pago al cliente.
-  PERFORM fn_anexar_cliente_metodo_pago(metodo_id, p_id_cliente, p_tipo_cliente);
+  -- Anexar el método de pago al cliente y capturar el ID de la tabla de enlace.
+  cliente_metodo_pago_id := fn_anexar_cliente_metodo_pago(metodo_id, p_id_cliente, p_tipo_cliente);
 
-  RETURN QUERY SELECT metodo_id as nuevo_metodo_id;
+  RETURN QUERY SELECT cliente_metodo_pago_id as nuevo_metodo_id;
 END 
 $$ language plpgsql
