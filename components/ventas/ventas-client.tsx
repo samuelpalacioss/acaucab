@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Download, FileText, Mail, Search, ShoppingBag, Store, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/pagination";
 import { Status } from "@/models/status";
 
+import { getBCV } from "@/lib/bcv";
+
 /**
  * Propiedades del componente VentasClient
  */
@@ -35,26 +37,7 @@ interface VentasClientProps {
   ventasExpandidas: VentaExpandida[];
   status: Status[];
 }
-
-/**
- * Datos para el gráfico de ventas por canal
- */
-const chartData = {
-  labels: ["15 Abr", "16 Abr", "17 Abr", "18 Abr", "19 Abr", "20 Abr", "21 Abr", "22 Abr"],
-  datasets: [
-    {
-      label: "Web",
-      data: [1250.75, 0, 0, 2100.25, 0, 0, 4200.5, 0],
-      backgroundColor: "rgba(59, 130, 246, 0.5)",
-    },
-    {
-      label: "Tienda",
-      data: [0, 3450.0, 875.5, 0, 5600.0, 950.75, 0, 1875.25],
-      backgroundColor: "rgba(16, 185, 129, 0.5)",
-    },
-  ],
-};
-
+ 
 /**
  * Componente cliente para la gestión de ventas
  * Maneja toda la interfaz de usuario y los estados locales
@@ -70,9 +53,57 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
+  // Estado para la tasa de cambio
+  const [bcvRate, setBcvRate] = useState<number | null>(null);
+
+  // Efecto para obtener la tasa de cambio al montar el componente
+  useEffect(() => {
+    const fetchBcvRate = async () => {
+      try {
+        const data = await getBCV();
+        console.log("Respuesta completa de la API:", data);
+        
+        // La API puede devolver diferentes estructuras, intentemos encontrar el valor correcto
+        let rate = null;
+        
+        if (data) {
+          // Intentar diferentes propiedades que puede tener la API
+          rate = data.bcv || data.price || data.value || data.rate || data.usd;
+          
+          // Si es un array, tomar el primer elemento
+          if (Array.isArray(data) && data.length > 0) {
+            const firstItem = data[0];
+            rate = firstItem.bcv || firstItem.price || firstItem.value || firstItem.rate || firstItem.usd;
+          }
+          
+          // Si tiene un objeto monitors o similar
+          if (data.monitors && Array.isArray(data.monitors)) {
+            const bcvMonitor = data.monitors.find((m: any) => m.title && m.title.toLowerCase().includes('bcv'));
+            if (bcvMonitor) {
+              rate = bcvMonitor.price || bcvMonitor.value;
+            }
+          }
+        }
+        
+        if (rate && !isNaN(parseFloat(rate))) {
+          setBcvRate(parseFloat(rate));
+          console.log("Tasa BCV cargada:", parseFloat(rate));
+        } else {
+          console.error("Error: No se pudo obtener la tasa de cambio del BCV.", data);
+          console.error("Estructura de datos no reconocida.");
+        }
+      } catch (error) {
+        console.error("Error al obtener la tasa de cambio:", error);
+      }
+    };
+
+    fetchBcvRate();
+  }, []);
+
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
   /**
    * Función para navegar al detalle de la venta
    */
@@ -193,8 +224,8 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
   const webSales = filteredData.filter((sale) => sale.canal_venta === "Web");
   const storeSales = filteredData.filter((sale) => sale.canal_venta === "Tienda");
 
-  const totalWebSales = webSales.reduce((sum, sale) => sum + sale.monto_total, 0);
-  const totalStoreSales = storeSales.reduce((sum, sale) => sum + sale.monto_total, 0);
+  const totalWebSales = webSales.reduce((sum, sale) => sum + (sale.monto_total || 0), 0);
+  const totalStoreSales = storeSales.reduce((sum, sale) => sum + (sale.monto_total || 0), 0);
   const totalSales = totalWebSales + totalStoreSales;
   const totalTransactions = filteredData.length;
 
@@ -236,7 +267,10 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalSales.toLocaleString("es-ES", { style: "currency", currency: "VES" })}
+              {currency === "USD" && bcvRate ? 
+                (totalSales / bcvRate).toLocaleString("en-US", { style: "currency", currency: "USD" }) :
+                totalSales.toLocaleString("es-ES", { style: "currency", currency: "VES" })
+              }
             </div>
             <p className="text-xs text-muted-foreground mt-2">{totalTransactions} transacciones</p>
           </CardContent>
@@ -251,7 +285,10 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalWebSales.toLocaleString("es-ES", { style: "currency", currency: "VES" })}
+              {currency === "USD" && bcvRate ? 
+                (totalWebSales / bcvRate).toLocaleString("en-US", { style: "currency", currency: "USD" }) :
+                totalWebSales.toLocaleString("es-ES", { style: "currency", currency: "VES" })
+              }
             </div>
             <p className="text-xs text-muted-foreground mt-2">{webSales.length} transacciones</p>
           </CardContent>
@@ -266,7 +303,10 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalStoreSales.toLocaleString("es-ES", { style: "currency", currency: "VES" })}
+              {currency === "USD" && bcvRate ? 
+                (totalStoreSales / bcvRate).toLocaleString("en-US", { style: "currency", currency: "USD" }) :
+                totalStoreSales.toLocaleString("es-ES", { style: "currency", currency: "VES" })
+              }
             </div>
             <p className="text-xs text-muted-foreground mt-2">{storeSales.length} transacciones</p>
           </CardContent>
@@ -319,7 +359,7 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los estados</SelectItem>
-            {/** Renderizar los status dinámicamente desde el prop */}
+            {/* Renderizar los status dinámicamente desde el prop */}
             {status.map((estado) => (
               <SelectItem key={estado.id} value={estado.id.toString()}>
                 {estado.nombre}
@@ -337,17 +377,7 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
             setSelectedPaymentMethod(value);
             setCurrentPage(1); // Reset a la primera página al filtrar
           }}
-        >
-          <SelectTrigger id="payment-method-select">
-            <SelectValue placeholder="Método de pago" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los métodos</SelectItem>
-            <SelectItem value="cash">Efectivo</SelectItem>
-            <SelectItem value="card">Tarjeta</SelectItem>
-            <SelectItem value="transfer">Transferencia</SelectItem>
-            <SelectItem value="crypto">Criptomoneda</SelectItem>
-          </SelectContent>
+        > 
         </Select>
 
         <Select value={currency} onValueChange={setCurrency}>
@@ -419,10 +449,52 @@ export default function VentasClient({ ventasExpandidas, status }: VentasClientP
                       </div>
                     </TableCell>
                     <TableCell>
-                      {sale.monto_total.toLocaleString("es-ES", {
-                        style: "currency",
-                        currency: currency === "Bs" ? "VES" : "USD",
-                      })}
+                      {currency === "Bs" && bcvRate ? (
+                        <span 
+                          className="cursor-pointer underline decoration-dotted decoration-gray-400 relative group"
+                          title={`Equivale a ${((sale.monto_total || 0) / bcvRate).toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          })}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {(sale.monto_total || 0).toLocaleString("es-ES", {
+                            style: "currency",
+                            currency: "VES",
+                          })}
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                            {((sale.monto_total || 0) / bcvRate).toLocaleString("en-US", {
+                              style: "currency",
+                              currency: "USD",
+                            })}
+                          </span>
+                        </span>
+                      ) : currency === "USD" && bcvRate ? (
+                        <span 
+                          className="cursor-pointer underline decoration-dotted decoration-gray-400 relative group"
+                          title={`Equivale a ${((sale.monto_total || 0)).toLocaleString("es-ES", {
+                            style: "currency",
+                            currency: "VES",
+                          })}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {((sale.monto_total || 0) / bcvRate).toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          })}
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                            {(sale.monto_total || 0).toLocaleString("es-ES", {
+                              style: "currency",
+                              currency: "VES",
+                            })}
+                          </span>
+                        </span>
+                      ) : (
+                        (sale.monto_total || 0).toLocaleString("es-ES", {
+                          style: "currency",
+                          currency: currency === "Bs" ? "VES" : "USD",
+                        })
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(sale.estado || "Pendiente")}>

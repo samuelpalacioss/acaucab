@@ -40,7 +40,7 @@ export default async function VentasPage() {
        * Filtrar ventas que tengan datos válidos
        */
       const ventasValidas = ventasExpandidas.filter((venta) => {
-        return venta.id && venta.monto_total > 0 && venta.nombre_cliente && venta.canal_venta;
+        return venta.id && venta.nombre_cliente && venta.canal_venta;
       });
 
       ventasExpandidas = ventasValidas;
