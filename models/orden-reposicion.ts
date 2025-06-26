@@ -32,6 +32,9 @@ export interface OrdenReposicion {
   
   /** Observaciones adicionales de la orden */
   "Observación": string;
+  
+  /** Cantidad disponible en el almacén para el producto */
+  "Cantidad en Almacén": number;
 }
 
 /**

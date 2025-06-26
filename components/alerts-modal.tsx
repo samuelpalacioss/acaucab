@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Tag, Plus, FileText, Edit } from "lucide-react";
+import { AlertTriangle, Tag, Plus, FileText, Edit, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -84,6 +84,7 @@ interface Alert {
   fechaEstado?: string | null;
   empleado?: string; // Now contains user name (could be employee, client, or member)
   observacion?: string;
+  "Cantidad en Almacén"?: number; // Nueva propiedad para el stock del almacén
 }
 
 interface AlertsModalProps {
@@ -101,7 +102,7 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
   const [observation, setObservation] = useState<string>("");
   const { puedeEditarOrdenesDeReposicion } = usePermissions();
   const { usuario } = useUser();
-  
+
   /** Manejar la edición de estado desde el modal de alertas */
   const handleEditStatus = (orderId: number, currentStatus: string) => {
     setEditingOrderId(orderId);
@@ -113,28 +114,46 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
 
   /** Aceptar cambio de estado */
   const handleAcceptStatusChange = async () => {
+    const currentAlert = alerts.find((alerta) => alerta.id === editingOrderId);
+    const cantidadDisponible = currentAlert?.["Cantidad en Almacén"] || 0;
+    const cantidadIngresada = parseInt(quantity, 10);
+
     // Validar que si el estado es "Finalizado", la cantidad sea requerida
     if (newStatus.toLowerCase() === "finalizado" && (!quantity || quantity.trim() === "")) {
       alert("La cantidad es requerida cuando el estado es 'Finalizado'");
       return;
     }
 
+    // Validar que la cantidad no exceda el stock disponible en almacén
+    if (newStatus.toLowerCase() === "finalizado" && cantidadIngresada > cantidadDisponible) {
+      alert(
+        `No puedes procesar ${cantidadIngresada} unidades. Solo hay ${cantidadDisponible} unidades disponibles en el almacén.`
+      );
+      return;
+    }
+
+    // Validar que la cantidad sea positiva
+    if (newStatus.toLowerCase() === "finalizado" && cantidadIngresada <= 0) {
+      alert("La cantidad debe ser mayor a 0");
+      return;
+    }
+
     if (editingOrderId && newStatus && usuario?.id) {
       setIsUpdatingStatus(true);
       try {
-        const unidades = newStatus.toLowerCase() === 'finalizado' ? parseInt(quantity, 10) : undefined
-        const observacionFinal = newStatus.toLowerCase() === 'finalizado' ? observation : undefined
+        const unidades = newStatus.toLowerCase() === "finalizado" ? cantidadIngresada : undefined;
+        const observacionFinal = newStatus.toLowerCase() === "finalizado" ? observation : undefined;
 
-        console.log('Actualizando estado de la orden:', editingOrderId, newStatus, 'Usuario ID:', usuario.id)
-        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus, usuario.id, unidades, observacionFinal)
-        setIsEditStatusModalOpen(false)
-        setEditingOrderId(null)
-        setNewStatus('')
-        setQuantity('')
-        setObservation('')
-        alert(`Estado actualizado a: ${newStatus}`)
+        console.log("Actualizando estado de la orden:", editingOrderId, newStatus, "Usuario ID:", usuario.id);
+        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus, usuario.id, unidades, observacionFinal);
+        setIsEditStatusModalOpen(false);
+        setEditingOrderId(null);
+        setNewStatus("");
+        setQuantity("");
+        setObservation("");
+        alert(`Estado actualizado a: ${newStatus}`);
         // Aquí podrías llamar a una función para refrescar los datos
-        window.location.reload() // Temporal - idealmente usarías un estado global o callback
+        window.location.reload(); // Temporal - idealmente usarías un estado global o callback
       } catch (error) {
         console.error("Error al actualizar el estado de la orden:", error);
         alert("Hubo un error al actualizar el estado de la orden. Por favor, inténtelo más tarde.");
@@ -208,17 +227,19 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
                             <span className="text-xs text-muted-foreground">Actualizado: {alerta.fechaEstado}</span>
                           )}
                         </div>
-                        {onEditStatus && puedeEditarOrdenesDeReposicion() && getAvailableStatusOptions(alerta.estado!).length > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditStatus(alerta.id, alerta.estado!)}
-                            className="text-xs border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors mt-1"
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Editar Estado
-                          </Button>
-                        )}
+                        {onEditStatus &&
+                          puedeEditarOrdenesDeReposicion() &&
+                          getAvailableStatusOptions(alerta.estado!).length > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditStatus(alerta.id, alerta.estado!)}
+                              className="text-xs border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors mt-1"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editar Estado
+                            </Button>
+                          )}
                       </div>
                     )}
 
@@ -266,6 +287,22 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
               {/** Campos adicionales para estado "Finalizado" */}
               {newStatus.toLowerCase() === "finalizado" && (
                 <>
+                  {/** Mostrar stock disponible en almacén */}
+                  {editingOrderId && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-900">Stock disponible en almacén:</span>
+                        <span className="text-sm font-bold text-blue-900">
+                          {alerts.find((alerta) => alerta.id === editingOrderId)?.[`Cantidad en Almacén`] || 0} unidades
+                        </span>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-1">
+                        No puedes procesar más unidades de las disponibles en el almacén.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="quantity" className="text-right">
                       Cantidad *
@@ -275,12 +312,55 @@ export function AlertsModal({ alerts, onEditStatus }: AlertsModalProps) {
                       type="number"
                       placeholder="Cantidad de productos"
                       value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
-                      className="col-span-3"
+                      onChange={(e) => {
+                        const valor = e.target.value;
+                        setQuantity(valor);
+
+                        // Validación en tiempo real
+                        if (editingOrderId && valor) {
+                          const cantidadDisponible =
+                            alerts.find((alerta) => alerta.id === editingOrderId)?.[`Cantidad en Almacén`] || 0;
+                          const cantidadIngresada = parseInt(valor, 10);
+
+                          if (cantidadIngresada > cantidadDisponible) {
+                            e.target.setCustomValidity(`No puedes procesar más de ${cantidadDisponible} unidades`);
+                          } else {
+                            e.target.setCustomValidity("");
+                          }
+                        }
+                      }}
+                      className={`col-span-3 ${
+                        quantity &&
+                        editingOrderId &&
+                        parseInt(quantity, 10) >
+                          (alerts.find((alerta) => alerta.id === editingOrderId)?.[`Cantidad en Almacén`] || 0)
+                          ? "border-red-300 bg-red-50"
+                          : ""
+                      }`}
                       disabled={isUpdatingStatus}
                       min="1"
+                      max={
+                        editingOrderId
+                          ? alerts.find((alerta) => alerta.id === editingOrderId)?.[`Cantidad en Almacén`] || 0
+                          : undefined
+                      }
                     />
                   </div>
+                  {/** Mensaje de error en tiempo real */}
+                  {quantity &&
+                    editingOrderId &&
+                    parseInt(quantity, 10) >
+                      (alerts.find((alerta) => alerta.id === editingOrderId)?.[`Cantidad en Almacén`] || 0) && (
+                      <div className="col-span-4 mt-2">
+                        <p className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          Cantidad excede el stock disponible (
+                          {alerts.find((alerta) => alerta.id === editingOrderId)?.[`Cantidad en Almacén`] || 0}{" "}
+                          unidades)
+                        </p>
+                      </div>
+                    )}
+
                   <div className="grid grid-cols-4 items-start gap-4">
                     <Label htmlFor="observation" className="text-right pt-2">
                       Observación

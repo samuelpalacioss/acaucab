@@ -38,7 +38,6 @@ interface InventarioDetalleClientProps {
 }
 
 export default function InventarioDetalleClient({ inventoryData, ordenesReposicion }: InventarioDetalleClientProps) {
-
   const { puedeVerOrdenesDeReposicion, puedeEditarOrdenesDeReposicion } = usePermissions();
   const { usuario } = useUser();
 
@@ -75,28 +74,46 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
   };
 
   const handleAcceptStatusChange = async () => {
+    const currentOrder = alertasReposicion.find((orden) => orden.id === editingOrderId);
+    const cantidadDisponible = currentOrder?.["Cantidad en Almacén"] || 0;
+    const cantidadIngresada = parseInt(quantity, 10);
+
     // Validar que si el estado es "Finalizado", la cantidad sea requerida
     if (newStatus.toLowerCase() === "finalizado" && (!quantity || quantity.trim() === "")) {
       alert("La cantidad es requerida cuando el estado es 'Finalizado'");
       return;
     }
 
+    // Validar que la cantidad no exceda el stock disponible en almacén
+    if (newStatus.toLowerCase() === "finalizado" && cantidadIngresada > cantidadDisponible) {
+      alert(
+        `No puedes procesar ${cantidadIngresada} unidades. Solo hay ${cantidadDisponible} unidades disponibles en el almacén.`
+      );
+      return;
+    }
+
+    // Validar que la cantidad sea positiva
+    if (newStatus.toLowerCase() === "finalizado" && cantidadIngresada <= 0) {
+      alert("La cantidad debe ser mayor a 0");
+      return;
+    }
+
     if (editingOrderId && newStatus && usuario?.id) {
       setIsUpdatingStatus(true);
       try {
-        const unidades = newStatus.toLowerCase() === 'finalizado' ? parseInt(quantity, 10) : undefined
-        const observacionFinal = newStatus.toLowerCase() === 'finalizado' ? observation : undefined
+        const unidades = newStatus.toLowerCase() === "finalizado" ? cantidadIngresada : undefined;
+        const observacionFinal = newStatus.toLowerCase() === "finalizado" ? observation : undefined;
 
-        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus, usuario.id, unidades, observacionFinal)
+        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus, usuario.id, unidades, observacionFinal);
 
-        setIsEditStatusModalOpen(false)
-        setEditingOrderId(null)
-        setNewStatus('')
-        setQuantity('')
-        setObservation('')
-        alert(`Estado actualizado a: ${newStatus}`)
+        setIsEditStatusModalOpen(false);
+        setEditingOrderId(null);
+        setNewStatus("");
+        setQuantity("");
+        setObservation("");
+        alert(`Estado actualizado a: ${newStatus}`);
         // Idealmente aquí deberías refrescar los datos en lugar de recargar la página
-        window.location.reload()
+        window.location.reload();
       } catch (error) {
         console.error("Error al actualizar el estado de la orden:", error);
         alert("Hubo un error al actualizar el estado de la orden. Por favor, inténtelo más tarde.");
@@ -276,6 +293,7 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
     fechaEstado: orden["Fecha de Estado"] ? new Date(orden["Fecha de Estado"]).toLocaleDateString("es-ES") : null,
     empleado: orden["Usuario"],
     observacion: orden["Observación"],
+    "Cantidad en Almacén": orden["Cantidad en Almacén"], // Nueva propiedad añadida
   }));
 
   /** Filtrar productos con stock crítico (menos de 100 unidades) */
@@ -411,86 +429,95 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
         </Card>
       </div>
 
-      { puedeVerOrdenesDeReposicion() && (
+      {puedeVerOrdenesDeReposicion() && (
         <>
           {/** Sección de Alertas de Reposición */}
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-large">Alertas de Reposición</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Productos en anaquel con alerta de reposición física en pasillo (menos de 20 unidades)
-              </p>
+              <CardHeader>
+                <CardTitle className="text-xl font-large">Alertas de Reposición</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Productos en anaquel con alerta de reposición física en pasillo (menos de 20 unidades)
+                  </p>
 
-              <div className="grid grid-cols-1 gap-3">
-                {alertasReposicion.slice(0, 2).map((alerta) => (
-                  <div
-                    key={alerta.id}
-                    className={`flex items-center justify-between border rounded-md p-3 ${getStatusBackgroundColor(
-                      alerta.estado || ""
-                    )}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle
-                        className={`h-5 w-5 ${getStatusIconColor(alerta.estado || "")} flex-shrink-0 mt-0.5`}
-                      />
-                      <div>
-                        <div className="font-medium">{alerta.producto}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-2">
-                          <Tag className="h-3 w-3" /> {alerta.sku}
-                        </div>
-                        <div className="text-sm mt-1">Ubicación: {alerta.ubicacion}</div>
-                        {alerta.observacion && (
-                          <div className="text-sm text-muted-foreground mt-1">Observación: {alerta.observacion}</div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">{alerta.fecha}</div>
-                      <div className="font-medium text-amber-600 mt-1">{alerta.stock ? alerta.stock + ' unidades solicitadas' : 'No se han indicado las unidadades'}</div>
-                      {alerta.estado && (
-                        <div className="mt-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{alerta.estado}</Badge>
-                            {alerta.fechaEstado && (
-                              <span className="text-xs text-muted-foreground">Actualizado: {alerta.fechaEstado}</span>
-                            )}
-                          </div>
-                          { puedeEditarOrdenesDeReposicion() && getAvailableStatusOptions(alerta.estado).length > 0 && (
-                            <div className="flex gap-2 justify-end text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditStatus(alerta.id, alerta.estado)}
-                              className="text-xs border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors mt-1 justify-end text-right"
-                            >
-                              <Edit className="h-3 w-3 mr-1 justify-end text-right" />
-                              Editar Estado
-                            </Button>
+                  <div className="grid grid-cols-1 gap-3">
+                    {alertasReposicion.slice(0, 2).map((alerta) => (
+                      <div
+                        key={alerta.id}
+                        className={`flex items-center justify-between border rounded-md p-3 ${getStatusBackgroundColor(
+                          alerta.estado || ""
+                        )}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle
+                            className={`h-5 w-5 ${getStatusIconColor(alerta.estado || "")} flex-shrink-0 mt-0.5`}
+                          />
+                          <div>
+                            <div className="font-medium">{alerta.producto}</div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-2">
+                              <Tag className="h-3 w-3" /> {alerta.sku}
                             </div>
+                            <div className="text-sm mt-1">Ubicación: {alerta.ubicacion}</div>
+                            {alerta.observacion && (
+                              <div className="text-sm text-muted-foreground mt-1">
+                                Observación: {alerta.observacion}
+                              </div>
                             )}
                           </div>
-                      )}
-                      <div className="flex gap-2 mt-2 justify-end">
-                        <Button variant="outline" size="sm" onClick={() => generarPDFOrdenReposicion(alerta)}>
-                          <FileText className="h-3 w-3 mr-1" />
-                          Ver PDF
-                        </Button>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-muted-foreground">{alerta.fecha}</div>
+                          <div className="font-medium text-amber-600 mt-1">
+                            {alerta.stock
+                              ? alerta.stock + " unidades solicitadas"
+                              : "No se han indicado las unidadades"}
+                          </div>
+                          {alerta.estado && (
+                            <div className="mt-1">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline">{alerta.estado}</Badge>
+                                {alerta.fechaEstado && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Actualizado: {alerta.fechaEstado}
+                                  </span>
+                                )}
+                              </div>
+                              {puedeEditarOrdenesDeReposicion() &&
+                                getAvailableStatusOptions(alerta.estado).length > 0 && (
+                                  <div className="flex gap-2 justify-end text-right">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditStatus(alerta.id, alerta.estado)}
+                                      className="text-xs border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors mt-1 justify-end text-right"
+                                    >
+                                      <Edit className="h-3 w-3 mr-1 justify-end text-right" />
+                                      Editar Estado
+                                    </Button>
+                                  </div>
+                                )}
+                            </div>
+                          )}
+                          <div className="flex gap-2 mt-2 justify-end">
+                            <Button variant="outline" size="sm" onClick={() => generarPDFOrdenReposicion(alerta)}>
+                              <FileText className="h-3 w-3 mr-1" />
+                              Ver PDF
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              <div className="flex justify-end">
-                <AlertsModal alerts={alertasReposicion} onEditStatus={handleEditStatus} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="flex justify-end">
+                    <AlertsModal alerts={alertasReposicion} onEditStatus={handleEditStatus} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </>
       )}
@@ -750,20 +777,79 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
             {newStatus.toLowerCase() === "finalizado" && (
               <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-lg border">
                 <p className="text-sm font-medium text-gray-900 mb-3">Información adicional requerida:</p>
-                
+
+                {/** Mostrar stock disponible en almacén */}
+                {editingOrderId && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-900">Stock disponible en almacén:</span>
+                      <span className="text-sm font-bold text-blue-900">
+                        {alertasReposicion.find((orden) => orden.id === editingOrderId)?.["Cantidad en Almacén"] || 0}{" "}
+                        unidades
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-700 mt-1">
+                      No puedes procesar más unidades de las disponibles en el almacén.
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Cantidad de productos *</label>
                   <Input
                     type="number"
                     placeholder="Cantidad de productos finalizados"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
+                    onChange={(e) => {
+                      const valor = e.target.value;
+                      setQuantity(valor);
+
+                      // Validación en tiempo real
+                      if (editingOrderId && valor) {
+                        const cantidadDisponible =
+                          alertasReposicion.find((orden) => orden.id === editingOrderId)?.["Cantidad en Almacén"] || 0;
+                        const cantidadIngresada = parseInt(valor, 10);
+
+                        if (cantidadIngresada > cantidadDisponible) {
+                          e.target.setCustomValidity(`No puedes procesar más de ${cantidadDisponible} unidades`);
+                        } else {
+                          e.target.setCustomValidity("");
+                        }
+                      }
+                    }}
                     disabled={isUpdatingStatus}
                     min="1"
-                    className="w-full"
+                    max={
+                      editingOrderId
+                        ? alertasReposicion.find((orden) => orden.id === editingOrderId)?.["Cantidad en Almacén"] || 0
+                        : undefined
+                    }
+                    className={`w-full ${
+                      quantity &&
+                      editingOrderId &&
+                      parseInt(quantity, 10) >
+                        (alertasReposicion.find((orden) => orden.id === editingOrderId)?.["Cantidad en Almacén"] || 0)
+                        ? "border-red-300 bg-red-50"
+                        : ""
+                    }`}
                   />
+                  {/** Mensaje de error en tiempo real */}
+                  {quantity &&
+                    editingOrderId &&
+                    parseInt(quantity, 10) >
+                      (alertasReposicion.find((orden) => orden.id === editingOrderId)?.["Cantidad en Almacén"] ||
+                        0) && (
+                      <p className="text-xs text-red-600 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Cantidad excede el stock disponible (
+                        {alertasReposicion.find((orden) => orden.id === editingOrderId)?.["Cantidad en Almacén"] ||
+                          0}{" "}
+                        unidades)
+                      </p>
+                    )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Observación</label>
                   <Textarea

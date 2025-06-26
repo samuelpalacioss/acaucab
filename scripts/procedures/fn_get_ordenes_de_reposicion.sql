@@ -14,6 +14,7 @@ DROP FUNCTION IF EXISTS fn_get_ordenes_de_reposicion();
  *   - "Fecha de Estado": Fecha del último estado de la orden de reposición.
  *   - "Empleado": Nombre y apellido del empleado que solicitó la reposición.
  *   - "Observación": Observaciones adicionales de la orden.
+ *   - "Cantidad en Almacén": Cantidad disponible en el almacén para el producto.
  */
 CREATE OR REPLACE FUNCTION fn_get_ordenes_de_reposicion()
 RETURNS TABLE (
@@ -26,7 +27,8 @@ RETURNS TABLE (
     "Estado" VARCHAR(50),
     "Fecha de Estado" DATE,
     "Usuario" VARCHAR,
-    "Observación" TEXT
+    "Observación" TEXT,
+    "Cantidad en Almacén" INTEGER
 )
 LANGUAGE plpgsql
 AS $$
@@ -47,7 +49,8 @@ BEGIN
             cj.razón_social,
             m.razón_social
         )::VARCHAR AS "Usuario",
-        o.observacion AS "Observación"
+        o.observacion AS "Observación",
+        i.cantidad_almacen AS "Cantidad en Almacén"
     FROM
         orden_de_reposicion o
     LEFT JOIN LATERAL (
@@ -77,6 +80,10 @@ BEGIN
         miembro m ON mu.fk_miembro_1 = m.rif AND mu.fk_miembro_2 = m.naturaleza_rif
     LEFT JOIN
         lugar_tienda lt ON o.fk_lugar_tienda_1 = lt.id
+    LEFT JOIN
+        inventario i ON o.fk_inventario_1 = i.fk_presentacion_cerveza_1 
+            AND o.fk_inventario_2 = i.fk_presentacion_cerveza_2 
+            AND o.fk_inventario_3 = i.fk_almacen
     LEFT JOIN
         presentacion_cerveza pc ON o.fk_inventario_1 = pc.fk_presentacion AND o.fk_inventario_2 = pc.fk_cerveza
     LEFT JOIN

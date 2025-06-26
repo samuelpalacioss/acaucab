@@ -10,7 +10,7 @@ BEGIN
     -- Solo se activa si la cantidad baja de 20 y antes era mayor o igual a 20
     IF NEW.cantidad < 20 AND OLD.cantidad >= 20 THEN
 
-        -- Asegurarse de que el estado 'Solicitada' exista
+        -- Asegurarse de que el estado 'Pendiente' exista
         SELECT id INTO status_solicitada_id FROM status WHERE nombre = 'Pendiente' LIMIT 1;
 
         IF status_solicitada_id IS NULL THEN
