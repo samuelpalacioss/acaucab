@@ -9,11 +9,12 @@ import { llamarFuncionSingle } from "@/lib/server-actions";
  */
 export async function registrarVentaEnProceso(p_cliente_id: number, p_tienda_fisica_id: number = 1): Promise<number | null> {
     try {
-        // La función SQL retorna un único INTEGER, que es el ID de la nueva venta.
-        const ventaId = await llamarFuncionSingle<number>('fn_registrar_venta_en_proceso', { 
+        const result = await llamarFuncionSingle<{ id_venta: number }>('fn_registrar_venta_en_proceso', { 
             p_cliente_id, 
             p_tienda_fisica_id 
         });
+
+        const ventaId = result?.id_venta ?? null;
 
         if (ventaId) {
           console.log(`Venta en proceso registrada con ID: ${ventaId}`);
