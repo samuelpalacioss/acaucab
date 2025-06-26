@@ -168,7 +168,7 @@ export default function VentaDetalleClient({ venta }: VentaDetalleClientProps) {
             </div>
             <div id="monto-info">
               <p className="text-sm font-medium text-muted-foreground">Monto neto</p>
-              <p className="font-bold">{venta.monto_total.toLocaleString("es-ES", { style: "currency", currency: "VES" })}</p>
+              <p className="font-bold">{(venta.monto_total || 0).toLocaleString("es-ES", { style: "currency", currency: "VES" })}</p>
             </div>
             <div id="pago-info">
               <p className="text-sm font-medium text-muted-foreground">Método de Pago</p>
@@ -237,10 +237,10 @@ export default function VentaDetalleClient({ venta }: VentaDetalleClientProps) {
                       <TableCell>{item.nombre}</TableCell>
                       <TableCell className="text-right">{item.cantidad}</TableCell>
                       <TableCell className="text-right">
-                        {item.precio_unitario.toLocaleString("es-ES", { style: "currency", currency: "VES" })}
+                        {(item.precio_unitario || 0).toLocaleString("es-ES", { style: "currency", currency: "VES" })}
                       </TableCell>
                       <TableCell className="text-right">
-                        {(item.cantidad * item.precio_unitario).toLocaleString("es-ES", { style: "currency", currency: "VES" })}
+                        {((item.cantidad || 0) * (item.precio_unitario || 0)).toLocaleString("es-ES", { style: "currency", currency: "VES" })}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -249,7 +249,7 @@ export default function VentaDetalleClient({ venta }: VentaDetalleClientProps) {
                   <TableRow>
                     <TableCell colSpan={3} className="text-right font-bold">Total</TableCell>
                     <TableCell className="text-right font-bold">
-                      {venta.monto_total.toLocaleString("es-ES", { style: "currency", currency: "VES" })}
+                      {(venta.monto_total || 0).toLocaleString("es-ES", { style: "currency", currency: "VES" })}
                     </TableCell>
                   </TableRow>
                 </TableFooter>
@@ -286,7 +286,7 @@ export default function VentaDetalleClient({ venta }: VentaDetalleClientProps) {
                         <TableCell>{pago.metodo_pago}</TableCell>
                         <TableCell>{pago.referencia}</TableCell>
                         <TableCell>{pago.tasa_bcv ? `${Number(pago.tasa_bcv).toFixed(2)} Bs` : 'N/A'}</TableCell>
-                        <TableCell className="text-right font-medium">{pago.monto.toLocaleString("es-ES", { style: "currency", currency: "VES" })}</TableCell>
+                        <TableCell className="text-right font-medium">{(pago.monto || 0).toLocaleString("es-ES", { style: "currency", currency: "VES" })}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
