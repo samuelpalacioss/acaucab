@@ -12,7 +12,9 @@ RETURNS TABLE (
     tipo_cerveza VARCHAR,     -- Nombre del tipo de cerveza
     stock_total INTEGER,      -- Stock total (cantidad en lugares de la tienda física)
     marca VARCHAR,            -- Marca (denominación comercial del miembro)
-    imagen VARCHAR            -- URL de la imagen
+    imagen VARCHAR,            -- URL de la imagen
+    presentacion_id INTEGER,
+    cerveza_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$
@@ -28,7 +30,9 @@ BEGIN
         -- Stock total es solo la cantidad en tienda
         COALESCE(lti.cantidad, 0) AS stock_total,
         m.denominación_comercial, -- Marca (denominación comercial del miembro)
-        pc.imagen -- URL de la imagen
+        pc.imagen, -- URL de la imagen
+        pr.id as presentacion_id,
+        c.id as cerveza_id
     FROM tienda_fisica tf
     -- Unir almacenes de la tienda física
     JOIN almacen a ON tf.id = a.fk_tienda_fisica

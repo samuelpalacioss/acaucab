@@ -33,6 +33,7 @@ import { getCardType, convertir } from "@/lib/utils";
 import { inicializarTasas } from "@/lib/utils";
 import { useTasaStore } from "@/store/tasa-store";
 import { registrarVentaEnProceso } from "@/api/registrar-venta-en-proceso";
+import { registrarDetallesVentaEnProceso } from "@/api/registrar-detalles-venta-en-proceso";
 
 // Steps enum for better type safety
 enum Step {
@@ -207,7 +208,8 @@ export default function Autopago() {
       const ventaId = await registrarVentaEnProceso(cliente.id_cliente);
       if (ventaId) {
         setVentaId(ventaId);
-        logVentaStore("VENTA INICIADA");
+        await registrarDetallesVentaEnProceso(ventaId, carrito);
+        logVentaStore("VENTA INICIADA Y DETALLES REGISTRADOS");
         setCurrentStep(Step.PAYMENT);
       } else {
         setError("No se pudo iniciar la venta. Por favor, intente de nuevo.");

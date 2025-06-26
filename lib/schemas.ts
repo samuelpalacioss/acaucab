@@ -75,6 +75,8 @@ export const presentacionSchema = z.object({
   nombre_cerveza: z.string(),
   presentacion: z.string(),
   precio: z.number(),
+  presentacion_id: z.number(),
+  cerveza_id: z.number(),
   id_tipo_cerveza: z.number(),
   tipo_cerveza: z.string(),
   stock_total: z.number(),
