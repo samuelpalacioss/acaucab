@@ -12,15 +12,10 @@ DECLARE
   metodo_id INTEGER;
   cliente_metodo_pago_id INTEGER;
 BEGIN
-  -- Primero, intenta encontrar un método de pago existente con el mismo número de cheque.
-  -- El número de cheque debe ser único.
-  SELECT id INTO metodo_id FROM metodo_pago WHERE numero_cheque = p_numero_cheque;
-
-  -- Si no se encuentra un método de pago existente, crea uno nuevo.
-  IF metodo_id IS NULL THEN
-    INSERT INTO metodo_pago(tipo, numero_cheque, numero_cuenta, banco)
-    VALUES ('cheque', p_numero_cheque, p_numero_cuenta, p_banco) RETURNING id INTO metodo_id;
-  END IF;
+  -- Siempre crea un nuevo método de pago de tipo 'cheque'.
+  -- La constraint UNIQUE en 'numero_cheque' previene la inserción de un cheque duplicado.
+  INSERT INTO metodo_pago(tipo, numero_cheque, numero_cuenta, banco)
+  VALUES ('cheque', p_numero_cheque, p_numero_cuenta, p_banco) RETURNING id INTO metodo_id;
 
   -- Anexar el método de pago al cliente y capturar el ID de la tabla de enlace.
   cliente_metodo_pago_id := fn_anexar_cliente_metodo_pago(metodo_id, p_id_cliente, p_tipo_cliente);
