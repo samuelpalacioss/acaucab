@@ -23,12 +23,13 @@ public class ReporteController {
     public void generarReporte(
             HttpServletResponse response,
             @RequestParam String fechaInicio,
-            @RequestParam String fechaFin
+            @RequestParam String fechaFin,
+            @RequestParam String nombreReporte
     ) {
         try {
-            InputStream jasperStream = getClass().getResourceAsStream("/IncumplimientosDeHorario.jasper");
+            InputStream jasperStream = getClass().getResourceAsStream("/"+nombreReporte+".jasper");
             if (jasperStream == null) {
-                throw new RuntimeException("No se encontró el archivo IncumplimientosDeHorario.jasper");
+                throw new RuntimeException("No se encontró el archivo "+nombreReporte+ ".jasper");
             }
             Map<String, Object> parametros = new HashMap<>();
             parametros.put("fechaInicio", Date.valueOf(fechaInicio));
@@ -40,6 +41,8 @@ public class ReporteController {
             );
 
             response.setContentType("application/pdf");
+            String fileName = nombreReporte + "_" + fechaInicio + "_a_" + fechaFin + ".pdf";
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
             JasperExportManager.exportReportToPdfStream(jasperPrint, response.getOutputStream());
         } catch (Exception e) {
             e.printStackTrace();
