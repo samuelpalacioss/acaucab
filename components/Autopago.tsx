@@ -30,6 +30,7 @@ import { Loader, X } from "lucide-react";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
 import { useVentaStore, EfectivoDetails as StoreEfectivoDetails } from "@/store/venta-store";
 import { getCardType } from "@/lib/utils";
+import { inicializarTasas } from "@/lib/utils";
 
 // Steps enum for better type safety
 enum Step {
@@ -115,6 +116,22 @@ export default function Autopago() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
+
+  /** Cargar y sondear tasas de cambio */
+  useEffect(() => {
+    // Carga inicial de tasas
+    console.log("🚀 Obteniendo tasas de cambio iniciales...");
+    inicializarTasas();
+
+    // Establecer sondeo (polling) cada 5 minutos
+    const intervalId = setInterval(() => {
+      console.log("🔄 Refrescando tasas de cambio...");
+      inicializarTasas();
+    }, 5 * 60 * 1000); // 5 minutos
+
+    // Limpiar el intervalo cuando el componente se desmonte para evitar fugas de memoria
+    return () => clearInterval(intervalId);
+  }, []); // El array de dependencias vacío asegura que esto se ejecute solo al montar el componente
 
   /** Cargar productos desde la API al montar el componente */
   useEffect(() => {

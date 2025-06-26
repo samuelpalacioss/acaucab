@@ -142,3 +142,11 @@ export const loginSchema = z.object({
 });
 
 export type loginType = z.infer<typeof loginSchema>;
+
+export const tasaSchema = z.object({
+  moneda: z.string(),
+  monto_equivalencia: z.number(),
+  fecha_inicio: z.string(),
+});
+
+export type TasaType = z.infer<typeof tasaSchema>;
