@@ -450,7 +450,7 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-muted-foreground">{alerta.fecha}</div>
-                      <div className="font-medium text-amber-600 mt-1">{alerta.stock} unidades solicitadas</div>
+                      <div className="font-medium text-amber-600 mt-1">{alerta.stock ? alerta.stock + ' unidades solicitadas' : 'No se han indicado las unidadades'}</div>
                       {alerta.estado && (
                         <div className="mt-1">
                           <div className="flex items-center gap-2">
