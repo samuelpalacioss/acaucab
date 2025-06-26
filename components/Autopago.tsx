@@ -29,7 +29,9 @@ import {
 import { Loader, X } from "lucide-react";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
 import { useVentaStore, EfectivoDetails as StoreEfectivoDetails } from "@/store/venta-store";
-import { getCardType } from "@/lib/utils";
+import { getCardType, convertir } from "@/lib/utils";
+import { inicializarTasas } from "@/lib/utils";
+import { useTasaStore } from "@/store/tasa-store";
 
 // Steps enum for better type safety
 enum Step {
@@ -116,6 +118,32 @@ export default function Autopago() {
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
 
+  /** Hook para acceder al estado de las tasas */
+  const { getTasa } = useTasaStore();
+
+  /** Cargar y sondear tasas de cambio */
+  useEffect(() => {
+    // Carga inicial de tasas
+    console.log("🚀 Obteniendo tasas de cambio iniciales...");
+    inicializarTasas();
+
+    // Establecer sondeo (polling) cada 5 minutos
+    const intervalId = setInterval(() => {
+      console.log("🔄 Refrescando tasas de cambio...");
+      inicializarTasas();
+    }, 5 * 60 * 1000); // 5 minutos
+
+    // Limpiar el intervalo cuando el componente se desmonte para evitar fugas de memoria
+    return () => clearInterval(intervalId);
+  }, []); // El array de dependencias vacío asegura que esto se ejecute solo al montar el componente
+
+  /** Función para convertir a USD, con fallback */
+  const convertirADolar = (monto: number) => {
+    const tasa = getTasa("USD");
+    if (!tasa?.monto_equivalencia) return null;
+    return monto / tasa.monto_equivalencia;
+  };
+
   /** Cargar productos desde la API al montar el componente */
   useEffect(() => {
     async function fetchProducts() {
@@ -172,6 +200,9 @@ export default function Autopago() {
   const subtotal = carrito.reduce((sum, product) => sum + product.precio * product.quantity, 0);
   const iva = subtotal * 0.16;
   const total = subtotal + iva;
+  const subtotalUSD = convertirADolar(subtotal);
+  const ivaUSD = convertirADolar(iva);
+  const totalUSD = convertirADolar(total);
   const totalPaid = metodosPago.reduce(
     (sum, payment) => sum + (payment.details.amountPaid || 0),
     0
@@ -366,6 +397,7 @@ export default function Autopago() {
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
             products={products}
+            convertirADolar={convertirADolar}
           />
         );
 
