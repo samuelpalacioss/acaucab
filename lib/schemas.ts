@@ -144,7 +144,11 @@ export const loginSchema = z.object({
 
 export type loginType = z.infer<typeof loginSchema>;
 
+/**
+ * Esquema de validación para una Tasa de Cambio
+ */
 export const tasaSchema = z.object({
+  id: z.number(),
   moneda: z.string(),
   monto_equivalencia: z.number(),
   fecha_inicio: z.string(),

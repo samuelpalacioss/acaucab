@@ -5,8 +5,8 @@ import {
   CarritoItemType, 
   DocType,
   PaymentMethod,
-  TarjetaDetails
 } from '@/lib/schemas';
+import { registrarPagos } from '@/api/registrar-pagos';
 
 
 /**
@@ -36,15 +36,6 @@ export interface DetalleVentaData {
 }
 
 /**
- * Detalles específicos para un pago con cheque.
- */
-export interface ChequeDetails {
-  numeroCheque?: string;
-  numeroCuenta?: string;
-  banco?: string;
-}
-
-/**
  * Detalles específicos para un pago en efectivo con desglose de denominación.
  */
 export type Currency = "bolivares" | "dolares" | "euros";
@@ -53,23 +44,6 @@ export interface EfectivoDetails {
   currency: Currency;
   breakdown: { [value: string]: number }; // e.g., { "5": 2 } for two $5 bills
   amountInCurrency: number;
-}
-
-/**
- * Interface para los datos de pago - fn_create_pago
- */
-export interface PagoData {
-  monto: number;
-  fecha_pago: Date;
-  fk_tasa: number;
-  tipo_transaccion: 'VENTA';
-  tipo_metodo_pago: 'MIEMBRO' | 'CLIENTE';
-  fk_venta: number;
-  fk_miembro_metodo_pago_1?: number;
-  fk_cliente_metodo_pago_1?: number;
-  detalles_cheque?: ChequeDetails;
-  detalles_tarjeta?: TarjetaDetails;
-  detalles_efectivo?: EfectivoDetails;
 }
 
 /**
@@ -220,45 +194,13 @@ export const useVentaStore = create<VentaStore>()(
         // await createDetallePresentacion(detalleData);
       }
 
-      /** 3. Crear los pagos usando fn_create_pago */
-      for (const metodoPago of metodosPago) {
-        const details = metodoPago.details as any;
-        const method = metodoPago.method as any;
+      /** 3. Crear los pagos usando la nueva función registrarPagos */
+      const exitoPagos = await registrarPagos(metodosPago, ventaId);
 
-        const pagoData: PagoData = {
-          monto: details.amountPaid,
-          fecha_pago: new Date(),
-          fk_tasa: 1, // TODO: Obtener tasa actual
-          tipo_transaccion: 'VENTA',
-          tipo_metodo_pago: 'CLIENTE',
-          fk_venta: ventaId,
-          fk_cliente_metodo_pago_1: 1, // TODO: Obtener del cliente
-        };
-        
-        // Si es tarjeta, añadir el tipo de tarjeta
-        if (method === "tarjetaCredito" || method === "tarjetaDebito") {
-          pagoData.detalles_tarjeta = details as TarjetaDetails;
-        }
-
-        if (method === "cheque") {
-          const chequeDetails = details;
-          pagoData.detalles_cheque = {
-            numeroCheque: chequeDetails.numeroCheque,
-            numeroCuenta: chequeDetails.numeroCuenta,
-            banco: chequeDetails.banco,
-          };
-        }
-
-        if (method === "efectivo") {
-          const efectivoDetails = details as EfectivoDetails;
-          pagoData.detalles_efectivo = {
-            currency: efectivoDetails.currency,
-            breakdown: efectivoDetails.breakdown,
-            amountInCurrency: efectivoDetails.amountInCurrency,
-          };
-        }
-        /** TODO: Llamar a la función SQL fn_create_pago */
-        // await createPago(pagoData);
+      if (!exitoPagos) {
+        // Si falla el registro de pagos, idealmente se debería hacer rollback de la venta y los detalles.
+        // Por ahora, solo lanzamos un error.
+        throw new Error('No se pudieron registrar los pagos.');
       }
 
       set({ isCreatingVenta: false });
