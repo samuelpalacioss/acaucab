@@ -21,12 +21,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { CriticalStockModal } from "@/components/critical-stock-modal";
 import { AlertsModal } from "@/components/alerts-modal";
 import { InventoryData } from "@/models/inventory";
 import { OrdenesReposicionData } from "@/models/orden-reposicion";
 import { generarPDFOrdenReposicion } from "@/lib/pdf-generator";
 import { actualizarEstadoOrdenReposicion } from "@/lib/server-actions";
+import { usePermissions, useUser } from "@/store/user-store";
 
 interface InventarioDetalleClientProps {
   /** Datos del inventario obtenidos desde la base de datos */
@@ -36,6 +38,10 @@ interface InventarioDetalleClientProps {
 }
 
 export default function InventarioDetalleClient({ inventoryData, ordenesReposicion }: InventarioDetalleClientProps) {
+
+  const { puedeVerOrdenesDeReposicion, puedeEditarOrdenesDeReposicion } = usePermissions();
+  const { usuario } = useUser();
+
   const [isCriticalStockModalOpen, setIsCriticalStockModalOpen] = useState(false);
 
   /** Estados para edición de estado de órdenes */
@@ -43,6 +49,8 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
   const [newStatus, setNewStatus] = useState<string>("");
   const [isEditStatusModalOpen, setIsEditStatusModalOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [quantity, setQuantity] = useState<string>("");
+  const [observation, setObservation] = useState<string>("");
 
   /** Estados para filtros */
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,30 +63,48 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
   const itemsPerPage = 10;
 
   /** Opciones de estado disponibles para las órdenes */
-  const statusOptions = ["Pendiente", "En Proceso", "Completada", "Cancelada", "En Revisión"];
+  const statusOptions = ["Pendiente", "En Proceso", "Completada", "cancelado", "En Revisión"];
 
   /** Funciones para manejo de edición de estado */
   const handleEditStatus = (orderId: number, currentStatus: string) => {
     setEditingOrderId(orderId);
     setNewStatus(""); // Inicializar vacío para que el usuario seleccione
+    setQuantity("");
+    setObservation("");
     setIsEditStatusModalOpen(true);
   };
 
   const handleAcceptStatusChange = async () => {
-    if (editingOrderId && newStatus) {
+    // Validar que si el estado es "Finalizado", la cantidad sea requerida
+    if (newStatus.toLowerCase() === "finalizado" && (!quantity || quantity.trim() === "")) {
+      alert("La cantidad es requerida cuando el estado es 'Finalizado'");
+      return;
+    }
+
+    if (editingOrderId && newStatus && usuario?.id) {
       setIsUpdatingStatus(true);
       try {
-        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus);
-        setIsEditStatusModalOpen(false);
-        setEditingOrderId(null);
-        setNewStatus("");
-        alert(`Estado actualizado a: ${newStatus}`);
+        const unidades = newStatus.toLowerCase() === 'finalizado' ? parseInt(quantity, 10) : undefined
+        const observacionFinal = newStatus.toLowerCase() === 'finalizado' ? observation : undefined
+
+        await actualizarEstadoOrdenReposicion(editingOrderId, newStatus, usuario.id, unidades, observacionFinal)
+
+        setIsEditStatusModalOpen(false)
+        setEditingOrderId(null)
+        setNewStatus('')
+        setQuantity('')
+        setObservation('')
+        alert(`Estado actualizado a: ${newStatus}`)
+        // Idealmente aquí deberías refrescar los datos en lugar de recargar la página
+        window.location.reload()
       } catch (error) {
         console.error("Error al actualizar el estado de la orden:", error);
         alert("Hubo un error al actualizar el estado de la orden. Por favor, inténtelo más tarde.");
       } finally {
         setIsUpdatingStatus(false);
       }
+    } else if (!usuario?.id) {
+      alert("No se pudo obtener la información del usuario. Por favor, inicie sesión nuevamente.");
     }
   };
 
@@ -86,6 +112,8 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
     setIsEditStatusModalOpen(false);
     setEditingOrderId(null);
     setNewStatus("");
+    setQuantity("");
+    setObservation("");
   };
 
   /** Obtener categorías únicas para el filtro */
@@ -246,7 +274,7 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
     fecha: new Date(orden["Fecha de Orden"]).toLocaleDateString("es-ES"),
     estado: orden["Estado"],
     fechaEstado: orden["Fecha de Estado"] ? new Date(orden["Fecha de Estado"]).toLocaleDateString("es-ES") : null,
-    empleado: orden["Empleado"],
+    empleado: orden["Usuario"],
     observacion: orden["Observación"],
   }));
 
@@ -255,22 +283,18 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
     return inventoryData.filter((item) => item["Stock Total"] < 100);
   }, [inventoryData]);
 
-  /** Función para obtener los estados disponibles según la jerarquía */
+  /** Función para obtener los estados disponibles según la jerarquía definida en la BD */
   const getAvailableStatusOptions = (currentStatus: string): string[] => {
     const estadoLower = currentStatus.toLowerCase();
 
     switch (estadoLower) {
       case "pendiente":
-        return ["Aprobada", "Cancelada"];
-      case "aprobada":
-        return []; // No se puede cambiar desde este estado
-      case "en proceso":
-        return ["Finalizada", "Cancelada"];
-      case "cancelada":
-      case "finalizada":
-        return []; // No se puede cambiar desde estos estados
+        return ["Aprobado", "Cancelado"];
+      case "aprobado":
+        return ["Finalizado", "Cancelado"];
       default:
-        return ["Pendiente", "Aprobada", "En Proceso", "Finalizada", "Cancelada"];
+        // Para estados terminales (finalizado, cancelado) u otros, no hay opciones.
+        return [];
     }
   };
 
@@ -387,11 +411,13 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
         </Card>
       </div>
 
-      {/** Sección de Alertas de Reposición */}
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-        <Card>
+      { puedeVerOrdenesDeReposicion() && (
+        <>
+          {/** Sección de Alertas de Reposición */}
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Alertas de Reposición</CardTitle>
+            <CardTitle className="text-xl font-large">Alertas de Reposición</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -433,18 +459,20 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
                               <span className="text-xs text-muted-foreground">Actualizado: {alerta.fechaEstado}</span>
                             )}
                           </div>
-                          {getAvailableStatusOptions(alerta.estado).length > 0 && (
+                          { puedeEditarOrdenesDeReposicion() && getAvailableStatusOptions(alerta.estado).length > 0 && (
+                            <div className="flex gap-2 justify-end text-right">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleEditStatus(alerta.id, alerta.estado)}
-                              className="text-xs border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors mt-1"
+                              className="text-xs border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors mt-1 justify-end text-right"
                             >
-                              <Edit className="h-3 w-3 mr-1" />
+                              <Edit className="h-3 w-3 mr-1 justify-end text-right" />
                               Editar Estado
                             </Button>
-                          )}
-                        </div>
+                            </div>
+                            )}
+                          </div>
                       )}
                       <div className="flex gap-2 mt-2 justify-end">
                         <Button variant="outline" size="sm" onClick={() => generarPDFOrdenReposicion(alerta)}>
@@ -463,7 +491,9 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
             </div>
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </>
+      )}
 
       {/** Tabla de Productos con Filtros Mejorados */}
       <Card>
@@ -703,7 +733,7 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
                                 ? "bg-blue-500"
                                 : status === "Pendiente"
                                 ? "bg-yellow-500"
-                                : status === "Cancelada"
+                                : status === "cancelado"
                                 ? "bg-red-500"
                                 : "bg-gray-500"
                             }`}
@@ -715,6 +745,38 @@ export default function InventarioDetalleClient({ inventoryData, ordenesReposici
                 </SelectContent>
               </Select>
             </div>
+
+            {/** Campos adicionales para estado "Finalizado" */}
+            {newStatus.toLowerCase() === "finalizado" && (
+              <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-lg border">
+                <p className="text-sm font-medium text-gray-900 mb-3">Información adicional requerida:</p>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Cantidad de productos *</label>
+                  <Input
+                    type="number"
+                    placeholder="Cantidad de productos finalizados"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    disabled={isUpdatingStatus}
+                    min="1"
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Observación</label>
+                  <Textarea
+                    placeholder="Observaciones adicionales (opcional)"
+                    value={observation}
+                    onChange={(e) => setObservation(e.target.value)}
+                    disabled={isUpdatingStatus}
+                    rows={3}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={handleCancelStatusChange} className="flex-1">
@@ -768,21 +830,20 @@ function getStatusBackgroundColor(estado: string): string {
   const estadoLower = estado.toLowerCase();
 
   switch (estadoLower) {
-    case "aprobada":
-    case "completada":
+    case "aprobado":
       return "bg-green-50 border-green-200";
+    case "finalizado":
+      return "bg-teal-50 border-teal-200";
     case "pendiente":
       return "bg-yellow-50 border-yellow-200";
-    case "finalizado":
-      return "bg-white border-gray-200";
     case "en proceso":
       return "bg-blue-50 border-blue-200";
-    case "cancelada":
+    case "cancelado":
       return "bg-red-50 border-red-200";
     case "en revisión":
       return "bg-purple-50 border-purple-200";
     default:
-      return "bg-amber-50 border-amber-200"; // Color por defecto
+      return "bg-amber-50 border-amber-200";
   }
 }
 
@@ -791,20 +852,19 @@ function getStatusIconColor(estado: string): string {
   const estadoLower = estado.toLowerCase();
 
   switch (estadoLower) {
-    case "aprobada":
-    case "completada":
+    case "aprobado":
       return "text-green-500";
+    case "finalizado":
+      return "text-teal-500";
     case "pendiente":
       return "text-yellow-500";
-    case "finalizado":
-      return "text-gray-500";
     case "en proceso":
       return "text-blue-500";
-    case "cancelada":
+    case "cancelado":
       return "text-red-500";
     case "en revisión":
       return "text-purple-500";
     default:
-      return "text-amber-500"; // Color por defecto
+      return "text-amber-500";
   }
 }

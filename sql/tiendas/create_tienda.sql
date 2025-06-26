@@ -98,7 +98,7 @@ CREATE TABLE lugar_tienda (
  * @param id11 - Tercera parte de la clave foránea compuesta del inventario
  */
 CREATE TABLE lugar_tienda_inventario (
-    cantidad INTEGER NOT NULL,
+    cantidad INTEGER,
     fk_lugar_tienda_1 INTEGER NOT NULL,
     fk_lugar_tienda_2 INTEGER NOT NULL,
     fk_inventario_1 INTEGER NOT NULL,
@@ -127,21 +127,21 @@ CREATE TABLE lugar_tienda_inventario (
 CREATE TABLE orden_de_reposicion (
     id              SERIAL,
     fecha_orden     DATE NOT NULL,
-    observacion     VARCHAR(100),
-    unidades        INTEGER NOT NULL,
+    observacion     TEXT,
+    unidades        INTEGER,
     fk_lugar_tienda_1 INTEGER NOT NULL,
     fk_lugar_tienda_2 INTEGER NOT NULL,
     fk_inventario_1   INTEGER NOT NULL,
     fk_inventario_2   INTEGER NOT NULL,
     fk_inventario_3   INTEGER NOT NULL,
-    fk_empleado     INTEGER,
+    fk_usuario     INTEGER,
     /* Primary key Constraint */
     CONSTRAINT orden_reposicion_pk 
         PRIMARY KEY (id),
     /* Foreign key Constraints */
-    CONSTRAINT orden_reposicion_empleado_fk 
-        FOREIGN KEY (fk_empleado)
-            REFERENCES empleado (id),
+    CONSTRAINT orden_reposicion_usuario_fk 
+        FOREIGN KEY (fk_usuario)
+            REFERENCES usuario (id),
     CONSTRAINT orden_reposicion_inventario_fk
         FOREIGN KEY (fk_lugar_tienda_1, fk_lugar_tienda_2, fk_inventario_1, fk_inventario_2, fk_inventario_3)
             REFERENCES lugar_tienda_inventario (fk_lugar_tienda_1, fk_lugar_tienda_2, fk_inventario_1, fk_inventario_2, fk_inventario_3)

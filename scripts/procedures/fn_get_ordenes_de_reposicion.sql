@@ -25,8 +25,8 @@ RETURNS TABLE (
     "Lugar de Reposición" VARCHAR(255),
     "Estado" VARCHAR(50),
     "Fecha de Estado" DATE,
-    "Empleado" VARCHAR,
-    "Observación" VARCHAR(100)
+    "Usuario" VARCHAR,
+    "Observación" TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -41,7 +41,12 @@ BEGIN
         lt.nombre AS "Lugar de Reposición",
         s.nombre AS "Estado",
         so_latest.fecha_actualización::DATE AS "Fecha de Estado",
-        (e.primer_nombre || ' ' || e.primer_apellido)::VARCHAR AS "Empleado",
+        COALESCE(
+            e.primer_nombre || ' ' || e.primer_apellido,
+            cn.primer_nombre || ' ' || cn.primer_apellido,
+            cj.razón_social,
+            m.razón_social
+        )::VARCHAR AS "Usuario",
         o.observacion AS "Observación"
     FROM
         orden_de_reposicion o
@@ -55,7 +60,21 @@ BEGIN
     LEFT JOIN
         status s ON so_latest.fk_status = s.id
     LEFT JOIN
-        empleado e ON o.fk_empleado = e.id
+        usuario u ON o.fk_usuario = u.id
+    LEFT JOIN
+        empleado_usuario eu ON u.id = eu.fk_usuario
+    LEFT JOIN
+        empleado e ON eu.fk_empleado = e.id
+    LEFT JOIN
+        cliente_usuario cu ON u.id = cu.fk_usuario
+    LEFT JOIN
+        cliente_natural cn ON cu.fk_cliente_natural = cn.id
+    LEFT JOIN
+        cliente_juridico cj ON cu.fk_cliente_juridico = cj.id
+    LEFT JOIN
+        miembro_usuario mu ON u.id = mu.fk_usuario
+    LEFT JOIN
+        miembro m ON mu.fk_miembro_1 = m.rif AND mu.fk_miembro_2 = m.naturaleza_rif
     LEFT JOIN
         lugar_tienda lt ON o.fk_lugar_tienda_1 = lt.id
     LEFT JOIN

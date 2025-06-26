@@ -27,8 +27,8 @@ export interface OrdenReposicion {
   /** Fecha del último estado de la orden de reposición */
   "Fecha de Estado": string;
   
-  /** Nombre y apellido del empleado que solicitó la reposición */
-  "Empleado": string;
+  /** Nombre del usuario que solicitó la reposición */
+  "Usuario": string;
   
   /** Observaciones adicionales de la orden */
   "Observación": string;
