@@ -15,7 +15,6 @@ type TarjetaParams = {
 
 type ChequeParams = {
   numeroCheque: number;
-  numeroCuenta: number;
   banco: string;
 };
 
@@ -110,7 +109,6 @@ export async function crearMetodoPago(
           p_id_cliente,
           p_tipo_cliente,
           p_numero_cheque: params.details.numeroCheque,
-          p_numero_cuenta: params.details.numeroCuenta,
           p_banco: params.details.banco,
         };
         break;

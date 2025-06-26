@@ -564,7 +564,6 @@ export default function Autopago() {
                         tipo: "cheque",
                         details: {
                           numeroCheque: parseInt(details.numeroCheque),
-                          numeroCuenta: parseInt(details.numeroCuenta),
                           banco: details.banco,
                         },
                       };

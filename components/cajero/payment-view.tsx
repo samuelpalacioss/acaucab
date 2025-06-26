@@ -166,7 +166,6 @@ export default function PaymentView({
 
   // Cheque payment state
   const [numeroCheque, setNumeroCheque] = useState("");
-  const [numeroCuenta, setNumeroCuenta] = useState("");
   const [bancoCheque, setBancoCheque] = useState("");
   const [chequeAmount, setChequeAmount] = useState<number | string>("");
 
@@ -182,8 +181,8 @@ export default function PaymentView({
 
   // Validation functions
   const isCuentaBancoCoincide = () => {
-    if (!bancoCheque || !numeroCuenta) return true;
-    return numeroCuenta.startsWith(bancoCheque);
+    if (!bancoCheque) return true;
+    return bancoCheque.startsWith(bancoCheque);
   };
 
   const isCardAmountValid = () => {
@@ -209,12 +208,7 @@ export default function PaymentView({
   };
 
   const isChequeFormValid = () => {
-    return (
-      numeroCheque.trim() !== "" &&
-      numeroCuenta.trim() !== "" &&
-      bancoCheque.trim() !== "" &&
-      isCuentaBancoCoincide()
-    );
+    return numeroCheque.trim() !== "" && bancoCheque.trim() !== "" && isCuentaBancoCoincide();
   };
 
   const isChequeAmountValid = () => {
@@ -295,7 +289,7 @@ export default function PaymentView({
         amountPaid = cashReceivedInBs;
         break;
       case "cheque":
-        details = { numeroCheque, numeroCuenta, banco: getBancoNombre(bancoCheque) };
+        details = { numeroCheque, banco: getBancoNombre(bancoCheque) };
         amountPaid =
           typeof chequeAmount === "number" && chequeAmount > 0 ? chequeAmount : totalInBs;
         break;
@@ -632,31 +626,6 @@ export default function PaymentView({
                         {submitted && !numeroCheque.trim() && (
                           <p className="text-sm text-red-500">Campo requerido</p>
                         )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="numeroCuenta">Número de Cuenta</Label>
-                        <Input
-                          id="numeroCuenta"
-                          value={numeroCuenta}
-                          onChange={(e) => setNumeroCuenta(e.target.value)}
-                          placeholder="01020123456789012345"
-                          className={
-                            submitted && (!numeroCuenta.trim() || !isCuentaBancoCoincide())
-                              ? "border-red-500"
-                              : ""
-                          }
-                        />
-                        {submitted && !numeroCuenta.trim() && (
-                          <p className="text-sm text-red-500">Campo requerido</p>
-                        )}
-                        {submitted &&
-                          numeroCuenta.trim() &&
-                          bancoCheque &&
-                          !isCuentaBancoCoincide() && (
-                            <p className="text-sm text-red-500">
-                              Los primeros 4 dígitos deben coincidir con el código del banco.
-                            </p>
-                          )}
                       </div>
                     </div>
                     <div className="space-y-2">
