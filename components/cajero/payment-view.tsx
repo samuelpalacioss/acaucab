@@ -113,6 +113,25 @@ export default function PaymentView({
     return 0;
   };
 
+  const getMontoEnBolivares = (monto: number, moneda: Currency) => {
+    if (moneda === "bolivares") return monto;
+
+    const tasaUSDtoBs = getTasa("USD")?.monto_equivalencia;
+    if (!tasaUSDtoBs) return 0;
+
+    if (moneda === "dolares") {
+      return monto * tasaUSDtoBs;
+    }
+
+    if (moneda === "euros") {
+      const tasaEURtoBs = getTasa("EUR")?.monto_equivalencia;
+      if (!tasaEURtoBs) return 0;
+      return monto * tasaEURtoBs;
+    }
+
+    return 0;
+  };
+
   // Calculate cash change
   const cashReceivedNum = Number.parseFloat(cashReceived) || 0;
   const cashReceivedInUSD = getMontoEnDolares(cashReceivedNum, denomination);
@@ -216,6 +235,16 @@ export default function PaymentView({
 
     switch (paymentMethod) {
       case "tarjetaCredito":
+        details = {
+          nombreTitular: cardData.nombreTitular,
+          numeroTarjeta: cardData.numeroTarjeta?.replace(/\s/g, "") || "", // Remove spaces
+          fechaExpiracion: cardData.fechaExpiracion,
+          banco: getBancoNombre(selectedBank),
+        };
+        amountPaid = parseFloat(
+          (typeof cardAmount === "number" ? cardAmount : totalInBs).toFixed(2)
+        );
+        break;
       case "tarjetaDebito":
         details = {
           nombreTitular: cardData.nombreTitular,
@@ -233,8 +262,8 @@ export default function PaymentView({
           breakdown: breakdown,
           amountInCurrency: cashReceivedNum,
         };
-        const cashReceivedInBs = cashReceivedInUSD * (getTasa("USD")?.monto_equivalencia || 0);
-        amountPaid = Math.min(cashReceivedInBs, totalInBs);
+        const cashReceivedInBs = getMontoEnBolivares(cashReceivedNum, denomination);
+        amountPaid = cashReceivedInBs;
         break;
       case "cheque":
         details = { numeroCheque, numeroCuenta, banco: getBancoNombre(bancoCheque) };
@@ -290,6 +319,8 @@ export default function PaymentView({
     setCashReceived("");
     setBreakdown({});
   };
+
+  const differenceInBs = getMontoEnBolivares(cashReceivedNum, denomination) - totalInBs;
 
   return (
     <div className="container mx-auto p-4">
@@ -524,25 +555,35 @@ export default function PaymentView({
                       <div className="flex justify-between">
                         <span>Recibido en efectivo:</span>
                         <span>
-                          {currencySymbols[denomination]} {cashReceivedNum.toFixed(2)} ($
-                          {formatCurrency(cashReceivedInUSD)})
+                          {currencySymbols[denomination]} {cashReceivedNum.toFixed(2)}
+                          {denomination === "dolares" && cashReceivedNum > 0 && (
+                            <span className="text-sm text-gray-500 ml-1">
+                              (Bs {formatCurrency(getMontoEnBolivares(cashReceivedNum, "dolares"))})
+                            </span>
+                          )}
+                          {denomination === "euros" && cashReceivedNum > 0 && (
+                            <span className="text-sm text-gray-500 ml-1">
+                              (Bs {formatCurrency(getMontoEnBolivares(cashReceivedNum, "euros"))})
+                            </span>
+                          )}
+                          {denomination === "bolivares" && cashReceivedNum > 0 && (
+                            <span className="text-sm text-gray-500 ml-1">
+                              (${formatCurrency(getMontoEnDolares(cashReceivedNum, "bolivares"))})
+                            </span>
+                          )}
                         </span>
                       </div>
                       <hr className="my-2 border-t border-gray-200" />
-                      {cashReceivedNum > 0 &&
-                        amountPaid + cashReceivedInUSD < (originalTotal || total) && (
-                          <div className="flex justify-between font-bold text-red-600">
-                            <span>Faltaría por pagar:</span>
-                            <span>
-                              Bs
-                              {(
-                                (originalTotal || total) -
-                                (amountPaid +
-                                  cashReceivedInUSD * (getTasa("USD")?.monto_equivalencia || 0))
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-                        )}
+                      {cashReceivedNum > 0 && (
+                        <div
+                          className={`flex justify-between font-bold ${
+                            differenceInBs < 0 ? "text-red-600" : "text-green-600"
+                          }`}
+                        >
+                          <span>{differenceInBs < 0 ? "Faltaría por pagar:" : "Cambio:"}</span>
+                          <span>Bs {formatCurrency(Math.abs(differenceInBs))}</span>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
 
