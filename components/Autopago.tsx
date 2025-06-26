@@ -394,7 +394,7 @@ export default function Autopago() {
 
       case Step.CLIENT_WELCOME: {
         const clientName =
-          cliente?.tipo_usuario === "Cliente Natural"
+          cliente?.tipo_cliente === "natural"
             ? cliente.nombre_completo
             : cliente?.denominacion_comercial;
         return (
@@ -445,6 +445,14 @@ export default function Autopago() {
               setIsProcessingPayment(true);
               setError(null);
               try {
+                if (!cliente || !cliente.id_cliente || !cliente.tipo_cliente) {
+                  throw new Error(
+                    "Información del cliente no disponible. Por favor, reinicie el proceso."
+                  );
+                }
+
+                const p_id_cliente = cliente.id_cliente;
+                const p_tipo_cliente = cliente.tipo_cliente;
                 let metodoPagoId: number | null = null;
 
                 const formatExpiryDateForDB = (expiryDate: string): string => {
@@ -465,42 +473,58 @@ export default function Autopago() {
                   case "tarjetaCredito": {
                     const cardDetails = details as TarjetaDetails;
                     const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
-                    metodoPagoId = await crearMetodoPago({
-                      tipo: "tarjeta_credito",
-                      details: {
-                        tipo_tarjeta: getCardType(cardDetails.numeroTarjeta || ""),
-                        numero: parseInt(cardDetails.numeroTarjeta.replace(/\s/g, "")),
-                        banco: cardDetails.banco,
-                        fecha_vencimiento: expiryDate,
+                    metodoPagoId = await crearMetodoPago(
+                      {
+                        tipo: "tarjeta_credito",
+                        details: {
+                          tipo_tarjeta: getCardType(cardDetails.numeroTarjeta || ""),
+                          numero: parseInt(cardDetails.numeroTarjeta.replace(/\s/g, "")),
+                          banco: cardDetails.banco,
+                          fecha_vencimiento: expiryDate,
+                        },
                       },
-                    });
+                      p_id_cliente,
+                      p_tipo_cliente
+                    );
                     break;
                   }
                   case "tarjetaDebito": {
                     const cardDetails = details as TarjetaDetails;
                     const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
-                    metodoPagoId = await crearMetodoPago({
-                      tipo: "tarjeta_debito",
-                      details: {
-                        numero: parseInt(cardDetails.numeroTarjeta.replace(/\s/g, "")),
-                        banco: cardDetails.banco,
-                        fecha_vencimiento: expiryDate,
+                    metodoPagoId = await crearMetodoPago(
+                      {
+                        tipo: "tarjeta_debito",
+                        details: {
+                          numero: parseInt(cardDetails.numeroTarjeta.replace(/\s/g, "")),
+                          banco: cardDetails.banco,
+                          fecha_vencimiento: expiryDate,
+                        },
                       },
-                    });
+                      p_id_cliente,
+                      p_tipo_cliente
+                    );
                     break;
                   }
                   case "efectivo": {
                     const efectivoDetails = details as EfectivoDetails;
-                    metodoPagoId = await crearMetodoPago({
-                      tipo: "efectivo",
-                      details: {
-                        denominacion: efectivoDetails.denominacion,
+                    metodoPagoId = await crearMetodoPago(
+                      {
+                        tipo: "efectivo",
+                        details: {
+                          denominacion: efectivoDetails.denominacion,
+                        },
                       },
-                    });
+                      p_id_cliente,
+                      p_tipo_cliente
+                    );
                     break;
                   }
                   case "puntos": {
-                    metodoPagoId = await crearMetodoPago({ tipo: "punto", details: {} });
+                    metodoPagoId = await crearMetodoPago(
+                      { tipo: "punto", details: {} },
+                      p_id_cliente,
+                      p_tipo_cliente
+                    );
                     break;
                   }
                   case "cheque": {

@@ -25,7 +25,9 @@ type MetodoPagoParams =
  * @returns number | null - El ID del método de pago recién creado o null si hay un error.
  */
 export async function crearMetodoPago(
-  params: MetodoPagoParams
+  params: MetodoPagoParams,
+  p_id_cliente: number,
+  p_tipo_cliente: string
 ): Promise<number | null> {
   try {
     let result: any; // Use 'any' to handle the potentially array-like response
@@ -35,30 +37,38 @@ export async function crearMetodoPago(
     switch (params.tipo) {
       case 'efectivo':
         fn_name = 'fn_create_metodo_pago_efectivo';
-        fn_params = { p_denominacion: params.details.denominacion };
+        fn_params = {
+          p_id_cliente,
+          p_tipo_cliente,
+          p_denominacion: params.details.denominacion,
+        };
         break;
       
       case 'punto':
         fn_name = 'fn_create_metodo_pago_punto';
-        fn_params = {};
+        fn_params = { p_id_cliente, p_tipo_cliente };
         break;
 
       case 'tarjeta_credito':
         fn_name = 'fn_create_metodo_pago_tarjeta_credito';
         fn_params = {
-            p_tipo_tarjeta: params.details.tipo_tarjeta,
-            p_numero: params.details.numero,
-            p_banco: params.details.banco,
-            p_fecha_vencimiento: params.details.fecha_vencimiento
+          p_id_cliente,
+          p_tipo_cliente,
+          p_tipo_tarjeta: params.details.tipo_tarjeta,
+          p_numero: params.details.numero,
+          p_banco: params.details.banco,
+          p_fecha_vencimiento: params.details.fecha_vencimiento,
         };
         break;
 
       case 'tarjeta_debito':
         fn_name = 'fn_create_metodo_pago_tarjeta_debito';
         fn_params = {
-            p_numero: params.details.numero,
-            p_banco: params.details.banco,
-            p_fecha_vencimiento: params.details.fecha_vencimiento
+          p_id_cliente,
+          p_tipo_cliente,
+          p_numero: params.details.numero,
+          p_banco: params.details.banco,
+          p_fecha_vencimiento: params.details.fecha_vencimiento,
         };
         break;
 

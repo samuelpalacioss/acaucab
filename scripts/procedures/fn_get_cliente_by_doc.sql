@@ -15,7 +15,7 @@ RETURNS TABLE (
     telefono VARCHAR,
     rol_nombre VARCHAR,
     id_rol INTEGER,
-    tipo_usuario VARCHAR,
+    tipo_cliente VARCHAR,
     identificacion VARCHAR,
     direccion VARCHAR,
     direccion_fiscal VARCHAR
@@ -36,9 +36,9 @@ BEGIN
             r.nombre as rol_nombre,
             r.id as id_rol,
             CASE
-                WHEN cn.id IS NOT NULL THEN 'Cliente Natural'
-                ELSE 'Cliente Juridico'
-            END as tipo_usuario_val,
+                WHEN cn.id IS NOT NULL THEN 'natural'
+                ELSE 'juridico'
+            END as tipo_cliente_val,
             cn, cj
         FROM
             usuario u
@@ -68,7 +68,7 @@ BEGIN
         )::VARCHAR,
         ub.rol_nombre::VARCHAR,
         ub.id_rol::INTEGER,
-        ub.tipo_usuario_val::VARCHAR,
+        ub.tipo_cliente_val::VARCHAR,
         COALESCE(
             (ub.cn).nacionalidad || '-' || (ub.cn).ci,
             (ub.cj).naturaleza_rif || '-' || (ub.cj).rif

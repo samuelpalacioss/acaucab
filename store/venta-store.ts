@@ -7,7 +7,7 @@ import {
   PaymentMethod,
   TarjetaDetails
 } from '@/lib/schemas';
-import { getCardType } from '@/lib/utils';
+
 
 /**
  * Interface para los datos de la venta que se enviarán a fn_create_venta
@@ -194,8 +194,8 @@ export const useVentaStore = create<VentaStore>()(
       const ventaData: VentaData = {
         monto_total: totalVenta,
         fk_usuario: cliente.id_usuario,
-        fk_cliente_juridico: cliente.tipo_usuario === 'Cliente Juridico' ? cliente.id_usuario : undefined,
-        fk_cliente_natural: cliente.tipo_usuario === 'Cliente Natural' ? cliente.id_usuario : undefined,
+        fk_cliente_juridico: cliente.tipo_cliente === 'juridico' ? cliente.id_cliente : undefined,
+        fk_cliente_natural: cliente.tipo_cliente === 'natural' ? cliente.id_cliente : undefined,
         fk_tienda_fisica: 1, // Tienda física DEFAULT
       };
 

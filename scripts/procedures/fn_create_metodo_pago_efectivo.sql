@@ -1,6 +1,8 @@
-DROP FUNCTION IF EXISTS fn_create_metodo_pago_efectivo(VARCHAR);
+DROP FUNCTION IF EXISTS fn_create_metodo_pago_efectivo(INTEGER, VARCHAR, VARCHAR);
 
 CREATE OR REPLACE FUNCTION fn_create_metodo_pago_efectivo(
+  p_id_cliente INTEGER,
+  p_tipo_cliente VARCHAR,
   p_denominacion VARCHAR
 )
 RETURNS TABLE(nuevo_metodo_id INTEGER) AS $$ 
@@ -18,6 +20,9 @@ BEGIN
     VALUES ('efectivo', p_denominacion) 
     RETURNING id INTO metodo_id;
   END IF;
+
+  -- Anexar el método de pago al cliente.
+  PERFORM fn_anexar_cliente_metodo_pago(metodo_id, p_id_cliente, p_tipo_cliente);
 
   RETURN QUERY SELECT metodo_id as nuevo_metodo_id;
 

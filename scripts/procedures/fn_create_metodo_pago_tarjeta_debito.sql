@@ -1,7 +1,8 @@
-DROP FUNCTION IF EXISTS fn_create_metodo_pago_tarjeta_debito(INTEGER, VARCHAR, DATE);
-DROP FUNCTION IF EXISTS fn_create_metodo_pago_tarjeta_debito(BIGINT, VARCHAR, DATE);
+DROP FUNCTION IF EXISTS fn_create_metodo_pago_tarjeta_debito(INTEGER, VARCHAR, BIGINT, VARCHAR, DATE);
 
 CREATE OR REPLACE FUNCTION fn_create_metodo_pago_tarjeta_debito(
+  p_id_cliente INTEGER,
+  p_tipo_cliente VARCHAR,
   p_numero BIGINT,
   p_banco VARCHAR,
   p_fecha_vencimiento DATE
@@ -18,6 +19,9 @@ BEGIN
     INSERT INTO metodo_pago(tipo, número, banco, fecha_vencimiento)
     VALUES ('tarjeta_debito', p_numero, p_banco, p_fecha_vencimiento) RETURNING id into metodo_id;
   END IF;
+
+  -- Anexar el método de pago al cliente.
+  PERFORM fn_anexar_cliente_metodo_pago(metodo_id, p_id_cliente, p_tipo_cliente);
 
   RETURN QUERY SELECT metodo_id as nuevo_metodo_id;
 END 

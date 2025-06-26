@@ -134,7 +134,9 @@ CREATE TABLE cliente_metodo_pago (
     CONSTRAINT chk_arc_cliente_metodo_pago CHECK (
         (fk_cliente_natural IS NOT NULL AND fk_cliente_juridico IS NULL) OR
         (fk_cliente_juridico IS NOT NULL AND fk_cliente_natural IS NULL)
-    )
+    ),
+    CONSTRAINT unq_cliente_metodo_pago_natural_metodo UNIQUE(fk_cliente_natural, fk_metodo_pago),
+    CONSTRAINT unq_cliente_metodo_pago_juridico_metodo UNIQUE(fk_cliente_juridico, fk_metodo_pago)
 );
 
 /**

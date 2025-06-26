@@ -61,7 +61,7 @@ export const clienteSchema = z.object({
   telefono: z.string().nullable(),
   rol_nombre: z.string(),
   id_rol: z.number(),
-  tipo_usuario: z.enum(['Cliente Natural', 'Cliente Juridico']),
+  tipo_cliente: z.enum(['natural', 'juridico']),
   identificacion: z.string(),
   direccion: z.string(),
   direccion_fiscal: z.string().nullable()
