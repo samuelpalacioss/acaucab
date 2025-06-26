@@ -165,7 +165,7 @@ join (select c.id codigo, c.nombre nombre, n.fk_empleado empleado,COALESCE(l.lle
                         and rb.fecha_hora_entrada::time <= h.hora_entrada
                   group by cod, nc,empl) p on p.cod = c.id and n.fk_empleado=p.empl) e on e.codigo = c.id
 group by c.id, c.nombre
-order by "Puntualidades Promedio" desc,"Impuntualidades Promedio" desc;]]></query>
+order by "Puntualidades Promedio" desc,"Impuntualidades Promedio" asc;]]></query>
 		<field name="id" class="java.lang.Integer">
 			<property name="com.jaspersoft.studio.field.name" value="id"/>
 			<property name="com.jaspersoft.studio.field.label" value="id"/>
