@@ -13,11 +13,18 @@ type TarjetaParams = {
   fecha_vencimiento: string; // YYYY-MM-DD format
 };
 
+type ChequeParams = {
+  numeroCheque: number;
+  numeroCuenta: number;
+  banco: string;
+};
+
 type MetodoPagoParams =
   | { tipo: 'efectivo'; details: EfectivoDetailsWithBreakdown }
   | { tipo: 'punto'; details: {} }
   | { tipo: 'tarjeta_credito'; details: TarjetaParams }
-  | { tipo: 'tarjeta_debito'; details: TarjetaParams };
+  | { tipo: 'tarjeta_debito'; details: TarjetaParams }
+  | { tipo: 'cheque'; details: ChequeParams };
 
 /**
  * Crea un nuevo método de pago en la base de datos.
@@ -94,6 +101,17 @@ export async function crearMetodoPago(
           p_numero: params.details.numero,
           p_banco: params.details.banco,
           p_fecha_vencimiento: params.details.fecha_vencimiento,
+        };
+        break;
+
+      case 'cheque':
+        fn_name = 'fn_create_metodo_pago_cheque';
+        fn_params = {
+          p_id_cliente,
+          p_tipo_cliente,
+          p_numero_cheque: params.details.numeroCheque,
+          p_numero_cuenta: params.details.numeroCuenta,
+          p_banco: params.details.banco,
         };
         break;
 

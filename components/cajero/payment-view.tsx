@@ -728,7 +728,7 @@ export default function PaymentView({
                     {pointsToUse > 0 && (
                       <div className="p-4 bg-gray-50 rounded-md">
                         <div className="flex justify-between">
-                          <span>Total a pagar:</span>
+                          <span>Restante por pagar:</span>
                           <span>Bs {formatCurrency(total)}</span>
                         </div>
                         <div className="flex justify-between">
