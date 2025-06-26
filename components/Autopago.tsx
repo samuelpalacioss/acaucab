@@ -32,6 +32,7 @@ import { useVentaStore, EfectivoDetails as StoreEfectivoDetails } from "@/store/
 import { getCardType, convertir } from "@/lib/utils";
 import { inicializarTasas } from "@/lib/utils";
 import { useTasaStore } from "@/store/tasa-store";
+import { registrarVentaEnProceso } from "@/api/registrar-venta-en-proceso";
 
 // Steps enum for better type safety
 enum Step {
@@ -61,6 +62,7 @@ const logVentaStore = (action?: string) => {
     "👤 Cliente:",
     state.cliente?.nombre_completo || state.cliente?.denominacion_comercial || "No seleccionado"
   );
+  console.log("🆔 ID Cliente:", state.cliente?.id_cliente || "N/A");
   console.log("📄 Documento:", `${state.docType}-${state.documento}`);
   console.log("🛍️ Items en carrito:", state.carrito.length);
   state.carrito.forEach((item, index) => {
@@ -99,6 +101,7 @@ export default function Autopago() {
     setDocType,
     setDocumento,
     setMetodosPago,
+    setVentaId,
     agregarAlCarrito,
     actualizarCantidad,
     eliminarDelCarrito,
@@ -191,6 +194,31 @@ export default function Autopago() {
       loadProductsAndProceed();
     }
   }, [currentStep]);
+
+  const handleProceedToPayment = async () => {
+    if (!cliente?.id_cliente) {
+      setError("No se ha podido identificar al cliente. Por favor, reinicie el proceso.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const ventaId = await registrarVentaEnProceso(cliente.id_cliente);
+      if (ventaId) {
+        setVentaId(ventaId);
+        logVentaStore("VENTA INICIADA");
+        setCurrentStep(Step.PAYMENT);
+      } else {
+        setError("No se pudo iniciar la venta. Por favor, intente de nuevo.");
+      }
+    } catch (err: any) {
+      setError(err.message || "Ocurrió un error al iniciar la venta.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredProducts = selectedCategory
     ? products.filter((product) => product.tipo_cerveza === selectedCategory)
@@ -391,7 +419,7 @@ export default function Autopago() {
 
         return (
           <CheckoutCajero
-            onCheckout={() => setCurrentStep(Step.PAYMENT)}
+            onCheckout={handleProceedToPayment}
             cart={carrito}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}

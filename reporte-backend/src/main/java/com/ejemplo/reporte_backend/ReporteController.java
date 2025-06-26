@@ -1,5 +1,5 @@
 package com.ejemplo.reporte_backend;
-
+import java.sql.Connection;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +26,7 @@ public class ReporteController {
             @RequestParam String fechaFin,
             @RequestParam String nombreReporte
     ) {
+        Connection conn = null;
         try {
             InputStream jasperStream = getClass().getResourceAsStream("/"+nombreReporte+".jasper");
             if (jasperStream == null) {
@@ -35,9 +36,9 @@ public class ReporteController {
             parametros.put("fechaInicio", Date.valueOf(fechaInicio));
             parametros.put("fechaFin", Date.valueOf(fechaFin));
 
-            // Usa la conexión real
+            conn = dataSource.getConnection();
             JasperPrint jasperPrint = JasperFillManager.fillReport(
-                jasperStream, parametros, dataSource.getConnection()
+                jasperStream, parametros, conn
             );
 
             response.setContentType("application/pdf");
@@ -47,6 +48,10 @@ public class ReporteController {
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(500);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            }
         }
     }
 }

@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Download, FileText } from "lucide-react"
 
+const backUrl="http://localhost:8081/reporte"
+
 // Datos de ejemplo para los reportes
 const allReports = [
   {
@@ -14,35 +16,35 @@ const allReports = [
     name: "Empleados con Mayor Frecuencia de Incumplimiento de Horarios",
     category: "RRHH",
     format: "PDF",
-    file: "",
+    file: "IncumplimientosDeHorario",
   },
   {
     id: 2,
     name: "Valor Monetario Total de Puntos Canjeados Por Clientes Afiliados",
     category: "Ventas",
     format: "PDF",
-    file: "",
+    file: "TotalPuntosBs",
   },
   {
     id: 3,
     name: "Proporción de Clientes Jurídicos vs Naturales y su Valor Promedio de Pedido",
     category: "Ventas",
     format: "PDF",
-    file: "",
+    file: "ProporcionClientes",
   },
   {
     id: 4,
     name: "Análisis de los Tipos de Cervezas mas Vendidos y su Graduación Alcohólica Promedio",
     category: "Ventas",
     format: "PDF",
-    file: "",
+    file: "CervezasMasVendidas",
   },
   {
     id: 5,
     name: "Análisis de Puntualidad por Cargo",
     category: "RRHH",
     format: "PDF",
-    file: "",
+    file: "Puntualidad",
   },
 ]
 
@@ -59,7 +61,7 @@ export function ReportsTable({ category }: ReportsTableProps) {
   const pdfReports = reports.filter((report) => report.format === "PDF").length
   const excelReports = reports.filter((report) => report.format === "Excel").length
 
-  const handleDownload = (reportId: number, reportName: string) => {
+  const handleDownload = (reportId: number, reportName: string, reportFile:string) => {
     const startDateInput = document.getElementById(`start-date-${reportId}`) as HTMLInputElement
     const endDateInput = document.getElementById(`end-date-${reportId}`) as HTMLInputElement
 
@@ -77,7 +79,8 @@ export function ReportsTable({ category }: ReportsTableProps) {
     }
 
     console.log(`Descargando reporte "${reportName}" desde ${startDate} hasta ${endDate}`)
-    // Aquí iría la lógica real de descarga
+    const url = `${backUrl}?fechaInicio=${startDate}&fechaFin=${endDate}&nombreReporte=${reportFile}`
+    window.open(url, "_blank")
   }
 
   return (
@@ -150,7 +153,7 @@ export function ReportsTable({ category }: ReportsTableProps) {
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => handleDownload(report.id, report.name)}
+                      onClick={() => handleDownload(report.id, report.name,report.file)}
                       className="h-8"
                     >
                       <Download className="h-4 w-4 mr-1" />

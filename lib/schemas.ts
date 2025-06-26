@@ -52,6 +52,7 @@ export const direccionJuridicaFormSchema = z.object({
 
 export const clienteSchema = z.object({
   id_usuario: z.number(),
+  id_cliente: z.number(),
   nombre_completo: z.string(),
   razon_social: z.string().nullable(),
   denominacion_comercial: z.string().nullable(), 

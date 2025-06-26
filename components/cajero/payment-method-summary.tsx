@@ -102,6 +102,12 @@ export default function PaymentMethodSummary({
               {sortedPayments.map((payment, sortedIndex) => {
                 const originalIndex = payments.findIndex((p) => p === payment);
                 const amountPaidUSD = convertirADolar((payment.details as any).amountPaid);
+                const isEfectivo = payment.method === "efectivo";
+                const isPuntos = payment.method === "puntos";
+                const currency = isEfectivo ? (payment.details as any).currency : null;
+                const amountInCurrency = isEfectivo
+                  ? (payment.details as any).amountInCurrency
+                  : null;
 
                 return (
                   <div
@@ -138,11 +144,22 @@ export default function PaymentMethodSummary({
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-base">
-                        Bs {((payment.details as any).amountPaid || 0).toFixed(2)}{" "}
-                        {amountPaidUSD !== null && (
-                          <span className="text-sm text-gray-500">
-                            (${formatCurrency(amountPaidUSD)})
-                          </span>
+                        {isPuntos ? (
+                          <>{(payment.details as any).pointsToUse.toFixed(2)} puntos</>
+                        ) : isEfectivo && (currency === "dolares" || currency === "euros") ? (
+                          <>
+                            {currency === "dolares" ? "$" : "€"}
+                            {amountInCurrency.toFixed(2)}
+                          </>
+                        ) : (
+                          <>
+                            Bs {((payment.details as any).amountPaid || 0).toFixed(2)}{" "}
+                            {amountPaidUSD !== null && !isEfectivo && (
+                              <span className="text-sm text-gray-500">
+                                (${formatCurrency(amountPaidUSD)})
+                              </span>
+                            )}
+                          </>
                         )}
                       </p>
                     </div>
