@@ -41,6 +41,7 @@ BEGIN
                 AND lti.fk_inventario_2 = detalle.fk_cerveza
                 AND lti.fk_tienda_fisica = v_tienda_id
                 AND EXISTS (
+                    SELECT *
                     FROM lugar_tienda lt 
                     WHERE lt.id = lti.fk_lugar_tienda_1 
                       AND lt.fk_tienda_fisica = lti.fk_lugar_tienda_2

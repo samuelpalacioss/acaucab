@@ -1,4 +1,4 @@
-DROP FUNCTION IF EXISTS fn_registrar_venta_en_proceso();
+DROP FUNCTION IF EXISTS fn_registrar_venta_en_proceso(INTEGER, INTEGER);
 
 CREATE OR REPLACE FUNCTION fn_registrar_venta_en_proceso(
   p_cliente_id INTEGER,
@@ -28,8 +28,9 @@ BEGIN
   /* Asociar estado en progreso para la venta */
   SELECT id INTO v_status_id FROM status WHERE status.nombre = 'En Proceso';
 
-  INSERT INTO status_venta(fk_venta, fk_status)
-  VALUES(nueva_venta_id, v_status_id);
+  INSERT INTO status_venta(fk_venta, fk_status, fecha_actualizacion)
+  VALUES(nueva_venta_id, v_status_id, NOW());
+
 
   RETURN nueva_venta_id;
 END;
