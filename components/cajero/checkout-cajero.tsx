@@ -24,6 +24,7 @@ interface CheckoutCajeroProps {
   onRemoveItem: (sku: string) => void;
   onClearCart: () => void;
   products: CarritoItemType[];
+  convertirADolar: (monto: number) => number | null;
 }
 
 export default function CheckoutCajero({
@@ -33,6 +34,7 @@ export default function CheckoutCajero({
   onRemoveItem,
   onClearCart,
   products,
+  convertirADolar,
 }: CheckoutCajeroProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>("Todas");
@@ -125,6 +127,7 @@ export default function CheckoutCajero({
             onAddToCart={addToCart}
             searchQuery={searchQuery}
             selectedCategory={selectedCategory}
+            convertirADolar={convertirADolar}
           />
         </div>
       </div>
@@ -136,6 +139,7 @@ export default function CheckoutCajero({
           onRemoveItem={onRemoveItem}
           onClearCart={onClearCart}
           onCheckout={onCheckout}
+          convertirADolar={convertirADolar}
         />
       </div>
     </div>

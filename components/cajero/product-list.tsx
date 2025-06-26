@@ -12,6 +12,7 @@ interface ProductListProps {
   onAddToCart: (product: CarritoItemType) => void;
   searchQuery: string;
   selectedCategory: string | null;
+  convertirADolar: (monto: number) => number | null;
 }
 
 function highlightText(text: string, query: string): React.ReactNode {
@@ -36,6 +37,7 @@ export default function ProductList({
   onAddToCart,
   searchQuery,
   selectedCategory,
+  convertirADolar,
 }: ProductListProps) {
   if (products.length === 0) {
     return (
@@ -84,7 +86,14 @@ export default function ProductList({
               </div>
 
               <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                <p className="font-bold text-sm">${product.precio.toFixed(2)}</p>
+                <div className="flex flex-col">
+                  <p className="font-bold text-sm">Bs{product.precio.toFixed(2)}</p>
+                  {convertirADolar(product.precio) !== null && (
+                    <p className="text-xs text-gray-500">
+                      ${convertirADolar(product.precio)?.toFixed(2)}
+                    </p>
+                  )}
+                </div>
                 <Button
                   size="sm"
                   variant="ghost"

@@ -11,6 +11,7 @@ interface CartProps {
   onRemoveItem: (sku: string) => void;
   onClearCart: () => void;
   onCheckout: () => void;
+  convertirADolar: (monto: number) => number | null;
 }
 
 export default function Cart({
@@ -19,11 +20,15 @@ export default function Cart({
   onRemoveItem,
   onClearCart,
   onCheckout,
+  convertirADolar,
 }: CartProps) {
   const subtotal = items.reduce((sum, item) => sum + item.precio * item.quantity, 0);
   const iva = subtotal * 0.16; // 16% iva
   const total = subtotal + iva;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotalUSD = convertirADolar(subtotal);
+  const ivaUSD = convertirADolar(iva);
+  const totalUSD = convertirADolar(total);
 
   return (
     <div className="bg-white p-4 rounded-lg shadow h-full flex flex-col">
@@ -57,7 +62,16 @@ export default function Cart({
                   <Badge variant="secondary" className="text-xs w-fit font-medium">
                     {item.presentacion}
                   </Badge>
-                  <p className="text-sm text-gray-500">${item.precio.toFixed(2)} c/u</p>
+                  <div className="flex items-baseline">
+                    <p className="text-sm">
+                      Bs {item.precio.toFixed(2)}
+                      {convertirADolar(item.precio) !== null && (
+                        <span className="text-sm ml-1">
+                          ({convertirADolar(item.precio)?.toFixed(2)}$)
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
@@ -91,17 +105,32 @@ export default function Cart({
           </div>
 
           <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-md">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <div>
+                <span>Bs {subtotal.toFixed(2)} </span>
+                {subtotalUSD !== null && (
+                  <span className="text-sm text-gray-600">({subtotalUSD.toFixed(2)}$)</span>
+                )}
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-lg">
               <span>IVA (16%)</span>
-              <span>${iva.toFixed(2)}</span>
+              <div>
+                <span>Bs {iva.toFixed(2)} </span>
+                {ivaUSD !== null && (
+                  <span className="text-sm text-gray-600">({ivaUSD.toFixed(2)}$)</span>
+                )}
+              </div>
             </div>
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <div>
+                <span className="text-md">Bs {total.toFixed(2)} </span>
+                {totalUSD !== null && (
+                  <span className="text-sm text-gray-600">({totalUSD.toFixed(2)}$)</span>
+                )}
+              </div>
             </div>
             <Button className="w-full mt-4" onClick={onCheckout}>
               Pagar
