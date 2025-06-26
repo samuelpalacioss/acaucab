@@ -22,9 +22,10 @@ export const formatCurrency = (amount: number | null | undefined): string => {
 };
 
 export const getCardType = (cardNumber: string): string => {
-  if (cardNumber.startsWith("4")) return "Visa";
-  if (cardNumber.startsWith("5")) return "Mastercard";
-  if (cardNumber.startsWith("3")) return "American Express";
+  const cleanCardNumber = cardNumber.replace(/\s/g, "");
+  if (cleanCardNumber.startsWith("4")) return "Visa";
+  if (cleanCardNumber.startsWith("5")) return "Mastercard";
+  if (cleanCardNumber.startsWith("3")) return "American Express";
   return "Tarjeta";
 };
 
