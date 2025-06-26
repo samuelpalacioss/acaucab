@@ -4,7 +4,10 @@ CREATE OR REPLACE FUNCTION fn_registrar_venta_en_proceso(
   p_cliente_id INTEGER,
   p_tienda_fisica_id INTEGER DEFAULT 1
 )
-RETURNS INTEGER AS $$
+RETURNS TABLE(
+  id_venta INTEGER
+) 
+AS $$
 DECLARE
   nueva_venta_id INTEGER;
   is_natural BOOLEAN;
@@ -28,10 +31,10 @@ BEGIN
   /* Asociar estado en progreso para la venta */
   SELECT id INTO v_status_id FROM status WHERE status.nombre = 'En Proceso';
 
-  INSERT INTO status_venta(fk_venta, fk_status, fecha_actualizacion)
+  INSERT INTO status_venta(fk_venta, fk_status, fecha_actualización)
   VALUES(nueva_venta_id, v_status_id, NOW());
 
 
-  RETURN nueva_venta_id;
+  RETURN QUERY SELECT nueva_venta_id;
 END;
 $$ language plpgsql

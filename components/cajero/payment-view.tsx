@@ -173,6 +173,11 @@ export default function PaymentView({
   const [pointsToUse, setPointsToUse] = useState(0);
 
   // Validation functions
+  const isCuentaBancoCoincide = () => {
+    if (!bancoCheque || !numeroCuenta) return true;
+    return numeroCuenta.startsWith(bancoCheque);
+  };
+
   const isCardAmountValid = () => {
     if (!cardAmount) return true;
     const amount = typeof cardAmount === "number" ? cardAmount : parseFloat(cardAmount.toString());
@@ -196,7 +201,12 @@ export default function PaymentView({
   };
 
   const isChequeFormValid = () => {
-    return numeroCheque.trim() !== "" && numeroCuenta.trim() !== "" && bancoCheque.trim() !== "";
+    return (
+      numeroCheque.trim() !== "" &&
+      numeroCuenta.trim() !== "" &&
+      bancoCheque.trim() !== "" &&
+      isCuentaBancoCoincide()
+    );
   };
 
   const isChequeAmountValid = () => {
@@ -622,11 +632,23 @@ export default function PaymentView({
                           value={numeroCuenta}
                           onChange={(e) => setNumeroCuenta(e.target.value)}
                           placeholder="01020123456789012345"
-                          className={submitted && !numeroCuenta.trim() ? "border-red-500" : ""}
+                          className={
+                            submitted && (!numeroCuenta.trim() || !isCuentaBancoCoincide())
+                              ? "border-red-500"
+                              : ""
+                          }
                         />
                         {submitted && !numeroCuenta.trim() && (
                           <p className="text-sm text-red-500">Campo requerido</p>
                         )}
+                        {submitted &&
+                          numeroCuenta.trim() &&
+                          bancoCheque &&
+                          !isCuentaBancoCoincide() && (
+                            <p className="text-sm text-red-500">
+                              Los primeros 4 dígitos deben coincidir con el código del banco.
+                            </p>
+                          )}
                       </div>
                     </div>
                     <div className="space-y-2">
