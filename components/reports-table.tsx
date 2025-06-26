@@ -3,105 +3,46 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Download, BarChart, FileText, Eye } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Download, FileText } from "lucide-react"
 
 // Datos de ejemplo para los reportes
 const allReports = [
   {
     id: 1,
-    name: "Reporte de Ventas Mensual",
-    category: "Ventas",
-    date: "30/04/2025",
+    name: "Empleados con Mayor Frecuencia de Incumplimiento de Horarios",
+    category: "RRHH",
     format: "PDF",
-    description:
-      "Análisis detallado de ventas del mes, incluyendo productos más vendidos, ingresos totales y comparativa con meses anteriores.",
-    pages: 12,
-    createdBy: "Sistema",
-    size: "2.4 MB",
+    file: "",
   },
   {
     id: 2,
-    name: "Análisis de Inventario",
-    category: "Inventario",
-    date: "28/04/2025",
-    format: "Excel",
-    description:
-      "Estado actual del inventario, productos con stock bajo, rotación de inventario y valoración de existencias.",
-    pages: 8,
-    createdBy: "Juan Pérez",
-    size: "1.8 MB",
+    name: "Valor Monetario Total de Puntos Canjeados Por Clientes Afiliados",
+    category: "Ventas",
+    format: "PDF",
+    file: "",
   },
   {
     id: 3,
-    name: "Rendimiento de Promociones",
-    category: "Marketing",
-    date: "25/04/2025",
+    name: "Proporción de Clientes Jurídicos vs Naturales y su Valor Promedio de Pedido",
+    category: "Ventas",
     format: "PDF",
-    description:
-      "Análisis del impacto de las promociones recientes, incluyendo incremento en ventas, nuevos clientes captados y ROI.",
-    pages: 15,
-    createdBy: "María González",
-    size: "3.2 MB",
+    file: "",
   },
   {
     id: 4,
-    name: "Métricas de Sostenibilidad",
-    category: "ODS",
-    date: "20/04/2025",
+    name: "Análisis de los Tipos de Cervezas mas Vendidos y su Graduación Alcohólica Promedio",
+    category: "Ventas",
     format: "PDF",
-    description:
-      "Indicadores de cumplimiento de Objetivos de Desarrollo Sostenible, huella de carbono y acciones de responsabilidad social.",
-    pages: 20,
-    createdBy: "Sistema",
-    size: "4.5 MB",
+    file: "",
   },
   {
     id: 5,
-    name: "Análisis de Proveedores",
-    category: "Compras",
-    date: "15/04/2025",
-    format: "Excel",
-    description:
-      "Evaluación de proveedores, tiempos de entrega, calidad de productos y análisis de costos comparativos.",
-    pages: 10,
-    createdBy: "Carlos Rodríguez",
-    size: "2.1 MB",
-  },
-  {
-    id: 6,
-    name: "Reporte de Asistencia",
+    name: "Análisis de Puntualidad por Cargo",
     category: "RRHH",
-    date: "10/04/2025",
     format: "PDF",
-    description:
-      "Registro de asistencia de empleados, horas trabajadas, ausencias justificadas e injustificadas y horas extra.",
-    pages: 18,
-    createdBy: "Sistema",
-    size: "3.7 MB",
-  },
-  {
-    id: 7,
-    name: "Análisis de Ventas por Región",
-    category: "Ventas",
-    date: "05/04/2025",
-    format: "PDF",
-    description: "Distribución geográfica de ventas, rendimiento por región y oportunidades de expansión.",
-    pages: 14,
-    createdBy: "Ana Martínez",
-    size: "2.9 MB",
-  },
-  {
-    id: 8,
-    name: "Reporte de Capacitación",
-    category: "RRHH",
-    date: "01/04/2025",
-    format: "Excel",
-    description:
-      "Registro de capacitaciones realizadas, participantes, evaluaciones y necesidades futuras de formación.",
-    pages: 9,
-    createdBy: "Luis Sánchez",
-    size: "1.5 MB",
+    file: "",
   },
 ]
 
@@ -110,8 +51,6 @@ interface ReportsTableProps {
 }
 
 export function ReportsTable({ category }: ReportsTableProps) {
-  const router = useRouter()
-
   // Filtrar reportes por categoría si se proporciona
   const reports = category ? allReports.filter((report) => report.category === category) : allReports
 
@@ -120,9 +59,25 @@ export function ReportsTable({ category }: ReportsTableProps) {
   const pdfReports = reports.filter((report) => report.format === "PDF").length
   const excelReports = reports.filter((report) => report.format === "Excel").length
 
-  // Función para navegar al detalle del reporte
-  const handleViewReport = (id: number) => {
-    router.push(`/reportes/listado/${id}`)
+  const handleDownload = (reportId: number, reportName: string) => {
+    const startDateInput = document.getElementById(`start-date-${reportId}`) as HTMLInputElement
+    const endDateInput = document.getElementById(`end-date-${reportId}`) as HTMLInputElement
+
+    const startDate = startDateInput?.value
+    const endDate = endDateInput?.value
+
+    if (!startDate || !endDate) {
+      alert("Por favor selecciona ambas fechas para generar el reporte")
+      return
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      alert("La fecha de inicio debe ser anterior a la fecha de fin")
+      return
+    }
+
+    console.log(`Descargando reporte "${reportName}" desde ${startDate} hasta ${endDate}`)
+    // Aquí iría la lógica real de descarga
   }
 
   return (
@@ -130,7 +85,9 @@ export function ReportsTable({ category }: ReportsTableProps) {
       <div className="flex justify-between items-center">
         <div className="space-y-1">
           <h3 className="font-medium">Reportes disponibles</h3>
-          <p className="text-sm text-muted-foreground">Accede a los reportes generados por el sistema.</p>
+          <p className="text-sm text-muted-foreground">
+            Selecciona el período y descarga los reportes generados por el sistema.
+          </p>
         </div>
       </div>
 
@@ -149,65 +106,63 @@ export function ReportsTable({ category }: ReportsTableProps) {
         </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Categoría</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Formato</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {reports.map((report) => (
-            <TableRow
-              key={report.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => handleViewReport(report.id)}
-            >
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  <span className="font-medium">{report.name}</span>
-                </div>
-              </TableCell>
-              <TableCell>{report.category}</TableCell>
-              <TableCell>{report.date}</TableCell>
-              <TableCell>
-                <Badge variant="outline">{report.format}</Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleViewReport(report.id)
-                    }}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Aquí iría la lógica de descarga
-                      console.log(`Descargando reporte ${report.id}`)
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Descargar
-                  </Button>
-                </div>
-              </TableCell>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Categoría</TableHead>
+              <TableHead>Formato</TableHead>
+              <TableHead className="text-right">Período y Acciones</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {reports.map((report) => (
+              <TableRow key={report.id} className="hover:bg-muted/50">
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">{report.name}</div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">{report.category}</Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{report.format}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-end gap-2 justify-end">
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor={`start-date-${report.id}`} className="text-xs">
+                        Fecha inicio
+                      </Label>
+                      <Input id={`start-date-${report.id}`} type="date" className="w-36 h-8 text-xs" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor={`end-date-${report.id}`} className="text-xs">
+                        Fecha fin
+                      </Label>
+                      <Input id={`end-date-${report.id}`} type="date" className="w-36 h-8 text-xs" />
+                    </div>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleDownload(report.id, report.name)}
+                      className="h-8"
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Descargar
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <div className="flex justify-between items-center pt-2">
         <div className="text-sm text-muted-foreground">

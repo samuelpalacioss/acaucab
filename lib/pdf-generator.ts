@@ -9,7 +9,7 @@ interface OrdenReposicionPDF {
   producto: string;
   sku: string;
   ubicacion: string;
-  stock: number;
+  stock: number | null;
   minimo: number;
   fecha: string;
   estado?: string;
@@ -98,7 +98,7 @@ export function generarPDFOrdenReposicion(orden: OrdenReposicionPDF) {
     ['Producto', orden.producto],
     ['SKU', orden.sku],
     ['Ubicación', orden.ubicacion],
-    ['Unidades Solicitadas', orden.stock.toString()],
+    ['Unidades Solicitadas', orden.stock !== null ? orden.stock.toString() : 'N/A'],
     ['Stock Mínimo', orden.minimo.toString()],
   ];
   
@@ -196,7 +196,7 @@ export function generarReportePDFOrdenes(ordenes: OrdenReposicionPDF[]) {
     orden.producto,
     orden.sku,
     orden.ubicacion,
-    orden.stock.toString(),
+    orden.stock !== null ? orden.stock.toString() : 'N/A',
     orden.estado || 'N/A',
     orden.fecha
   ]);

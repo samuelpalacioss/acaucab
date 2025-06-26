@@ -1,0 +1,290 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="IncumplimientosDeHorario" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dd509127-2df5-43b1-9d97-a674ce9776c7">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ACAUCAB"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<style name="Table 2_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 2_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<dataset name="Clientes" uuid="67f9c296-0988-4f20-b749-dfb71690075e">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ACAUCAB"/>
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<parameter name="fechaInicio" class="java.sql.Date">
+			<defaultValueExpression><![CDATA[$P{fechaInicio}]]></defaultValueExpression>
+		</parameter>
+		<parameter name="fechaFin" class="java.sql.Date">
+			<defaultValueExpression><![CDATA[$P{fechaInicio}]]></defaultValueExpression>
+		</parameter>
+		<query language="sql"><![CDATA[select 'Física' "Tipo de Tienda",  tf.direccion "Dirección", (
+  select count(v.*) from venta v, status s, status_venta sv
+  where v.fk_cliente_natural is not null and v.fk_tienda_fisica = tf.id 
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Clientes Naturales", (
+  select count(v.*) from venta v, status s, status_venta sv
+  where v.fk_cliente_juridico is not null and v.fk_tienda_fisica = tf.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Clientes Jurídicos",(
+  select coalesce(round(avg(v.monto_total),2),0) from venta v, status s, status_venta sv
+  where v.fk_cliente_natural is not null and v.fk_tienda_fisica = tf.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Monto promedio Naturales", (
+  select coalesce(round(avg(v.monto_total),2),0) from venta  v, status s, status_venta sv
+  where v.fk_cliente_juridico is not null and v.fk_tienda_fisica = tf.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Monto promedio Juridico", (
+  select coalesce(round(avg(v.monto_total),2),0) from venta  v, status s, status_venta sv
+  where (v.fk_cliente_juridico is not null or v.fk_cliente_natural is not null) and v.fk_tienda_fisica = tf.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Monto Promedio Total"
+from tienda_fisica tf
+union all
+select 'Online' "Tipo de Tienda", tw.dominio_web "Dirección", (
+  select count(v.*) from venta v, status s, status_venta sv, cliente_usuario cu
+  where cu.fk_usuario = v.fk_usuario and cu.fk_cliente_natural is not null and v.fk_tienda_web = tw.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Clientes Naturales", (
+  select count(v.*) from venta v, status s, status_venta sv, cliente_usuario cu
+  where cu.fk_usuario = v.fk_usuario and cu.fk_cliente_juridico is not null and v.fk_tienda_web = tw.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Clientes Jurídicos",(
+  select coalesce(round(avg(v.monto_total),2),0) from venta v, status s, status_venta sv, cliente_usuario cu
+  where cu.fk_usuario = v.fk_usuario and cu.fk_cliente_natural  is not null and v.fk_tienda_web = tw.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Monto promedio Naturales", (
+  select coalesce(round(avg(v.monto_total),2),0) from venta v, status s, status_venta sv, cliente_usuario cu
+  where cu.fk_usuario = v.fk_usuario and cu.fk_cliente_juridico is not null and v.fk_tienda_web = tw.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Monto promedio Juridico", (
+  select coalesce(round(avg(v.monto_total),2),0) from venta v, status s, status_venta sv, cliente_usuario cu
+  where cu.fk_usuario = v.fk_usuario and (cu.fk_cliente_juridico is not null or cu.fk_cliente_natural is not null) and v.fk_tienda_web = tw.id
+  and v.id = sv.fk_venta and sv.fk_status = s.id and s.nombre = 'Completado' and sv.fecha_actualización between $P{fechaInicio} and $P{fechaFin}
+) "Monto Promedio Total"
+from tienda_web tw;
+]]></query>
+		<field name="Tipo de Tienda" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="Tipo de Tienda"/>
+			<property name="com.jaspersoft.studio.field.label" value="Tipo de Tienda"/>
+		</field>
+		<field name="Dirección" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="Dirección"/>
+			<property name="com.jaspersoft.studio.field.label" value="Dirección"/>
+		</field>
+		<field name="Clientes Naturales" class="java.lang.Long">
+			<property name="com.jaspersoft.studio.field.name" value="Clientes Naturales"/>
+			<property name="com.jaspersoft.studio.field.label" value="Clientes Naturales"/>
+		</field>
+		<field name="Clientes Jurídicos" class="java.lang.Long">
+			<property name="com.jaspersoft.studio.field.name" value="Clientes Jurídicos"/>
+			<property name="com.jaspersoft.studio.field.label" value="Clientes Jurídicos"/>
+		</field>
+		<field name="Monto promedio Naturales" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.name" value="Monto promedio Naturales"/>
+			<property name="com.jaspersoft.studio.field.label" value="Monto promedio Naturales"/>
+		</field>
+		<field name="Monto promedio Juridico" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.name" value="Monto promedio Juridico"/>
+			<property name="com.jaspersoft.studio.field.label" value="Monto promedio Juridico"/>
+		</field>
+		<field name="Monto Promedio Total" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.name" value="Monto Promedio Total"/>
+			<property name="com.jaspersoft.studio.field.label" value="Monto Promedio Total"/>
+		</field>
+	</dataset>
+	<parameter name="fechaInicio" class="java.sql.Date"/>
+	<parameter name="fechaFin" class="java.sql.Date"/>
+	<query language="SQL"><![CDATA[select l.nombre||', '||tf.direccion "Direccion", tf.id "ID"
+from tienda_fisica tf, lugar l
+where tf.fk_lugar = l.id 
+order by "ID"
+limit 1;
+]]></query>
+	<field name="Direccion" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="Direccion"/>
+		<property name="com.jaspersoft.studio.field.label" value="Direccion"/>
+	</field>
+	<field name="ID" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="ID"/>
+		<property name="com.jaspersoft.studio.field.label" value="ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="tienda_fisica"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="272" splitType="Stretch">
+		<element kind="image" uuid="6c1db6a7-24f5-4c47-8b9f-a51c3ccbb45b" x="0" y="0" width="150" height="60">
+			<expression><![CDATA["acaucab-logo.png"]]></expression>
+		</element>
+		<element kind="staticText" uuid="57b6659c-4237-43ea-b996-d7a78c459a44" x="0" y="60" width="180" height="20" hTextAlign="Left">
+			<text><![CDATA[Asociación de Cervezeros de la UCAB]]></text>
+		</element>
+		<element kind="staticText" uuid="aa200416-4427-4aba-ba59-799ddea0fd67" x="0" y="80" width="180" height="20" hTextAlign="Left">
+			<text><![CDATA[J-987654321]]></text>
+		</element>
+		<element kind="textField" uuid="bb356bc2-aaee-43cb-a633-33d218a14149" x="0" y="100" width="575" height="20">
+			<expression><![CDATA[$F{Direccion}]]></expression>
+		</element>
+		<element kind="textField" uuid="e95a0ffa-8d0c-4668-9ce9-f448a8c095e0" x="395" y="0" width="170" height="40" fontSize="25.0" pattern="dd/MM/yyyy" hTextAlign="Center">
+			<expression><![CDATA[new java.util.Date()]]></expression>
+		</element>
+		<element kind="textField" uuid="64eca79f-27ce-4ed3-9f37-fbf752e7f46e" x="395" y="30" width="170" height="30" fontSize="14.0" pattern="HH:mm a" hTextAlign="Center">
+			<expression><![CDATA[new java.util.Date()]]></expression>
+		</element>
+		<element kind="staticText" uuid="b6383d7c-3040-4bf1-a51a-26d5ca3ba45e" x="0" y="130" width="559" height="100" forecolor="#030303" fontSize="25.0" bold="true" hTextAlign="Center">
+			<text><![CDATA[Proporción de Clientes Jurídicos vs. Naturales que Realizan Compras y su Valor Promedio de Pedido]]></text>
+		</element>
+		<element kind="line" uuid="95c8f790-13df-48fe-ba3d-8339227aeb18" x="0" y="120" width="559" height="1"/>
+		<element kind="textField" uuid="28dd85eb-6790-4bcc-b90a-fd9d6d5b5007" x="134" y="230" width="130" height="30" fontSize="16.0" pattern="dd/MM/yyyy" linkType="None" linkTarget="Self" italic="true" hTextAlign="Right">
+			<expression><![CDATA[$P{fechaInicio}]]></expression>
+		</element>
+		<element kind="staticText" uuid="1939d2b8-c9aa-46ee-932b-58321ca9d0b9" x="264" y="230" width="30" height="30" fontSize="16.0" hTextAlign="Center">
+			<text><![CDATA[-]]></text>
+		</element>
+		<element kind="textField" uuid="3a3d07cc-9e67-4392-b2e3-fbfa963e6b23" x="294" y="230" width="130" height="30" fontSize="16.0" pattern="dd/MM/yyyy" linkType="None" linkTarget="Self" italic="true" hTextAlign="Left">
+			<expression><![CDATA[$P{fechaFin}]]></expression>
+		</element>
+	</title>
+	<detail>
+		<band height="360" splitType="Stretch">
+			<element kind="chart" chartType="bar" uuid="1dbedd14-9409-4956-a72e-267b499a634a" x="0" y="0" width="558" height="260" evaluationTime="Report" linkType="None" linkTarget="Self">
+				<titleExpression><![CDATA["Propoción de Clientes Natuales y de Clientes Jurídicos"]]></titleExpression>
+				<dataset kind="category" resetType="Report">
+					<datasetRun uuid="efa4e93b-0976-4a85-be20-6d8dc2f0675a" subDataset="Clientes">
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						<parameter name="fechaInicio">
+							<expression><![CDATA[$P{fechaInicio}]]></expression>
+						</parameter>
+						<parameter name="fechaFin">
+							<expression><![CDATA[$P{fechaFin}]]></expression>
+						</parameter>
+					</datasetRun>
+					<series>
+						<seriesExpression><![CDATA["Clientes Naturales"
+]]></seriesExpression>
+						<categoryExpression><![CDATA[($F{Tipo de Tienda} + " - " + $F{Dirección})]]></categoryExpression>
+						<valueExpression><![CDATA[$F{Clientes Naturales}]]></valueExpression>
+					</series>
+					<series>
+						<seriesExpression><![CDATA["Clientes Jurídicos"]]></seriesExpression>
+						<categoryExpression><![CDATA[($F{Tipo de Tienda} + " - " + $F{Dirección})]]></categoryExpression>
+						<valueExpression><![CDATA[$F{Clientes Jurídicos}]]></valueExpression>
+					</series>
+				</dataset>
+				<plot labelRotation="0.0" categoryAxisLabelColor="#000000" categoryAxisTickLabelColor="#000000" categoryAxisTickLabelMask="" categoryAxisLineColor="#000000" valueAxisLabelColor="#000000" valueAxisTickLabelColor="#000000" valueAxisLineColor="#000000" showTickMarks="false" categoryAxisTickLabelRotation="0.0">
+					<itemLabel/>
+				</plot>
+			</element>
+			<element kind="component" uuid="9d160bd4-71f9-4067-bad4-916c21e7dbc2" x="0" y="300" width="558" height="60">
+				<component kind="table">
+					<datasetRun uuid="719cfa67-976e-4fa2-a5b6-ace107c9f851" subDataset="Clientes">
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						<parameter name="fechaInicio">
+							<expression><![CDATA[$P{fechaInicio}]]></expression>
+						</parameter>
+						<parameter name="fechaFin">
+							<expression><![CDATA[$P{fechaFin}]]></expression>
+						</parameter>
+					</datasetRun>
+					<column kind="single" uuid="3a7c29b2-2011-46d2-81b0-5b58451a051b" width="114">
+						<columnHeader height="30">
+							<element kind="staticText" uuid="30f9f1e5-66a0-4b59-95fe-52748092c6e2" x="0" y="0" width="114" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
+								<text><![CDATA[Tipo de Tienda]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30">
+							<element kind="textField" uuid="833e52d2-89e9-401c-80d0-c72725c29366" stretchType="ElementGroupHeight" x="0" y="0" width="114" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
+								<expression><![CDATA[$F{Tipo de Tienda}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="a81d1023-66ec-46b0-bbfe-838f23b39bd2" width="114">
+						<columnHeader height="30">
+							<element kind="staticText" uuid="3a161ba8-52c3-4007-b517-464737848902" x="0" y="0" width="114" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
+								<text><![CDATA[Dirección]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30">
+							<element kind="textField" uuid="082830a4-687c-40cb-853d-e26f4e85768a" stretchType="ElementGroupHeight" x="0" y="0" width="114" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
+								<expression><![CDATA[$F{Dirección}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="06c4cf4f-9428-43ba-a970-82e1d02f3843" width="112">
+						<columnHeader height="30">
+							<element kind="staticText" uuid="a2cebc0b-d245-445d-8327-41d30bfb0348" x="0" y="0" width="112" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
+								<text><![CDATA[Monto promedio
+Clientes Naturales]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30">
+							<element kind="textField" uuid="b1527452-ddd5-4c49-96da-8daa261bc618" stretchType="ElementGroupHeight" x="0" y="0" width="112" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
+								<expression><![CDATA[$F{Monto promedio Naturales}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="c42c2481-2053-4c0c-9fa8-eed0891866c0" width="109">
+						<columnHeader height="30">
+							<element kind="staticText" uuid="a081200d-4f93-4853-9cb6-bf706eed291e" x="0" y="0" width="109" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
+								<text><![CDATA[Monto promedio Clientes Jurídicos]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30">
+							<element kind="textField" uuid="5a547c49-a8b9-4ca4-ad1e-203b055e14fe" stretchType="ElementGroupHeight" x="0" y="0" width="109" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
+								<expression><![CDATA[$F{Monto promedio Juridico}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="a9681e48-8ad5-4208-8457-6fa6b0af96ba" width="109">
+						<columnHeader height="30">
+							<element kind="staticText" uuid="c0b066fd-87d6-43a0-9807-b5bcf5a5f7b3" x="0" y="0" width="109" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
+								<text><![CDATA[Monto Promedio Total]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30">
+							<element kind="textField" uuid="8977bac5-ff67-4044-92ff-6e17b90a521e" stretchType="ElementGroupHeight" x="0" y="0" width="109" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
+								<expression><![CDATA[$F{Monto Promedio Total}]]></expression>
+								<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+							</element>
+						</detailCell>
+					</column>
+				</component>
+				<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+				<property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
+				<property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
+				<property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
+				<property name="com.jaspersoft.studio.components.autoresize.proportional" value="true"/>
+			</element>
+			<element kind="staticText" uuid="d08b5688-2413-48a4-bdd4-99cda80e3a22" x="0" y="279" width="559" height="21" hTextAlign="Center" vTextAlign="Middle">
+				<text><![CDATA[Valor Promedio de Pedido]]></text>
+			</element>
+		</band>
+	</detail>
+	<pageFooter height="50">
+		<element kind="textField" uuid="7ad98356-54d7-4813-81a9-b1765cdabe64" x="480" y="20" width="100" height="30" evaluationTime="Report" hTextAlign="Left">
+			<expression><![CDATA[" de " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+		<element kind="textField" uuid="d009c603-1add-41bc-b6cb-fef758f8b597" x="380" y="20" width="100" height="30" hTextAlign="Right">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+</jasperReport>
