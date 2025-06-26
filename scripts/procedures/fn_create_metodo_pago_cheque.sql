@@ -18,7 +18,7 @@ BEGIN
 
   -- Si no se encuentra un método de pago existente, crea uno nuevo.
   IF metodo_id IS NULL THEN
-    INSERT INTO metodo_pago(tipo, numero_cheque, número, banco)
+    INSERT INTO metodo_pago(tipo, numero_cheque, numero_cuenta, banco)
     VALUES ('cheque', p_numero_cheque, p_numero_cuenta, p_banco) RETURNING id INTO metodo_id;
   END IF;
 

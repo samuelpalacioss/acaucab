@@ -20,7 +20,7 @@ CREATE TABLE metodo_pago (
     banco             VARCHAR(50),
     fecha_vencimiento DATE,
     numero_cheque     BIGINT UNIQUE,
-    numero_cuenta     BIGINT UNIQUE,
+    numero_cuenta     BIGINT,
     fecha_adquisicion DATE,
     fecha_canjeo      DATE,
     CONSTRAINT metodo_pago_pk PRIMARY KEY (id),
@@ -48,7 +48,7 @@ CREATE TABLE metodo_pago (
     ),
     CONSTRAINT chk_cheque CHECK (
         (tipo = 'cheque' AND numero_cheque IS NOT NULL AND 
-         banco IS NOT NULL AND número IS NOT NULL AND 
+         banco IS NOT NULL AND numero_cuenta IS NOT NULL AND 
          denominación IS NULL AND tipo_tarjeta IS NULL AND 
          fecha_vencimiento IS NULL AND fecha_adquisicion IS NULL AND 
          fecha_canjeo IS NULL) OR
