@@ -28,7 +28,7 @@ INSERT INTO tipo_cerveza (id,nombre,fk_tipo_cerveza,fk_color_superior,fk_color_i
 (12,'Pale Ale',2,6,3),
 (13,'IPA',2,8,4),
 (14,'Amber Ale',2,8,6),
-(15,'Brown Ale',2,10,8),
+(15,'Dark Ale',2,10,8),
 (16,'Golden Ale',2,NULL,2),
 (17,'Stout',2,13,10),
 (18,'Porter',2,NULL,NULL),
@@ -104,7 +104,9 @@ INSERT INTO caracteristica (nombre, tipo) VALUES
 ('Claridad', 'textual'),          /** Característica textual: descripción de la claridad visual */
 ('Cuerpo', 'textual'),            /** Característica textual: descripción del cuerpo de la cerveza */
 ('Espuma', 'textual'),            /** Característica textual: descripción de la espuma */
-('Acidez', 'numerica');           /** Característica numérica: medida en escala de pH */
+('Acidez', 'numerica'),          /** Característica numérica: medida en escala de pH */
+('Fermentacion', 'numerica'),     /** Característica numérica: grado de fermentacion */
+('Graduación','numerica');
 
 /** Inserción de ingredientes con estructura jerárquica recursiva **/
 INSERT INTO ingrediente (nombre, descripcion, medida, fk_ingrediente) VALUES
@@ -206,13 +208,66 @@ INSERT INTO descuento (monto, porcentaje, fk_descuento, fk_presentacion_cerveza_
 
 /** Inserción de relaciones cerveza-característica con valores según tipo */
 INSERT INTO cerveza_caracteristica (valor_rango_inferior, valor_rango_superior, descripcion, fk_caracteristica, fk_cerveza, fk_tipo_cerveza) VALUES
-(20.00, 40.00, 'Moderado a alto', 1, NULL, 1),        /** Característica numérica: Amargor - valores de rango en IBU */
-(NULL, NULL, 'Ligero', 2, NULL, 2),                   /** Característica textual: Dulzor - sin valores de rango */
-(5.00, 7.50, 'Grado alcohólico promedio', 3, NULL, 3), /** Característica numérica: Alcohol - valores de rango en % ABV */
-(2.50, 3.50, 'Alta carbonatación', 4, NULL, 4),       /** Característica numérica: Carbonatación - valores de rango en volúmenes CO2 */
-(3.00, NULL, 'Suave aroma floral', 5, NULL, 5),       /** Característica textual: Aroma Floral - sin valores de rango */
-(NULL, NULL, 'Frutas tropicales', 6, 4, NULL),        /** Característica textual: Aroma Frutal - sin valores de rango */
-(NULL, NULL, 'Muy cristalina', 7, 6, NULL),           /** Característica textual: Claridad - sin valores de rango */
-(NULL, NULL, 'Cuerpo completo', 8, 7, NULL),          /** Característica textual: Cuerpo - sin valores de rango */
-(NULL, NULL, 'Espuma densa persistente', 9, 8, NULL), /** Característica textual: Espuma - sin valores de rango */
-(0.50, 1.50, 'Ligeramente ácida', 10, 11, NULL);      /** Característica numérica: Acidez - valores de rango en escala pH */
+(0.00, 10.00, null, 11, NULL, 1), 
+(3.50, 5.00, null, 3, NULL, 1),
+(19.00, null, null, 11, NULL, 2),        
+(7.00, null, null, 3, NULL, 22), 
+(null, null, 'Bastante Amargas', 1, NULL, 12),    
+(19.00, null, null, 11, NULL, 15),
+(null, null, 'Regusto Dulce', 2, NULL, 17), 
+(null, null, 'Aroma a Malta', 5, NULL, 17),      
+(null, null, 'Regusto Dulce', 2, NULL, 18),  
+(null, null, 'Ligero pero intenso', 2, NULL, 3),    
+(null, null, 'Caracter citrico', 6, NULL, 30),      
+(null, null, 'Dulzura inicial seguido de un sabor moderado a caramelo. Sabor amargado derivados de la malta y el lúpulo', 2, NULL, 30),         
+(25.00, 40.00, null, 1, NULL, 30),       
+(4.50,6.20, null, 3, NULL, 30),    
+(18.00, 20.00, null, 11, NULL, 30), 
+(40.00, 60.00, null, 1, NULL, 27),   
+(5.00, 7.50, null, 3, NULL, 27),          
+(null,null ,'Aroma a lúpulo', 5, NULL, 25),     
+(null,null ,'Sabor a lúpulo, comunmente presentado con un carácter cítrico', 2, NULL, 25),     
+(null,null ,'Aroma a banana o manzana', 6, NULL, 19),   
+(null,null ,'Dulzor de malta rico y complejo', 2, NULL, 19),   
+(null,null ,'Aroma moderado de carácter floral y perfumado del lúpulo', 5, NULL, 20),   
+(null,null ,'Combinación de sabores frutados,especiados y alcohólicos, complementados por un carácter suave de malta', 2, NULL, 20), 
+(null,null ,'Presenta distintas cantidades de ésteres frutados, fenoles especiadoss y/o aromas propios de la levadura', 6, NULL, 21), 
+(null,null ,'La maltosidad puede ser de ligera a algo sabrosa', 2, NULL, 21), 
+(4.00, 5.50, null, 3, NULL, 23),
+(4.20, 6.00, null, 3, NULL, 9),
+(3.50, 5.00, null, 3, NULL, 33),
+(5.00, 7.00, null, 3, NULL, 48),
+(4.50, 6.20, null, 3, NULL, 26),
+(6.00, 8.50, null, 3, NULL, 49),
+(3.80, 5.20, null, 3, NULL, 43),
+(5.50, 7.50, null, 3, NULL, 28),
+(4.70, 6.50, null, 3, NULL, 34),
+(3.00, 4.80, null, 3, NULL, 29),
+(5.20, 7.20, null, 3, NULL, 31),
+(4.10, 5.80, null, 3, NULL, 10),
+(6.50, 9.00, null, 3, NULL, 11),
+(4.90, 6.80, null, 3, NULL, 32),
+(3.90, 5.60, null, 3, NULL, 6),
+(7.00, 10.00, null, 3, NULL, 44),
+(4.60, 6.40, null, 3, NULL, 35),
+(5.80, 8.00, null, 3, NULL, 46),
+(4.30, 6.10, null, 3, NULL, 47),
+(4.30, 6.10, null, 3, 1, null),
+(4.00, null, null, 3, 1, null),
+(4.20, null, null, 3, 2, null),
+(3.50, null, null, 3, 3, null),
+(5.00, null, null, 3, 4, null),
+(4.50, null, null, 3, 5, null),
+(6.00, null, null, 3, 6, null),
+(3.80, null, null, 3, 7, null),
+(5.50, null, null, 3, 8, null),
+(4.70, null, null, 3, 9, null),
+(3.00, null, null, 3, 10, null),
+(5.20, null, null, 3, 11, null),
+(4.10, null, null, 3, 12, null),
+(6.50, null, null, 3, 13, null),
+(4.90, null, null, 3, 14, null),
+(3.90, null, null, 3, 15, null),
+(7.00, null, null, 3, 16, null),
+(4.60, null, null, 3, 17, null),
+(5.80, null, null, 3, 18, null);

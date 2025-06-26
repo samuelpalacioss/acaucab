@@ -86,7 +86,7 @@ LEFT JOIN (
       WHEN 5 THEN 'viernes'
       WHEN 6 THEN 'sabado'
     END = h.dia
-    AND rb.fecha_hora_entrada::time > h.hora_salida
+    AND rb.fecha_hora_entrada::time > h.hora_entrada
   GROUP BY n.fk_empleado
 ) l ON e.id = l.empl
 where (COALESCE(l.llegadas, 0) + COALESCE(s.salidas, 0)) > 0

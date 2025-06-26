@@ -93,7 +93,7 @@
 		<parameter name="fechaFin" class="java.sql.Date">
 			<defaultValueExpression><![CDATA[$P{fechaInicio}]]></defaultValueExpression>
 		</parameter>
-		<query language="sql"><![CDATA[select tc.id "Id Tipo Cerveza", tc.nombre "Nombre", sum(c.cantidad) "Unidades Vendidas", avg(c.alcohol) "Graduación Alcohólica Promedio"
+		<query language="sql"><![CDATA[select tc.id "Id Tipo Cerveza", tc.nombre "Nombre", sum(c.cantidad) "Unidades Vendidas", round(avg(c.alcohol),2)  "Graduación Alcohólica Promedio"
 from tipo_cerveza tc
 left join  (select c.id id, p.cantidad cantidad, c.fk_tipo_cerveza tipo, cc.valor_rango_inferior alcohol
             from cerveza c
