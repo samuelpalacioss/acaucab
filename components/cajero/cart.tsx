@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { CarritoItemType } from "@/lib/schemas";
 import { Badge } from "../ui/badge";
+import { formatCurrency } from "@/lib/utils";
 
 interface CartProps {
   items: CarritoItemType[];
@@ -62,15 +63,13 @@ export default function Cart({
                   <Badge variant="secondary" className="text-xs w-fit font-medium">
                     {item.presentacion}
                   </Badge>
-                  <div className="flex items-baseline">
-                    <p className="text-sm">
-                      Bs {item.precio.toFixed(2)}
-                      {convertirADolar(item.precio) !== null && (
-                        <span className="text-sm ml-1">
-                          ({convertirADolar(item.precio)?.toFixed(2)}$)
-                        </span>
-                      )}
-                    </p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-sm text-gray-500">Bs {item.precio.toFixed(2)} c/u</p>
+                    {convertirADolar(item.precio) !== null && (
+                      <p className="text-xs text-gray-400">
+                        ${formatCurrency(convertirADolar(item.precio))}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -105,30 +104,30 @@ export default function Cart({
           </div>
 
           <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between text-md">
+            <div className="flex justify-between text-sm">
               <span>Subtotal</span>
-              <div>
-                <span>Bs {subtotal.toFixed(2)} </span>
+              <div className="text-right">
+                <p>Bs {subtotal.toFixed(2)}</p>
                 {subtotalUSD !== null && (
-                  <span className="text-sm text-gray-600">({subtotalUSD.toFixed(2)}$)</span>
+                  <p className="text-xs text-gray-500">${formatCurrency(subtotalUSD)}</p>
                 )}
               </div>
             </div>
-            <div className="flex justify-between text-lg">
+            <div className="flex justify-between text-sm">
               <span>IVA (16%)</span>
-              <div>
-                <span>Bs {iva.toFixed(2)} </span>
+              <div className="text-right">
+                <p>Bs {iva.toFixed(2)}</p>
                 {ivaUSD !== null && (
-                  <span className="text-sm text-gray-600">({ivaUSD.toFixed(2)}$)</span>
+                  <p className="text-xs text-gray-500">${formatCurrency(ivaUSD)}</p>
                 )}
               </div>
             </div>
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
-              <div>
-                <span className="text-md">Bs {total.toFixed(2)} </span>
+              <div className="text-right">
+                <p>Bs {total.toFixed(2)}</p>
                 {totalUSD !== null && (
-                  <span className="text-sm text-gray-600">({totalUSD.toFixed(2)}$)</span>
+                  <p className="text-xs text-gray-500">${formatCurrency(totalUSD)}</p>
                 )}
               </div>
             </div>

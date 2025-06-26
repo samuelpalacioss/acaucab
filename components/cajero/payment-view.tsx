@@ -33,6 +33,8 @@ import OrderSummaryCard from "./order-summary-card";
 import { Separator } from "@radix-ui/react-select";
 import { CarritoItemType } from "@/lib/schemas";
 import type { EfectivoDetails, Currency } from "@/store/venta-store";
+import { useTasaStore } from "@/store/tasa-store";
+import { formatCurrency } from "@/lib/utils";
 
 const denominationsMap = {
   bolivares: [1, 5, 10, 20, 50, 100, 200, 500],
@@ -44,12 +46,6 @@ const currencySymbols = {
   bolivares: "Bs",
   dolares: "$",
   euros: "€",
-};
-
-const exchangeRates = {
-  dolares: 1,
-  euros: 1.08, // 1 EUR = 1.08 USD
-  bolivares: 1 / 100, // 100 Bs = 1 USD
 };
 
 export type PaymentMethod = "tarjetaCredito" | "tarjetaDebito" | "efectivo" | "cheque" | "puntos";
@@ -75,6 +71,7 @@ interface PaymentViewProps {
   onCancel: () => void;
   /** Callback para ir al resumen de pagos */
   onViewSummary?: () => void;
+  convertirADolar: (monto: number) => number | null;
 }
 
 export default function PaymentView({
@@ -86,6 +83,7 @@ export default function PaymentView({
   onComplete,
   onCancel,
   onViewSummary,
+  convertirADolar,
 }: PaymentViewProps) {
   const [selectedTab, setSelectedTab] = useState<string>("tarjeta");
   const [cardType, setCardType] = useState<"credito" | "debito">("credito");
@@ -93,10 +91,32 @@ export default function PaymentView({
   const [denomination, setDenomination] = useState<Currency>("dolares");
   const [breakdown, setBreakdown] = useState<{ [value: string]: number }>({});
 
+  const { getTasa } = useTasaStore();
+
+  const getMontoEnDolares = (monto: number, moneda: Currency) => {
+    if (moneda === "dolares") return monto;
+
+    const tasaBs = getTasa("USD")?.monto_equivalencia;
+    if (!tasaBs) return 0; // No se puede convertir sin la tasa base
+
+    if (moneda === "bolivares") {
+      return monto / tasaBs;
+    }
+
+    if (moneda === "euros") {
+      const tasaEur = getTasa("EUR")?.monto_equivalencia;
+      if (!tasaEur) return 0; // No se puede convertir de EUR a USD sin la tasa EUR->Bs
+      const montoEnBs = monto * tasaEur;
+      return montoEnBs / tasaBs;
+    }
+
+    return 0;
+  };
+
   // Calculate cash change
   const cashReceivedNum = Number.parseFloat(cashReceived) || 0;
-  const cashReceivedInUSD = cashReceivedNum * exchangeRates[denomination];
-  const totalInUSD = total;
+  const cashReceivedInUSD = getMontoEnDolares(cashReceivedNum, denomination);
+  const totalInBs = total;
 
   // Card payment state
   const [cardData, setCardData] = useState<any>({});
@@ -127,7 +147,7 @@ export default function PaymentView({
     const amount = typeof cardAmount === "number" ? cardAmount : parseFloat(cardAmount.toString());
     // Compare amounts in cents to avoid floating point issues
     const amountInCents = Math.round(amount * 100);
-    const totalInCents = Math.round(total * 100);
+    const totalInCents = Math.round(totalInBs * 100);
     return amountInCents > 0 && amountInCents <= totalInCents;
   };
 
@@ -139,7 +159,8 @@ export default function PaymentView({
     if (!cashReceived) return true;
     // Compare amounts in cents to avoid floating point issues
     const amountInCents = Math.round(cashReceivedInUSD * 100);
-    const totalInCents = Math.round(totalInUSD * 100);
+    const totalToCompareInUSD = convertirADolar(totalInBs) || 0;
+    const totalInCents = Math.round(totalToCompareInUSD * 100);
     return amountInCents > 0 && amountInCents <= totalInCents;
   };
 
@@ -152,13 +173,13 @@ export default function PaymentView({
     const amount =
       typeof chequeAmount === "number" ? chequeAmount : parseFloat(chequeAmount.toString());
     const amountInCents = Math.round(amount * 100);
-    const totalInCents = Math.round(total * 100);
+    const totalInCents = Math.round(totalInBs * 100);
     return amountInCents > 0 && amountInCents <= totalInCents;
   };
 
   const isPointsAmountValid = () => {
-    // Tasa: 100 puntos = 1$. Comparar valor en la misma unidad (puntos o "centavos de dolar-punto").
-    const totalInPoints = Math.round(total * 100);
+    // Tasa: 1 punto = 1Bs.
+    const totalInPoints = Math.round(totalInBs);
     return pointsToUse >= 0 && pointsToUse <= totalInPoints;
   };
 
@@ -202,7 +223,9 @@ export default function PaymentView({
           fechaExpiracion: cardData.fechaExpiracion,
           banco: getBancoNombre(selectedBank),
         };
-        amountPaid = parseFloat((typeof cardAmount === "number" ? cardAmount : total).toFixed(2));
+        amountPaid = parseFloat(
+          (typeof cardAmount === "number" ? cardAmount : totalInBs).toFixed(2)
+        );
         break;
       case "efectivo":
         details = {
@@ -210,15 +233,17 @@ export default function PaymentView({
           breakdown: breakdown,
           amountInCurrency: cashReceivedNum,
         };
-        amountPaid = Math.min(cashReceivedInUSD, total);
+        const cashReceivedInBs = cashReceivedInUSD * (getTasa("USD")?.monto_equivalencia || 0);
+        amountPaid = Math.min(cashReceivedInBs, totalInBs);
         break;
       case "cheque":
         details = { numeroCheque, numeroCuenta, banco: getBancoNombre(bancoCheque) };
-        amountPaid = typeof chequeAmount === "number" && chequeAmount > 0 ? chequeAmount : total;
+        amountPaid =
+          typeof chequeAmount === "number" && chequeAmount > 0 ? chequeAmount : totalInBs;
         break;
       case "puntos":
         details = { customerId, pointsToUse };
-        amountPaid = pointsToUse / 100; // Asumiendo 100 puntos = 1$
+        amountPaid = pointsToUse; // Puntos son 1 a 1 con Bs
         break;
     }
 
@@ -409,7 +434,8 @@ export default function PaymentView({
                         />
                         {!isCardAmountValid() && cardAmount && (
                           <p className="text-sm text-red-500">
-                            El monto no puede ser mayor al restante por pagar (${total.toFixed(2)})
+                            El monto no puede ser mayor al restante por pagar (Bs {total.toFixed(2)}
+                            )
                           </p>
                         )}
                       </div>
@@ -486,8 +512,8 @@ export default function PaymentView({
                         <div className="h-5">
                           {!isCashAmountValid() && cashReceived && (
                             <p className="text-sm text-red-500">
-                              El monto no puede ser mayor al restante por pagar (${total.toFixed(2)}
-                              )
+                              El monto no puede ser mayor al restante por pagar (Bs{" "}
+                              {total.toFixed(2)})
                             </p>
                           )}
                         </div>
@@ -499,7 +525,7 @@ export default function PaymentView({
                         <span>Recibido en efectivo:</span>
                         <span>
                           {currencySymbols[denomination]} {cashReceivedNum.toFixed(2)} ($
-                          {cashReceivedInUSD.toFixed(2)})
+                          {formatCurrency(cashReceivedInUSD)})
                         </span>
                       </div>
                       <hr className="my-2 border-t border-gray-200" />
@@ -508,10 +534,11 @@ export default function PaymentView({
                           <div className="flex justify-between font-bold text-red-600">
                             <span>Faltaría por pagar:</span>
                             <span>
-                              $
+                              Bs
                               {(
                                 (originalTotal || total) -
-                                (amountPaid + cashReceivedInUSD)
+                                (amountPaid +
+                                  cashReceivedInUSD * (getTasa("USD")?.monto_equivalencia || 0))
                               ).toFixed(2)}
                             </span>
                           </div>
@@ -577,7 +604,7 @@ export default function PaymentView({
                       />
                       {!isChequeAmountValid() && chequeAmount ? (
                         <p className="text-sm text-red-500">
-                          El monto no puede ser mayor al restante por pagar (${total.toFixed(2)})
+                          El monto no puede ser mayor al restante por pagar (Bs {total.toFixed(2)})
                         </p>
                       ) : null}
                     </div>
@@ -586,7 +613,6 @@ export default function PaymentView({
                   <TabsContent value="puntos" className="space-y-4">
                     <div className="p-4 bg-gray-50 rounded-md text-sm mb-4">
                       <p className="font-medium">Equivalencia de puntos: 1 punto = 1 Bs.</p>
-                      <p>Tasa BCV: 1$ = 100 Bs.</p>
                     </div>
 
                     <div className="space-y-2">
@@ -595,10 +621,10 @@ export default function PaymentView({
                         id="pointsToUse"
                         type="number"
                         min={0}
-                        max={total * 100}
+                        max={total}
                         value={pointsToUse || ""}
                         onChange={(e) => {
-                          const value = Math.min(Number(e.target.value) || 0, total * 100);
+                          const value = Math.min(Number(e.target.value) || 0, total);
                           setPointsToUse(value);
                         }}
                         className={!isPointsAmountValid() ? "border-red-500" : ""}
@@ -608,7 +634,7 @@ export default function PaymentView({
                       {!isPointsAmountValid() && pointsToUse > 0 && (
                         <p className="text-sm text-red-500">
                           Los puntos no pueden exceder el restante por pagar (máx:{" "}
-                          {(total * 100).toFixed(0)} puntos)
+                          {total.toFixed(0)} puntos)
                         </p>
                       )}
                     </div>
@@ -617,17 +643,18 @@ export default function PaymentView({
                       <div className="p-4 bg-gray-50 rounded-md">
                         <div className="flex justify-between">
                           <span>Total a pagar:</span>
-                          <span>${total.toFixed(2)}</span>
+                          <span>Bs {total.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Descuento en puntos:</span>
                           <span>
-                            -{pointsToUse.toFixed(2)} Bs. (${(pointsToUse / 100).toFixed(2)})
+                            -{pointsToUse.toFixed(2)} Bs. (
+                            {formatCurrency(convertirADolar(pointsToUse))})
                           </span>
                         </div>
                         <div className="flex justify-between font-bold mt-2 pt-2 border-t">
                           <span>Total final:</span>
-                          <span>${(total - pointsToUse / 100).toFixed(2)}</span>
+                          <span>Bs {(total - pointsToUse).toFixed(2)}</span>
                         </div>
                       </div>
                     )}
@@ -653,6 +680,7 @@ export default function PaymentView({
             total={total}
             originalTotal={originalTotal}
             amountPaid={amountPaid}
+            convertirADolar={convertirADolar}
           />
         </div>
       </div>

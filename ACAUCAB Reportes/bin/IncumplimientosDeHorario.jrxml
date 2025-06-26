@@ -1,0 +1,261 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="IncumplimientosDeHorario" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dd509127-2df5-43b1-9d97-a674ce9776c7">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ACAUCAB"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<style name="Table 2_TH" mode="Opaque" backcolor="#4B0082">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 2_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 2_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<dataset name="Incumplimientos" uuid="2950c535-987a-414f-b7aa-63a4046982e3">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ACAUCAB"/>
+		<parameter name="fechaInicio" class="java.sql.Date" nestedType="java.sql.Date"/>
+		<parameter name="fechaFin" class="java.sql.Date"/>
+		<query language="SQL"><![CDATA[SELECT 
+  e.id,
+  e.nacionalidad || '-' || e.ci AS "CI",
+  e.primer_nombre || ' ' || e.segundo_nombre || ' ' || e.primer_apellido || ' ' || e.segundo_apellido AS "Nombres y Apellidos",
+  COALESCE(l.llegadas, 0) AS "Llegadas Tardes",
+  COALESCE(s.salidas, 0) AS "Salidas Tempranas",
+  COALESCE(l.llegadas, 0) + COALESCE(s.salidas, 0) AS "Incumplimientos de Horario"
+FROM empleado e
+LEFT JOIN (
+  SELECT n.fk_empleado AS empl, COUNT(*) AS salidas
+  FROM nomina n
+  JOIN horario_nomina hn ON n.id = hn.fk_nomina_1 AND n.fk_empleado = hn.fk_nomina_2
+  JOIN horario h ON h.id = hn.fk_horario
+  JOIN registro_biometrico rb ON rb.fk_empleado = n.fk_empleado
+  WHERE rb.fecha_hora_salida::date BETWEEN $P{fechaInicio} AND $P{fechaFin}
+    AND CASE EXTRACT(DOW FROM rb.fecha_hora_salida)
+      WHEN 0 THEN 'domingo'
+      WHEN 1 THEN 'lunes'
+      WHEN 2 THEN 'martes'
+      WHEN 3 THEN 'miércoles'
+      WHEN 4 THEN 'jueves'
+      WHEN 5 THEN 'viernes'
+      WHEN 6 THEN 'sabado'
+    END = h.dia
+    AND rb.fecha_hora_salida::time < h.hora_salida
+  GROUP BY n.fk_empleado
+) s ON e.id = s.empl
+LEFT JOIN (
+  SELECT n.fk_empleado AS empl, COUNT(*) AS llegadas
+  FROM nomina n
+  JOIN horario_nomina hn ON n.id = hn.fk_nomina_1 AND n.fk_empleado = hn.fk_nomina_2
+  JOIN horario h ON h.id = hn.fk_horario
+  JOIN registro_biometrico rb ON rb.fk_empleado = n.fk_empleado
+  WHERE rb.fecha_hora_entrada::date BETWEEN $P{fechaInicio} AND $P{fechaFin}
+    AND CASE EXTRACT(DOW FROM rb.fecha_hora_entrada)
+      WHEN 0 THEN 'domingo'
+      WHEN 1 THEN 'lunes'
+      WHEN 2 THEN 'martes'
+      WHEN 3 THEN 'miércoles'
+      WHEN 4 THEN 'jueves'
+      WHEN 5 THEN 'viernes'
+      WHEN 6 THEN 'sabado'
+    END = h.dia
+    AND rb.fecha_hora_entrada::time > h.hora_salida
+  GROUP BY n.fk_empleado
+) l ON e.id = l.empl
+where (COALESCE(l.llegadas, 0) + COALESCE(s.salidas, 0)) > 0
+order by "Incumplimientos de Horario" desc;]]></query>
+		<field name="id" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.name" value="id"/>
+			<property name="com.jaspersoft.studio.field.label" value="id"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="empleado"/>
+		</field>
+		<field name="CI" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="CI"/>
+			<property name="com.jaspersoft.studio.field.label" value="CI"/>
+		</field>
+		<field name="Nombres y Apellidos" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="Nombres y Apellidos"/>
+			<property name="com.jaspersoft.studio.field.label" value="Nombres y Apellidos"/>
+		</field>
+		<field name="Llegadas Tardes" class="java.lang.Long">
+			<property name="com.jaspersoft.studio.field.name" value="Llegadas Tardes"/>
+			<property name="com.jaspersoft.studio.field.label" value="Llegadas Tardes"/>
+		</field>
+		<field name="Salidas Tempranas" class="java.lang.Long">
+			<property name="com.jaspersoft.studio.field.name" value="Salidas Tempranas"/>
+			<property name="com.jaspersoft.studio.field.label" value="Salidas Tempranas"/>
+		</field>
+		<field name="Incumplimientos de Horario" class="java.lang.Long">
+			<property name="com.jaspersoft.studio.field.name" value="Incumplimientos de Horario"/>
+			<property name="com.jaspersoft.studio.field.label" value="Incumplimientos de Horario"/>
+		</field>
+	</dataset>
+	<parameter name="fechaInicio" class="java.sql.Date"/>
+	<parameter name="fechaFin" class="java.sql.Date"/>
+	<query language="SQL"><![CDATA[select l.nombre||', '||tf.direccion "Direccion", tf.id "ID"
+from tienda_fisica tf, lugar l
+where tf.fk_lugar = l.id 
+order by "ID"
+limit 1;
+]]></query>
+	<field name="Direccion" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="Direccion"/>
+		<property name="com.jaspersoft.studio.field.label" value="Direccion"/>
+	</field>
+	<field name="ID" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="ID"/>
+		<property name="com.jaspersoft.studio.field.label" value="ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="tienda_fisica"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="240" splitType="Stretch">
+		<element kind="image" uuid="6c1db6a7-24f5-4c47-8b9f-a51c3ccbb45b" x="0" y="0" width="150" height="60">
+			<expression><![CDATA["acaucab-logo.png"]]></expression>
+		</element>
+		<element kind="staticText" uuid="57b6659c-4237-43ea-b996-d7a78c459a44" x="0" y="60" width="180" height="20" hTextAlign="Left">
+			<text><![CDATA[Asociación de Cervezeros de la UCAB]]></text>
+		</element>
+		<element kind="staticText" uuid="aa200416-4427-4aba-ba59-799ddea0fd67" x="0" y="80" width="180" height="20" hTextAlign="Left">
+			<text><![CDATA[J-987654321]]></text>
+		</element>
+		<element kind="textField" uuid="bb356bc2-aaee-43cb-a633-33d218a14149" x="0" y="100" width="575" height="20">
+			<expression><![CDATA[$F{Direccion}]]></expression>
+		</element>
+		<element kind="textField" uuid="e95a0ffa-8d0c-4668-9ce9-f448a8c095e0" x="395" y="0" width="170" height="40" fontSize="25.0" pattern="dd/MM/yyyy" hTextAlign="Center">
+			<expression><![CDATA[new java.util.Date()]]></expression>
+		</element>
+		<element kind="textField" uuid="64eca79f-27ce-4ed3-9f37-fbf752e7f46e" x="395" y="30" width="170" height="30" fontSize="14.0" pattern="HH:mm a" hTextAlign="Center">
+			<expression><![CDATA[new java.util.Date()]]></expression>
+		</element>
+		<element kind="staticText" uuid="b6383d7c-3040-4bf1-a51a-26d5ca3ba45e" x="0" y="130" width="559" height="70" forecolor="#030303" fontSize="25.0" bold="true" hTextAlign="Center">
+			<text><![CDATA[Empleados con Mayor Frecuencia de Incumplimientos Horarios]]></text>
+		</element>
+		<element kind="line" uuid="95c8f790-13df-48fe-ba3d-8339227aeb18" x="0" y="120" width="559" height="1"/>
+		<element kind="textField" uuid="28dd85eb-6790-4bcc-b90a-fd9d6d5b5007" x="134" y="200" width="130" height="30" fontSize="16.0" pattern="dd/MM/yyyy" linkType="None" linkTarget="Self" italic="true" hTextAlign="Right">
+			<expression><![CDATA[$P{fechaInicio}]]></expression>
+		</element>
+		<element kind="staticText" uuid="1939d2b8-c9aa-46ee-932b-58321ca9d0b9" x="264" y="200" width="30" height="30" fontSize="16.0" hTextAlign="Center">
+			<text><![CDATA[-]]></text>
+		</element>
+		<element kind="textField" uuid="3a3d07cc-9e67-4392-b2e3-fbfa963e6b23" x="294" y="200" width="130" height="30" fontSize="16.0" pattern="dd/MM/yyyy" linkType="None" linkTarget="Self" italic="true" hTextAlign="Left">
+			<expression><![CDATA[$P{fechaFin}]]></expression>
+		</element>
+	</title>
+	<detail>
+		<band height="60" splitType="Stretch">
+			<element kind="component" uuid="725a0f0b-826c-4c21-a4f5-4dc4d266f6f6" x="37" y="0" width="480" height="60" style="Table 2_CH">
+				<component kind="table">
+					<datasetRun uuid="b8c9037d-5bbf-45d5-b402-867d82ea2a4d" subDataset="Incumplimientos">
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						<parameter name="fechaFin">
+							<expression><![CDATA[$P{fechaFin}]]></expression>
+						</parameter>
+						<parameter name="fechaInicio">
+							<expression><![CDATA[$P{fechaInicio}]]></expression>
+						</parameter>
+					</datasetRun>
+					<column kind="single" uuid="6a4f14e2-219d-41e5-a172-d1bc7c1fd7b4" width="90">
+						<columnHeader height="30" style="Table 2_CH">
+							<element kind="staticText" uuid="2608507f-144f-46d3-b752-90f723eb68c1" mode="Transparent" x="0" y="0" width="90" height="30" forecolor="#030303" hTextAlign="Center" vTextAlign="Middle">
+								<text><![CDATA[CI]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30" style="Table 2_TD">
+							<element kind="textField" uuid="bbe870ba-d890-43b8-b359-748f1bd9fa9d" x="0" y="0" width="90" height="30" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[$F{CI}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="4b24896a-3652-4596-8aee-ac47e36a1503" width="160">
+						<columnHeader height="30" style="Table 2_CH">
+							<element kind="staticText" uuid="02829a3a-c253-4ae7-b669-64ae9a8fe44e" mode="Transparent" x="0" y="0" width="160" height="30" forecolor="#030303" hTextAlign="Center" vTextAlign="Middle">
+								<text><![CDATA[Nombres y Apellidos]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30" style="Table 2_TD">
+							<element kind="textField" uuid="0037a0f8-73ff-408d-897c-1caeac0604df" x="0" y="0" width="160" height="30" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[$F{Nombres y Apellidos}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="d8a798fa-2d47-4f6b-8a16-e8e12df5d020" width="70">
+						<columnHeader height="30" style="Table 2_CH">
+							<element kind="staticText" uuid="967dcb5e-53f4-429c-9e67-0494d0f18f5b" mode="Transparent" x="0" y="0" width="70" height="30" forecolor="#030303" hTextAlign="Center" vTextAlign="Middle">
+								<text><![CDATA[Llegadas Tardes]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30" style="Table 2_TD">
+							<element kind="textField" uuid="1b443cb3-83df-4020-85c1-42602fa5f5f4" x="0" y="0" width="70" height="30" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[$F{Llegadas Tardes}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="494406de-6fa2-457c-ba52-f2afdc378b56" width="80">
+						<columnHeader height="30" style="Table 2_CH">
+							<element kind="staticText" uuid="adc5cf03-a61b-4c5d-906d-15b6ba525a4d" mode="Transparent" x="0" y="0" width="80" height="30" forecolor="#030303" hTextAlign="Center" vTextAlign="Middle">
+								<text><![CDATA[Salidas Tempranas]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30" style="Table 2_TD">
+							<element kind="textField" uuid="90c9ca8a-a23f-44ba-ae70-add6e586683f" x="0" y="0" width="80" height="30" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[$F{Salidas Tempranas}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+					<column kind="single" uuid="5f6cbc88-b957-466b-bc47-7a8c6eab6b3a" width="80">
+						<columnHeader height="30" style="Table 2_CH">
+							<element kind="staticText" uuid="8332dd72-619a-4e00-b1fc-b3073f01b588" mode="Transparent" x="0" y="0" width="80" height="30" forecolor="#030303" hTextAlign="Center" vTextAlign="Middle">
+								<text><![CDATA[Incumplimientos de Horario]]></text>
+							</element>
+						</columnHeader>
+						<detailCell height="30" style="Table 2_TD">
+							<element kind="textField" uuid="ddf7a5af-81d4-410c-863d-cc94579f3fdd" x="0" y="0" width="80" height="30" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[$F{Incumplimientos de Horario}]]></expression>
+							</element>
+						</detailCell>
+					</column>
+				</component>
+				<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+				<property name="com.jaspersoft.studio.table.style.table_header" value="Table 2_TH"/>
+				<property name="com.jaspersoft.studio.table.style.column_header" value="Table 2_CH"/>
+				<property name="com.jaspersoft.studio.table.style.detail" value="Table 2_TD"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+		</band>
+	</detail>
+	<summary height="70" splitType="Stretch">
+		<element kind="textField" uuid="d009c603-1add-41bc-b6cb-fef758f8b597" x="375" y="40" width="100" height="30" hTextAlign="Right">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+		<element kind="textField" uuid="7ad98356-54d7-4813-81a9-b1765cdabe64" x="475" y="40" width="100" height="30" evaluationTime="Report" hTextAlign="Left">
+			<expression><![CDATA[" de " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</summary>
+</jasperReport>

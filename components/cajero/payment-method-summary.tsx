@@ -7,6 +7,7 @@ import OrderSummaryCard from "./order-summary-card";
 import { Separator } from "@radix-ui/react-select";
 import { CarritoItemType, PaymentMethod, PaymentDetails } from "@/lib/schemas";
 import { getBancoNombre } from "@/components/ui/banco-selector";
+import { formatCurrency } from "@/lib/utils";
 
 /**
  * Interface para los detalles del pago
@@ -23,6 +24,7 @@ interface PaymentMethodSummaryProps {
   onBack: () => void;
   /** Función para eliminar un método de pago específico */
   onDeletePayment?: (index: number) => void;
+  convertirADolar: (monto: number) => number | null;
 }
 
 /** Componente que muestra un resumen del método de pago seleccionado */
@@ -33,6 +35,7 @@ export default function PaymentMethodSummary({
   onConfirm,
   onBack,
   onDeletePayment,
+  convertirADolar,
 }: PaymentMethodSummaryProps) {
   const getPaymentMethodName = (method: string) => {
     switch (method) {
@@ -73,8 +76,10 @@ export default function PaymentMethodSummary({
 
   const finalTotal = calculateFinalTotal();
   const totalPaid = payments.reduce((acc, p) => acc + ((p.details as any).amountPaid || 0), 0);
+  const totalPaidUSD = convertirADolar(totalPaid);
 
   const faltaPorPagar = total - totalPaid > 0 ? total - totalPaid : 0;
+  const faltaPorPagarUSD = convertirADolar(faltaPorPagar);
 
   return (
     <div className="container mx-auto p-4">
@@ -96,6 +101,7 @@ export default function PaymentMethodSummary({
               {/* Lista de Métodos de Pago */}
               {sortedPayments.map((payment, sortedIndex) => {
                 const originalIndex = payments.findIndex((p) => p === payment);
+                const amountPaidUSD = convertirADolar((payment.details as any).amountPaid);
 
                 return (
                   <div
@@ -130,9 +136,16 @@ export default function PaymentMethodSummary({
                           )}
                       </div>
                     </div>
-                    <p className="font-semibold text-base">
-                      {`$${((payment.details as any).amountPaid || 0).toFixed(2)}`}
-                    </p>
+                    <div className="text-right">
+                      <p className="font-semibold text-base">
+                        Bs {((payment.details as any).amountPaid || 0).toFixed(2)}{" "}
+                        {amountPaidUSD !== null && (
+                          <span className="text-sm text-gray-500">
+                            (${formatCurrency(amountPaidUSD)})
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                 );
               })}
@@ -152,11 +165,29 @@ export default function PaymentMethodSummary({
               <div className="pt-4 mt-4 space-y-2 bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between font-medium">
                   <span>Total pagado:</span>
-                  <span>${totalPaid.toFixed(2)}</span>
+                  <div className="text-right">
+                    <p>
+                      Bs {totalPaid.toFixed(2)}{" "}
+                      {totalPaidUSD !== null && (
+                        <span className="text-sm text-gray-500">
+                          (${formatCurrency(totalPaidUSD)})
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Falta por pagar:</span>
-                  <span className="font-semibold text-orange-600">${faltaPorPagar.toFixed(2)}</span>
+                  <div className="text-right font-semibold">
+                    <p className="text-orange-600">
+                      Bs {faltaPorPagar.toFixed(2)}{" "}
+                      {faltaPorPagarUSD !== null && (
+                        <span className="text-sm text-gray-500">
+                          (${formatCurrency(faltaPorPagarUSD)})
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -165,7 +196,7 @@ export default function PaymentMethodSummary({
 
         {/* Lado Derecho: Resumen de la Compra */}
         <div className="lg:col-span-2 space-y-8">
-          <OrderSummaryCard items={items} total={total} />
+          <OrderSummaryCard items={items} total={total} convertirADolar={convertirADolar} />
           <Button
             onClick={onConfirm}
             className="w-full bg-black text-white hover:bg-gray-800"
