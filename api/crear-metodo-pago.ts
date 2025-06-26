@@ -1,7 +1,7 @@
 import { llamarFuncionSingle } from "@/lib/server-actions";
 
 type EfectivoDetails = {
-  denominacion: string;
+  denominacion: string; // Ejemplo 10 USD
 };
 
 // TarjetaDetails is simplified as we get all data from the form

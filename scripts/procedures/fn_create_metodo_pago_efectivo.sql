@@ -16,7 +16,7 @@ BEGIN
 
   -- Si no existe, crea uno nuevo
   IF metodo_id IS NULL THEN
-    INSERT INTO metodo_pago(tipo, denominacion)
+    INSERT INTO metodo_pago(tipo, denominación)
     VALUES ('efectivo', p_denominacion) 
     RETURNING id INTO metodo_id;
   END IF;

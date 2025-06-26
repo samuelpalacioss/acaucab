@@ -506,12 +506,23 @@ export default function Autopago() {
                     break;
                   }
                   case "efectivo": {
-                    const efectivoDetails = details as EfectivoDetails;
+                    const efectivoDetails = details as StoreEfectivoDetails;
+
+                    // Mapear el nombre de la moneda a su código estándar
+                    const currencyCode = {
+                      dolares: "USD",
+                      euros: "EUR",
+                      bolivares: "VES",
+                    }[efectivoDetails.currency];
+
+                    // Construir la cadena de texto completa para la denominación
+                    const denominacionCompleta = `${efectivoDetails.amountInCurrency} ${currencyCode}`;
+
                     metodoPagoId = await crearMetodoPago(
                       {
                         tipo: "efectivo",
                         details: {
-                          denominacion: efectivoDetails.denominacion,
+                          denominacion: denominacionCompleta,
                         },
                       },
                       p_id_cliente,
