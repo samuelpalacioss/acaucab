@@ -194,7 +194,7 @@ export const useVentaStore = create<VentaStore>()(
         fk_usuario: cliente.id_usuario,
         fk_cliente_juridico: cliente.tipo_usuario === 'Cliente Juridico' ? cliente.id_usuario : undefined,
         fk_cliente_natural: cliente.tipo_usuario === 'Cliente Natural' ? cliente.id_usuario : undefined,
-        fk_tienda_fisica: 1, // Tienda física para autopago
+        fk_tienda_fisica: 1, // Tienda física DEFAULT
       };
 
       /** TODO: Llamar a la función SQL fn_create_venta */

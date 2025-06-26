@@ -61,6 +61,7 @@ const logVentaStore = (action?: string) => {
     "👤 Cliente:",
     state.cliente?.nombre_completo || state.cliente?.denominacion_comercial || "No seleccionado"
   );
+  console.log("🆔 ID Cliente:", state.cliente?.id_cliente || "N/A");
   console.log("📄 Documento:", `${state.docType}-${state.documento}`);
   console.log("🛍️ Items en carrito:", state.carrito.length);
   state.carrito.forEach((item, index) => {

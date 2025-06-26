@@ -7,6 +7,7 @@ CREATE OR REPLACE FUNCTION fn_get_cliente_by_doc(
 
 RETURNS TABLE (
     id_usuario INTEGER,
+    id_cliente INTEGER,
     nombre_completo VARCHAR,
     razon_social VARCHAR,
     denominacion_comercial VARCHAR,
@@ -27,6 +28,7 @@ BEGIN
     WITH user_base AS (
         SELECT
             u.id as user_id,
+            COALESCE(cn.id, cj.id) as id_cliente,
             cn.id as cliente_natural_id,
             cj.id as cliente_juridico_id,
       
@@ -51,6 +53,7 @@ BEGIN
     )
     SELECT
         ub.user_id,
+        ub.id_cliente,
         -- Trae el nombre completo o la razon social del cliente (el primero que no sea null)
         COALESCE(
             (ub.cn).primer_nombre || ' ' || (ub.cn).primer_apellido,
