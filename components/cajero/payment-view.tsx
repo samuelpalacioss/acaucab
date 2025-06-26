@@ -132,6 +132,18 @@ export default function PaymentView({
     return 0;
   };
 
+  const tasaPunto = getTasa("PUNTO")?.monto_equivalencia || 1; // Default to 1 if not found
+
+  const convertirPuntosABs = (puntos: number) => {
+    return puntos * tasaPunto;
+  };
+
+  const convertirBsAPuntos = (bs: number) => {
+    // Avoid division by zero
+    if (tasaPunto === 0) return 0;
+    return bs / tasaPunto;
+  };
+
   // Calculate cash change
   const cashReceivedNum = Number.parseFloat(cashReceived) || 0;
   const cashReceivedInUSD = getMontoEnDolares(cashReceivedNum, denomination);
@@ -197,8 +209,7 @@ export default function PaymentView({
   };
 
   const isPointsAmountValid = () => {
-    // Tasa: 1 punto = 1Bs.
-    const totalInPoints = Math.round(totalInBs);
+    const totalInPoints = convertirBsAPuntos(totalInBs);
     return pointsToUse >= 0 && pointsToUse <= totalInPoints;
   };
 
@@ -272,7 +283,7 @@ export default function PaymentView({
         break;
       case "puntos":
         details = { customerId, pointsToUse };
-        amountPaid = pointsToUse; // Puntos son 1 a 1 con Bs
+        amountPaid = convertirPuntosABs(pointsToUse);
         break;
     }
 
@@ -577,10 +588,12 @@ export default function PaymentView({
                       {cashReceivedNum > 0 && (
                         <div
                           className={`flex justify-between font-bold ${
-                            differenceInBs < 0 ? "text-red-600" : "text-green-600"
+                            differenceInBs < 0 ? "text-red-600" : "text-red-600"
                           }`}
                         >
-                          <span>{differenceInBs < 0 ? "Faltaría por pagar:" : "Cambio:"}</span>
+                          <span>
+                            {differenceInBs < 0 ? "Faltaría por pagar:" : "Monto excedido por:"}
+                          </span>
                           <span>Bs {formatCurrency(Math.abs(differenceInBs))}</span>
                         </div>
                       )}
@@ -653,7 +666,9 @@ export default function PaymentView({
 
                   <TabsContent value="puntos" className="space-y-4">
                     <div className="p-4 bg-gray-50 rounded-md text-sm mb-4">
-                      <p className="font-medium">Equivalencia de puntos: 1 punto = 1 Bs.</p>
+                      <p className="font-medium">
+                        Equivalencia de puntos: 1 Punto = {tasaPunto.toFixed(2)} Bs.
+                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -662,10 +677,10 @@ export default function PaymentView({
                         id="pointsToUse"
                         type="number"
                         min={0}
-                        max={total}
                         value={pointsToUse || ""}
                         onChange={(e) => {
-                          const value = Math.min(Number(e.target.value) || 0, total);
+                          const maxPoints = convertirBsAPuntos(total);
+                          const value = Math.min(Number(e.target.value) || 0, maxPoints);
                           setPointsToUse(value);
                         }}
                         className={!isPointsAmountValid() ? "border-red-500" : ""}
@@ -675,7 +690,7 @@ export default function PaymentView({
                       {!isPointsAmountValid() && pointsToUse > 0 && (
                         <p className="text-sm text-red-500">
                           Los puntos no pueden exceder el restante por pagar (máx:{" "}
-                          {total.toFixed(0)} puntos)
+                          {convertirBsAPuntos(total).toFixed(0)} puntos)
                         </p>
                       )}
                     </div>
@@ -684,18 +699,18 @@ export default function PaymentView({
                       <div className="p-4 bg-gray-50 rounded-md">
                         <div className="flex justify-between">
                           <span>Total a pagar:</span>
-                          <span>Bs {total.toFixed(2)}</span>
+                          <span>Bs {formatCurrency(total)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Descuento en puntos:</span>
                           <span>
-                            -{pointsToUse.toFixed(2)} Bs. (
-                            {formatCurrency(convertirADolar(pointsToUse))})
+                            -{formatCurrency(convertirPuntosABs(pointsToUse))} Bs. (
+                            {formatCurrency(convertirADolar(convertirPuntosABs(pointsToUse)))})
                           </span>
                         </div>
                         <div className="flex justify-between font-bold mt-2 pt-2 border-t">
                           <span>Total final:</span>
-                          <span>Bs {(total - pointsToUse).toFixed(2)}</span>
+                          <span>Bs {formatCurrency(total - convertirPuntosABs(pointsToUse))}</span>
                         </div>
                       </div>
                     )}

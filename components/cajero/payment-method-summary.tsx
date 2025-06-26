@@ -103,6 +103,7 @@ export default function PaymentMethodSummary({
                 const originalIndex = payments.findIndex((p) => p === payment);
                 const amountPaidUSD = convertirADolar((payment.details as any).amountPaid);
                 const isEfectivo = payment.method === "efectivo";
+                const isPuntos = payment.method === "puntos";
                 const currency = isEfectivo ? (payment.details as any).currency : null;
                 const amountInCurrency = isEfectivo
                   ? (payment.details as any).amountInCurrency
@@ -143,7 +144,9 @@ export default function PaymentMethodSummary({
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-base">
-                        {isEfectivo && (currency === "dolares" || currency === "euros") ? (
+                        {isPuntos ? (
+                          <>{(payment.details as any).pointsToUse.toFixed(2)} puntos</>
+                        ) : isEfectivo && (currency === "dolares" || currency === "euros") ? (
                           <>
                             {currency === "dolares" ? "$" : "€"}
                             {amountInCurrency.toFixed(2)}
