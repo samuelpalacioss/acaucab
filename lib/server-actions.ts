@@ -5,6 +5,7 @@ import { crearClienteServerAction } from '@/lib/supabase'
 import { LoginUsuario, LoginResponse } from '@/models/login'
 import { InventoryData } from '@/models/inventory'
 import { OrdenesReposicionData } from '@/models/orden-reposicion'
+import { OrdenesCompraData, OrdenCompra } from '@/models/orden-compra'
 
 
 /**
@@ -210,6 +211,38 @@ export async function obtenerOrdenesReposicion(): Promise<OrdenesReposicionData>
 }
 
 /**
+ * Obtener órdenes de compra usando la función fn_get_all_ordenes_de_compra
+ * 
+ * @returns Array con los datos de las órdenes de compra
+ */
+export async function obtenerTodasLasOrdenesDeCompra(): Promise<OrdenesCompraData> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_get_all_ordenes_de_compra')
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener órdenes de compra:', error)
+    throw new Error('Error al cargar datos de las órdenes de compra')
+  }
+}
+
+/**
+ * Obtener UNA orden de compra por ID usando la función fn_get_orden_de_compra_by_id
+ * 
+ * @returns Objeto con los datos de la orden de compra
+ */
+export async function obtenerOrdenDeCompraPorId(id: number): Promise<OrdenCompra | null> {
+  try {
+    const resultado = await llamarFuncionSingle<OrdenCompra>('fn_get_orden_de_compra_by_id', {
+        p_id: id
+    })
+    return resultado
+  } catch (error: any) {
+    console.error(`Error al obtener orden de compra ${id}:`, error)
+    throw new Error('Error al cargar datos de la orden de compra')
+  }
+}
+
+/**
  * Actualizar el estado de una orden de reposición
  * 
  * @param ordenId - ID de la orden de reposición
@@ -238,6 +271,41 @@ export async function actualizarEstadoOrdenReposicion(
 
   } catch (error: any) {
     console.error('Error al actualizar estado de orden:', error);
+    throw new Error(`Error al actualizar estado: ${error.message}`);
+  }
+}
+
+/**
+ * Actualizar el estado de una orden de compra
+ * 
+ * @param ordenId - ID de la orden de compra
+ * @param nuevoEstado - Nombre del nuevo estado para la orden
+ * @param usuarioId - ID del usuario que actualiza el estado
+ * @param observacion - Observación opcional para la finalización
+ * @returns Promise<void>
+ */
+export async function actualizarEstadoOrdenCompra(
+  ordenId: number,
+  nuevoEstado: string,
+  usuarioId: number,
+  observacion?: string
+): Promise<void> {
+  try {
+    if (!nuevoEstado) {
+      throw new Error("El nuevo estado no puede estar vacío.");
+    }
+
+    // Por ahora, usaremos una función similar a la de orden de reposición
+    // Cuando tengas la función específica en PostgreSQL, la puedes cambiar aquí
+    await llamarFuncion('fn_update_status_orden_compra', {
+      p_orden_id: ordenId,
+      p_nuevo_status_nombre: nuevoEstado,
+      p_usuario_id: usuarioId,
+      p_observacion_final: observacion ?? null,
+    });
+
+  } catch (error: any) {
+    console.error('Error al actualizar estado de orden de compra:', error);
     throw new Error(`Error al actualizar estado: ${error.message}`);
   }
 }

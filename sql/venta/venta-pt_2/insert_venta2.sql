@@ -43,23 +43,23 @@ INSERT INTO orden_de_compra (
     fecha_solicitud,
     fecha_entrega,
     observacion,
-    fk_empleado,
+    fk_usuario,
     fk_presentacion_cerveza_1,
     fk_presentacion_cerveza_2,
     unidades,
     fk_miembro_1,
     fk_miembro_2
 ) VALUES
-    ('2024-05-10', '2024-05-17', 'Orden antigua - evento pasado', 9, 1, 1, 10000, 123456789, 'J'),      -- ID 1
-    ('2024-06-12', '2024-06-20', 'Pedido histórico', 9, 2, 2, 10000, 234567890, 'J'),                           -- ID 2
+    ('2024-05-10', '2024-05-17', 'Orden antigua - evento pasado', 22, 1, 1, 10000, 123456789, 'J'),      -- ID 1
+    ('2024-06-12', '2024-06-20', 'Pedido histórico', 22, 2, 2, 10000, 234567890, 'J'),                           -- ID 2
     ('2024-07-13', '2024-07-22', 'Promoción especial pasada', 9, 5, 5, 10000, 345678901, 'V'),     -- ID 3
-    ('2024-08-15', '2024-08-23', 'Pedido anterior', 9, 6, 6, 10000, 567890123, 'V'),                             -- ID 4
-    ('2024-09-16', '2024-09-25', 'Bar asociado - pedido pasado', 9, 7, 7, 10000, 678901234, 'J'),              -- ID 5
-    ('2024-10-17', '2024-10-27', 'Evento especial anterior', 9, 8, 8, 10000, 789012345, 'V'),                -- ID 6
-    ('2024-11-18', '2024-11-28', 'Pedido regular pasado', 9, 9, 9, 10000, 890123456, 'J'),                            -- ID 7
-    ('2025-06-20', NULL, 'URGENTE - Stock crítico Zona Refrigerada', 9, 6, 16, 10000, 987654321, 'V'),                 -- ID 8
-    ('2025-06-22', NULL, 'CRÍTICO - Zona Barriles sin stock', 9, 7, 17, 10000, 456789012, 'J'),            -- ID 9
-    ('2025-06-24', NULL, 'URGENTE - Pasillo Salida agotado', 9, 8, 18, 10000, 901234567, 'V');           -- ID 10
+    ('2024-08-15', '2024-08-23', 'Pedido anterior', 22, 6, 6, 10000, 567890123, 'V'),                             -- ID 4
+    ('2024-09-16', '2024-09-25', 'Bar asociado - pedido pasado', 22, 7, 7, 10000, 678901234, 'J'),              -- ID 5
+    ('2024-10-17', '2024-10-27', 'Evento especial anterior', 22, 8, 8, 10000, 789012345, 'V'),                -- ID 6
+    ('2024-11-18', '2024-11-28', 'Pedido regular pasado', 22, 9, 9, 10000, 890123456, 'J'),                            -- ID 7
+    ('2025-06-20', NULL, 'URGENTE - Stock crítico Zona Refrigerada', 22, 6, 16, 10000, 987654321, 'V'),                 -- ID 8
+    ('2025-06-22', NULL, 'CRÍTICO - Zona Barriles sin stock', 22, 7, 17, 10000, 456789012, 'J'),            -- ID 9
+    ('2025-06-24', NULL, 'URGENTE - Pasillo Salida agotado', 22, 8, 18, 10000, 901234567, 'V');           -- ID 10
 
 /**
  * Inserción de detalles de evento

@@ -82,7 +82,7 @@ CREATE TABLE orden_de_compra (
     fecha_solicitud           DATE NOT NULL,                /** Fecha cuando se solicita la orden */
     fecha_entrega             DATE,                         /** Fecha estimada/real de entrega */
     observacion               VARCHAR(255),                 /** Observaciones adicionales de la orden */
-    fk_empleado               INTEGER,                      /** Referencia al empleado que hace la orden */
+    fk_usuario               INTEGER,                      /** Referencia al empleado que hace la orden */
     fk_presentacion_cerveza_1 INTEGER NOT NULL,             /** Referencia a presentación cerveza - campo 1 */
     fk_presentacion_cerveza_2 INTEGER NOT NULL,         /** Referencia a presentación cerveza - campo 2 */
     unidades                  INTEGER NOT NULL,             /** Cantidad de unidades a ordenar */
@@ -93,8 +93,8 @@ CREATE TABLE orden_de_compra (
     CONSTRAINT orden_de_compra_pk PRIMARY KEY (id),
     
     /** Constraint de clave foránea hacia empleado */
-    CONSTRAINT orden_de_compra_fk_empleado FOREIGN KEY (fk_empleado)
-        REFERENCES empleado (id),
+    CONSTRAINT orden_de_compra_fk_usuario FOREIGN KEY (fk_usuario)
+        REFERENCES usuario (id),
     
     /** Constraint de clave foránea hacia presentacion_cerveza */
     CONSTRAINT orden_de_compra_fk_presentacion_cerveza FOREIGN KEY (

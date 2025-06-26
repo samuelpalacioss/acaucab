@@ -73,13 +73,6 @@ export function MainSidebar() {
         { title: "Roles y Permisos", path: "/dashboard/usuarios/roles" },
       ],
     },
-    {
-      title: "Proveedores",
-      icon: Truck,
-      submenu: [
-        { title: "Solicitudes de Compra", path: "/dashboard/proveedores/ordenes" },
-      ],
-    },
   ];
 
   return (
