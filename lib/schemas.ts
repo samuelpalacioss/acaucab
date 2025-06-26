@@ -106,7 +106,9 @@ export interface TarjetaDetails {
 
 // Para efectivo
 export interface EfectivoDetails {
-  denominacion: 'dolares' | 'euros' | 'bolivares';
+  currency: 'dolares' | 'euros' | 'bolivares';
+  breakdown?: { [value: string]: number };
+  denominacion?: string;
   montoRecibido: number;
   cambio: number;
   amountPaid: number;

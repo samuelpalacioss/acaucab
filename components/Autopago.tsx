@@ -16,6 +16,7 @@ import {
   PuntosDetails,
   PaymentMethod,
   PresentacionType,
+  PaymentDetails,
 } from "@/lib/schemas";
 import {
   Select,
@@ -453,28 +454,75 @@ export default function Autopago() {
 
                 const p_id_cliente = cliente.id_cliente;
                 const p_tipo_cliente = cliente.tipo_cliente;
-                let metodoPagoId: number | null = null;
 
-                const formatExpiryDateForDB = (expiryDate: string): string => {
-                  if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
-                    throw new Error("Formato de fecha de expiración inválido. Debe ser MM/YY.");
+                // --- MANEJO DE EFECTIVO (LÓGICA ESPECIAL) ---
+                if (method === "efectivo") {
+                  const efectivoDetails = details as StoreEfectivoDetails;
+                  const result = await crearMetodoPago(
+                    {
+                      tipo: "efectivo",
+                      details: {
+                        breakdown: efectivoDetails.breakdown,
+                        currency: efectivoDetails.currency,
+                      },
+                    },
+                    p_id_cliente,
+                    p_tipo_cliente
+                  );
+
+                  if (!Array.isArray(result) || result.length === 0) {
+                    throw new Error("No se pudieron crear los métodos de pago para el efectivo.");
                   }
-                  const [month, year] = expiryDate.split("/");
-                  const fullYear = `20${year}`;
-                  const date = new Date(Number(fullYear), Number(month), 0);
-                  const lastDay = date.getDate();
-                  return `${fullYear}-${month.padStart(2, "0")}-${String(lastDay).padStart(
-                    2,
-                    "0"
-                  )}`;
-                };
 
-                switch (method) {
-                  case "tarjetaCredito": {
-                    const cardDetails = details as TarjetaDetails;
-                    const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
-                    metodoPagoId = await crearMetodoPago(
-                      {
+                  const newPayments: PaymentMethod[] = [];
+                  let idIndex = 0;
+
+                  // Crear un objeto de pago por cada billete para mostrar en el resumen
+                  for (const [denominacion, cantidad] of Object.entries(
+                    efectivoDetails.breakdown
+                  )) {
+                    for (let i = 0; i < cantidad; i++) {
+                      if (idIndex < result.length) {
+                        newPayments.push({
+                          method: "efectivo",
+                          details: {
+                            amountPaid: parseFloat(denominacion),
+                            currency: efectivoDetails.currency,
+                            breakdown: { [denominacion]: 1 },
+                            metodo_pago_id: result[idIndex],
+                            montoRecibido: parseFloat(denominacion),
+                            cambio: 0,
+                          },
+                        });
+                        idIndex++;
+                      }
+                    }
+                  }
+                  setMetodosPago([...metodosPago, ...newPayments]);
+                  logVentaStore(`PAGO EN EFECTIVO AGREGADO (DESGLOSADO)`);
+                } else {
+                  // --- MANEJO DE OTROS MÉTODOS DE PAGO (TARJETA, PUNTOS, ETC) ---
+                  let metodoPagoParams: any = null;
+
+                  const formatExpiryDateForDB = (expiryDate: string): string => {
+                    if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
+                      throw new Error("Formato de fecha de expiración inválido. Debe ser MM/YY.");
+                    }
+                    const [month, year] = expiryDate.split("/");
+                    const fullYear = `20${year}`;
+                    const date = new Date(Number(fullYear), Number(month), 0);
+                    const lastDay = date.getDate();
+                    return `${fullYear}-${month.padStart(2, "0")}-${String(lastDay).padStart(
+                      2,
+                      "0"
+                    )}`;
+                  };
+
+                  switch (method) {
+                    case "tarjetaCredito": {
+                      const cardDetails = details as TarjetaDetails;
+                      const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
+                      metodoPagoParams = {
                         tipo: "tarjeta_credito",
                         details: {
                           tipo_tarjeta: getCardType(cardDetails.numeroTarjeta || ""),
@@ -482,80 +530,53 @@ export default function Autopago() {
                           banco: cardDetails.banco,
                           fecha_vencimiento: expiryDate,
                         },
-                      },
-                      p_id_cliente,
-                      p_tipo_cliente
-                    );
-                    break;
-                  }
-                  case "tarjetaDebito": {
-                    const cardDetails = details as TarjetaDetails;
-                    const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
-                    metodoPagoId = await crearMetodoPago(
-                      {
+                      };
+                      break;
+                    }
+                    case "tarjetaDebito": {
+                      const cardDetails = details as TarjetaDetails;
+                      const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
+                      metodoPagoParams = {
                         tipo: "tarjeta_debito",
                         details: {
                           numero: parseInt(cardDetails.numeroTarjeta.replace(/\s/g, "")),
                           banco: cardDetails.banco,
                           fecha_vencimiento: expiryDate,
                         },
-                      },
+                      };
+                      break;
+                    }
+                    case "puntos": {
+                      metodoPagoParams = { tipo: "punto", details: {} };
+                      break;
+                    }
+                    case "cheque": {
+                      console.warn("Creación de método de pago 'cheque' no implementada.");
+                      break; // No se hace nada y no se lanza error
+                    }
+                    default:
+                      throw new Error(`Método de pago desconocido: ${method}`);
+                  }
+
+                  if (metodoPagoParams) {
+                    const result = await crearMetodoPago(
+                      metodoPagoParams,
                       p_id_cliente,
                       p_tipo_cliente
                     );
-                    break;
-                  }
-                  case "efectivo": {
-                    const efectivoDetails = details as StoreEfectivoDetails;
 
-                    // Mapear el nombre de la moneda a su código estándar
-                    const currencyCode = {
-                      dolares: "USD",
-                      euros: "EUR",
-                      bolivares: "VES",
-                    }[efectivoDetails.currency];
+                    if (typeof result !== "number") {
+                      throw new Error("No se pudo crear el método de pago en la base de datos.");
+                    }
 
-                    // Construir la cadena de texto completa para la denominación
-                    const denominacionCompleta = `${efectivoDetails.amountInCurrency} ${currencyCode}`;
-
-                    metodoPagoId = await crearMetodoPago(
-                      {
-                        tipo: "efectivo",
-                        details: {
-                          denominacion: denominacionCompleta,
-                        },
-                      },
-                      p_id_cliente,
-                      p_tipo_cliente
-                    );
-                    break;
-                  }
-                  case "puntos": {
-                    metodoPagoId = await crearMetodoPago(
-                      { tipo: "punto", details: {} },
-                      p_id_cliente,
-                      p_tipo_cliente
-                    );
-                    break;
-                  }
-                  case "cheque": {
-                    console.warn("Creación de método de pago 'cheque' no implementada.");
-                    metodoPagoId = -1;
-                    break;
+                    const newPayment: PaymentMethod = {
+                      method,
+                      details: { ...details, metodo_pago_id: result },
+                    };
+                    setMetodosPago([...metodosPago, newPayment]);
+                    logVentaStore(`PAGO AGREGADO - ${method.toUpperCase()}`);
                   }
                 }
-
-                if (metodoPagoId === null && method !== "cheque") {
-                  throw new Error("No se pudo crear el método de pago en la base de datos.");
-                }
-
-                const newPayment: PaymentMethod = {
-                  method,
-                  details: { ...details, metodo_pago_id: metodoPagoId },
-                };
-
-                setMetodosPago([...metodosPago, newPayment]);
-                logVentaStore(`PAGO AGREGADO - ${method.toUpperCase()}`);
                 setCurrentStep(Step.PAYMENT_SUMMARY);
               } catch (err: any) {
                 setError(err.message || "Error al procesar el método de pago.");
