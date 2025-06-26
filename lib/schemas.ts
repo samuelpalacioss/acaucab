@@ -1,3 +1,4 @@
+import { AvailablePaymentMethods } from "@/components/cajero/payment-view"
 import { z } from "zod"
 
 // Schema for phone numbers
@@ -100,6 +101,7 @@ export interface TarjetaDetails {
   banco: string;
   amountPaid: number;
   tipo?: string;
+  metodo_pago_id?: number | null;
 }
 
 // Para efectivo
@@ -108,32 +110,26 @@ export interface EfectivoDetails {
   montoRecibido: number;
   cambio: number;
   amountPaid: number;
+  metodo_pago_id?: number | null;
 }
 
-// Para pago móvil
-export interface PagoMovilDetails {
-  telefono: string;
-  banco: string;
-  cedula: string;
-  amountPaid: number;
-}
 
 // Para puntos
 export interface PuntosDetails {
   puntosUtilizados: number;
   equivalenciaBs: number;
   amountPaid: number;
+  metodo_pago_id?: number | null;
 }
 
-export type PaymentDetails = TarjetaDetails | EfectivoDetails | PagoMovilDetails | PuntosDetails;
+export type PaymentDetails = TarjetaDetails | EfectivoDetails | PuntosDetails;
 
-export type PaymentMethodType = 'tarjeta' | 'efectivo' | 'pagoMovil' | 'puntos';
 
 /**
  * Interface para los métodos de pago - tal como se usan en Autopago.tsx
  */
 export interface PaymentMethod {
-  method: PaymentMethodType;
+  method: AvailablePaymentMethods;
   details: PaymentDetails;
 }
 

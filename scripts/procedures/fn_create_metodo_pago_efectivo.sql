@@ -3,22 +3,23 @@ DROP FUNCTION IF EXISTS fn_create_metodo_pago_efectivo(VARCHAR);
 CREATE OR REPLACE FUNCTION fn_create_metodo_pago_efectivo(
   p_denominacion VARCHAR
 )
-RETURNS INTEGER AS $$ 
+RETURNS TABLE(nuevo_metodo_id INTEGER) AS $$ 
 DECLARE 
-  nuevo_metodo_id INTEGER;
-  metodo_existente BOOLEAN;
+  metodo_id INTEGER;
 BEGIN
+  -- Intenta encontrar un método de pago existente
+  SELECT id INTO metodo_id 
+  FROM metodo_pago 
+  WHERE tipo = 'efectivo' AND denominación = p_denominacion;
 
-  SELECT EXISTS (SELECT id FROM metodo_pago WHERE tipo = 'efectivo' AND denominación = p_denominacion LIMIT 1) INTO metodo_existente;
-
-  IF EXISTS then
-    RAISE EXCEPTION 'Metodo de pago efectivo ya existe con la denominacion %', p_denominacion;
-  ELSE 
+  -- Si no existe, crea uno nuevo
+  IF metodo_id IS NULL THEN
     INSERT INTO metodo_pago(tipo, denominacion)
-    VALUES ('efectivo', p_denominacion) RETURNING id INTO nuevo_metodo_id;
+    VALUES ('efectivo', p_denominacion) 
+    RETURNING id INTO metodo_id;
   END IF;
 
-  RETURN nuevo_metodo_id;
+  RETURN QUERY SELECT metodo_id as nuevo_metodo_id;
 
-END
+END;
 $$ language plpgsql

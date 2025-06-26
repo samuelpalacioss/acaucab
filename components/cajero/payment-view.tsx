@@ -48,13 +48,18 @@ const currencySymbols = {
   euros: "€",
 };
 
-export type PaymentMethod = "tarjetaCredito" | "tarjetaDebito" | "efectivo" | "cheque" | "puntos";
+export type AvailablePaymentMethods =
+  | "tarjetaCredito"
+  | "tarjetaDebito"
+  | "efectivo"
+  | "cheque"
+  | "puntos";
 
 type PaymentDetails = Record<string, any>;
 
 /** Interfaz para un pago existente */
 interface ExistingPayment {
-  method: PaymentMethod;
+  method: AvailablePaymentMethods;
   details: PaymentDetails;
 }
 
@@ -67,7 +72,9 @@ interface PaymentViewProps {
   amountPaid?: number;
   /** Pagos existentes para mostrar botón condicional */
   existingPayments?: ExistingPayment[];
-  onComplete: (paymentMethod: PaymentMethod, details: PaymentDetails) => void;
+  /** Flag para indicar que el pago está en proceso */
+  isProcessing?: boolean;
+  onComplete: (paymentMethod: AvailablePaymentMethods, details: PaymentDetails) => void;
   onCancel: () => void;
   /** Callback para ir al resumen de pagos */
   onViewSummary?: () => void;
@@ -80,6 +87,7 @@ export default function PaymentView({
   originalTotal,
   amountPaid = 0,
   existingPayments,
+  isProcessing,
   onComplete,
   onCancel,
   onViewSummary,
@@ -246,12 +254,12 @@ export default function PaymentView({
 
     let details: PaymentDetails = {};
     let amountPaid = 0;
-    let paymentMethod: PaymentMethod;
+    let paymentMethod: AvailablePaymentMethods;
 
     if (selectedTab === "tarjeta") {
       paymentMethod = cardType === "credito" ? "tarjetaCredito" : "tarjetaDebito";
     } else {
-      paymentMethod = selectedTab as PaymentMethod;
+      paymentMethod = selectedTab as AvailablePaymentMethods;
     }
 
     switch (paymentMethod) {
@@ -742,9 +750,10 @@ export default function PaymentView({
                     type="button"
                     className="w-full mt-6"
                     onClick={handleSubmit}
-                    disabled={!isFormValid()}
+                    disabled={!isFormValid() || isProcessing}
                   >
-                    Completar pago <ArrowRight className="ml-2 h-4 w-4" />
+                    {isProcessing ? "Procesando..." : "Completar pago"}
+                    {!isProcessing && <ArrowRight className="ml-2 h-4 w-4" />}
                   </Button>
                 </div>
               </Tabs>

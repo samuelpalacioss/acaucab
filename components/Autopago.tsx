@@ -5,18 +5,16 @@ import { Button } from "@/components/ui/button";
 
 import CheckoutCajero from "./cajero/checkout-cajero";
 import PaymentView from "./cajero/payment-view";
-import { beers } from "@/app/(marketing)/productos/page";
+
 import PaymentMethodSummary from "./cajero/payment-method-summary";
 import { getClienteByDoc } from "@/api/get-cliente-by-doc";
 import {
-  ClienteType,
   CarritoItemType,
   DocType,
   TarjetaDetails,
   EfectivoDetails,
   PuntosDetails,
   PaymentMethod,
-  PaymentMethodType,
   PresentacionType,
 } from "@/lib/schemas";
 import {
@@ -34,6 +32,7 @@ import { inicializarTasas } from "@/lib/utils";
 import { useTasaStore } from "@/store/tasa-store";
 import { registrarVentaEnProceso } from "@/api/registrar-venta-en-proceso";
 import { registrarDetallesVentaEnProceso } from "@/api/registrar-detalles-venta-en-proceso";
+import { crearMetodoPago } from "@/api/crear-metodo-pago";
 
 // Steps enum for better type safety
 enum Step {
@@ -120,6 +119,7 @@ export default function Autopago() {
   const [products, setProducts] = useState<CarritoItemType[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
 
   /** Hook para acceder al estado de las tasas */
@@ -440,31 +440,94 @@ export default function Autopago() {
             amountPaid={totalPaid}
             existingPayments={metodosPago as any}
             convertirADolar={convertirADolar}
-            onComplete={(method: any, details: any) => {
-              const newPayment: PaymentMethod = {
-                method,
-                details: { ...details },
-              };
+            isProcessing={isProcessingPayment}
+            onComplete={async (method: any, details: any) => {
+              setIsProcessingPayment(true);
+              setError(null);
+              try {
+                let metodoPagoId: number | null = null;
 
-              // Type guard para detalles de tarjeta
-              if (method === "tarjetaCredito" || method === "tarjetaDebito") {
-                const cardDetails = details as TarjetaDetails;
-                cardDetails.tipo = getCardType(cardDetails.numeroTarjeta || "");
-                newPayment.details = cardDetails;
-              } else if (method === "efectivo") {
-                newPayment.details = details as EfectivoDetails;
-              } else if (method === "cheque") {
-                newPayment.details = details as any;
-              } else if (method === "puntos") {
-                newPayment.details = details as PuntosDetails;
+                const formatExpiryDateForDB = (expiryDate: string): string => {
+                  if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
+                    throw new Error("Formato de fecha de expiración inválido. Debe ser MM/YY.");
+                  }
+                  const [month, year] = expiryDate.split("/");
+                  const fullYear = `20${year}`;
+                  const date = new Date(Number(fullYear), Number(month), 0);
+                  const lastDay = date.getDate();
+                  return `${fullYear}-${month.padStart(2, "0")}-${String(lastDay).padStart(
+                    2,
+                    "0"
+                  )}`;
+                };
+
+                switch (method) {
+                  case "tarjetaCredito": {
+                    const cardDetails = details as TarjetaDetails;
+                    const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
+                    metodoPagoId = await crearMetodoPago({
+                      tipo: "tarjeta_credito",
+                      details: {
+                        tipo_tarjeta: getCardType(cardDetails.numeroTarjeta || ""),
+                        numero: parseInt(cardDetails.numeroTarjeta.replace(/\s/g, "")),
+                        banco: cardDetails.banco,
+                        fecha_vencimiento: expiryDate,
+                      },
+                    });
+                    break;
+                  }
+                  case "tarjetaDebito": {
+                    const cardDetails = details as TarjetaDetails;
+                    const expiryDate = formatExpiryDateForDB(cardDetails.fechaExpiracion);
+                    metodoPagoId = await crearMetodoPago({
+                      tipo: "tarjeta_debito",
+                      details: {
+                        numero: parseInt(cardDetails.numeroTarjeta.replace(/\s/g, "")),
+                        banco: cardDetails.banco,
+                        fecha_vencimiento: expiryDate,
+                      },
+                    });
+                    break;
+                  }
+                  case "efectivo": {
+                    const efectivoDetails = details as EfectivoDetails;
+                    metodoPagoId = await crearMetodoPago({
+                      tipo: "efectivo",
+                      details: {
+                        denominacion: efectivoDetails.denominacion,
+                      },
+                    });
+                    break;
+                  }
+                  case "puntos": {
+                    metodoPagoId = await crearMetodoPago({ tipo: "punto", details: {} });
+                    break;
+                  }
+                  case "cheque": {
+                    console.warn("Creación de método de pago 'cheque' no implementada.");
+                    metodoPagoId = -1;
+                    break;
+                  }
+                }
+
+                if (metodoPagoId === null && method !== "cheque") {
+                  throw new Error("No se pudo crear el método de pago en la base de datos.");
+                }
+
+                const newPayment: PaymentMethod = {
+                  method,
+                  details: { ...details, metodo_pago_id: metodoPagoId },
+                };
+
+                setMetodosPago([...metodosPago, newPayment]);
+                logVentaStore(`PAGO AGREGADO - ${method.toUpperCase()}`);
+                setCurrentStep(Step.PAYMENT_SUMMARY);
+              } catch (err: any) {
+                setError(err.message || "Error al procesar el método de pago.");
+                console.error(err);
+              } finally {
+                setIsProcessingPayment(false);
               }
-
-              setMetodosPago([...metodosPago, newPayment]);
-              logVentaStore(`PAGO AGREGADO - ${method.toUpperCase()}`);
-              // Si el pago no cubre el total, vuelve a la vista de pago.
-              // Esta lógica necesita ser más robusta, calculando si el total ha sido cubierto.
-              // Por ahora, siempre vamos al resumen.
-              setCurrentStep(Step.PAYMENT_SUMMARY);
             }}
             onCancel={() => setCurrentStep(Step.PRODUCT_SELECTION)}
             onViewSummary={() => setCurrentStep(Step.PAYMENT_SUMMARY)}
