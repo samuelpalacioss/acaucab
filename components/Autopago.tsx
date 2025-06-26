@@ -560,8 +560,15 @@ export default function Autopago() {
                       break;
                     }
                     case "cheque": {
-                      console.warn("Creación de método de pago 'cheque' no implementada.");
-                      break; // No se hace nada y no se lanza error
+                      metodoPagoParams = {
+                        tipo: "cheque",
+                        details: {
+                          numeroCheque: parseInt(details.numeroCheque),
+                          numeroCuenta: parseInt(details.numeroCuenta),
+                          banco: details.banco,
+                        },
+                      };
+                      break;
                     }
                     default:
                       throw new Error(`Método de pago desconocido: ${method}`);
