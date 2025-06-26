@@ -409,6 +409,7 @@ export default function Autopago() {
             originalTotal={total}
             amountPaid={totalPaid}
             existingPayments={metodosPago as any}
+            convertirADolar={convertirADolar}
             onComplete={(method: any, details: any) => {
               const newPayment: PaymentMethod = {
                 method,
@@ -446,6 +447,7 @@ export default function Autopago() {
             payments={metodosPago}
             items={carrito}
             total={total}
+            convertirADolar={convertirADolar}
             onConfirm={async () => {
               console.log("Creando venta con:", metodosPago);
               logVentaStore("INICIANDO CREACIÓN DE VENTA");

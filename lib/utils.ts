@@ -7,6 +7,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Floors a number to 2 decimal places and returns it as a string with two decimal points.
+ * This avoids potentially confusing rounding up in currency display.
+ * @param amount - The amount to format.
+ * @returns The formatted currency string.
+ */
+export const formatCurrency = (amount: number | null | undefined): string => {
+  if (amount === null || amount === undefined) {
+    return '0.00';
+  }
+  const flooredAmount = Math.floor(amount * 100) / 100;
+  return flooredAmount.toFixed(2);
+};
+
 export const getCardType = (cardNumber: string): string => {
   if (cardNumber.startsWith("4")) return "Visa";
   if (cardNumber.startsWith("5")) return "Mastercard";

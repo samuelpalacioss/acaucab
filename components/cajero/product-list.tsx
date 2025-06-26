@@ -6,6 +6,7 @@ import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Plus } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductListProps {
   products: CarritoItemType[];
@@ -90,7 +91,7 @@ export default function ProductList({
                   <p className="font-bold text-sm">Bs{product.precio.toFixed(2)}</p>
                   {convertirADolar(product.precio) !== null && (
                     <p className="text-xs text-gray-500">
-                      ${convertirADolar(product.precio)?.toFixed(2)}
+                      ${formatCurrency(convertirADolar(product.precio))}
                     </p>
                   )}
                 </div>
