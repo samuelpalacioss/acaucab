@@ -7,7 +7,7 @@
  * @param número - Número de tarjeta o cuenta
  * @param banco - Banco emisor (para tarjetas y cheques)
  * @param fecha_vencimiento - Fecha de vencimiento (para tarjetas)
- * @param número_cheque - Número del cheque (para cheques)
+ * @param numero_cheque - Número del cheque (para cheques)
  * @param fecha_adquisicion - Fecha de adquisición (para puntos)
  * @param fecha_canjeo - Fecha de canjeo (para puntos)
  */
@@ -19,14 +19,15 @@ CREATE TABLE metodo_pago (
     número            BIGINT UNIQUE,
     banco             VARCHAR(50),
     fecha_vencimiento DATE,
-    número_cheque     BIGINT UNIQUE,
+    numero_cheque     BIGINT UNIQUE,
+    numero_cuenta     BIGINT UNIQUE,
     fecha_adquisicion DATE,
     fecha_canjeo      DATE,
     CONSTRAINT metodo_pago_pk PRIMARY KEY (id),
     CONSTRAINT chk_efectivo CHECK (
         (tipo = 'efectivo' AND denominación IS NOT NULL AND 
          tipo_tarjeta IS NULL AND número IS NULL AND banco IS NULL AND 
-         fecha_vencimiento IS NULL AND número_cheque IS NULL AND 
+         fecha_vencimiento IS NULL AND numero_cheque IS NULL AND 
          fecha_adquisicion IS NULL AND fecha_canjeo IS NULL) OR
         (tipo != 'efectivo')
     ),
@@ -34,7 +35,7 @@ CREATE TABLE metodo_pago (
         (tipo = 'tarjeta_credito' AND tipo_tarjeta IS NOT NULL AND 
          número IS NOT NULL AND banco IS NOT NULL AND 
          fecha_vencimiento IS NOT NULL AND denominación IS NULL AND 
-         número_cheque IS NULL AND fecha_adquisicion IS NULL AND 
+         numero_cheque IS NULL AND fecha_adquisicion IS NULL AND 
          fecha_canjeo IS NULL) OR
         (tipo != 'tarjeta_credito')
     ),
@@ -42,11 +43,11 @@ CREATE TABLE metodo_pago (
         (tipo = 'punto' AND fecha_adquisicion IS NOT NULL AND 
          denominación IS NULL AND tipo_tarjeta IS NULL AND 
          número IS NULL AND banco IS NULL AND 
-         fecha_vencimiento IS NULL AND número_cheque IS NULL) OR
+         fecha_vencimiento IS NULL AND numero_cheque IS NULL) OR
         (tipo != 'punto')
     ),
     CONSTRAINT chk_cheque CHECK (
-        (tipo = 'cheque' AND número_cheque IS NOT NULL AND 
+        (tipo = 'cheque' AND numero_cheque IS NOT NULL AND 
          banco IS NOT NULL AND número IS NOT NULL AND 
          denominación IS NULL AND tipo_tarjeta IS NULL AND 
          fecha_vencimiento IS NULL AND fecha_adquisicion IS NULL AND 
@@ -57,7 +58,7 @@ CREATE TABLE metodo_pago (
         (tipo = 'tarjeta_debito' AND número IS NOT NULL AND 
          banco IS NOT NULL AND fecha_vencimiento IS NOT NULL AND 
          denominación IS NULL AND tipo_tarjeta IS NULL AND 
-         número_cheque IS NULL AND fecha_adquisicion IS NULL AND 
+         numero_cheque IS NULL AND fecha_adquisicion IS NULL AND 
          fecha_canjeo IS NULL) OR
         (tipo != 'tarjeta_debito')
     )

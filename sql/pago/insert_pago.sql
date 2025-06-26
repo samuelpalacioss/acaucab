@@ -33,7 +33,7 @@ INSERT INTO mensualidad (fecha_máxima_pago, fk_afiliacion, fk_miembro_1, fk_mie
 
 -- Insert data into método_pago
 -- 100 Points for the first 10 natural clients (10 points each)
-INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, número_cheque, fecha_adquisicion, fecha_canjeo) VALUES
+INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, numero_cheque, fecha_adquisicion, fecha_canjeo) VALUES
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),

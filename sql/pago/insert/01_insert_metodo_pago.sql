@@ -1,5 +1,5 @@
 -- Insert data into método_pago
-INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, número_cheque, fecha_adquisicion, fecha_canjeo) VALUES
+INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, numero_cheque, fecha_adquisicion, fecha_canjeo) VALUES
 -- Efectivo
 ('efectivo', 'Bs. 100', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('efectivo', 'Bs. 50', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
