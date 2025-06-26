@@ -234,10 +234,19 @@ export default function Autopago() {
   const subtotalUSD = convertirADolar(subtotal);
   const ivaUSD = convertirADolar(iva);
   const totalUSD = convertirADolar(total);
-  const totalPaid = metodosPago.reduce(
-    (sum, payment) => sum + (payment.details.amountPaid || 0),
-    0
-  );
+  const totalPaid = metodosPago.reduce((acc, p) => {
+    const details = p.details as any;
+    const amount = details.amountPaid || 0;
+
+    if (p.method === "efectivo" && details.currency && details.currency !== "bolivares") {
+      const currency = details.currency === "dolares" ? "USD" : "EUR";
+      const tasa = getTasa(currency);
+      const montoEnBs = amount * (tasa?.monto_equivalencia || 0);
+      return acc + montoEnBs;
+    }
+
+    return acc + amount;
+  }, 0);
   const remainingTotal = total - totalPaid;
 
   /** Funciones del carrito usando el store */

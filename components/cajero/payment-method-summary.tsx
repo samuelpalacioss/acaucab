@@ -8,6 +8,7 @@ import { Separator } from "@radix-ui/react-select";
 import { CarritoItemType, PaymentMethod, PaymentDetails } from "@/lib/schemas";
 import { getBancoNombre } from "@/components/ui/banco-selector";
 import { formatCurrency } from "@/lib/utils";
+import { useTasaStore } from "@/store/tasa-store";
 
 /**
  * Interface para los detalles del pago
@@ -37,6 +38,40 @@ export default function PaymentMethodSummary({
   onDeletePayment,
   convertirADolar,
 }: PaymentMethodSummaryProps) {
+  const { getTasa } = useTasaStore();
+
+  // Helper para agrupar los pagos en efectivo por denominación y moneda
+  const groupCashPayments = (payments: PaymentMethod[]) => {
+    const cashGroups: {
+      [key: string]: { payment: PaymentMethod; count: number; originalIndexes: number[] };
+    } = {};
+    const otherPayments: PaymentMethod[] = [];
+
+    payments.forEach((p, index) => {
+      if (p.method === "efectivo") {
+        const details = p.details as any;
+        const key = `${details.currency}-${details.amountPaid}`;
+        if (!cashGroups[key]) {
+          cashGroups[key] = { payment: p, count: 0, originalIndexes: [] };
+        }
+        cashGroups[key].count += 1;
+        cashGroups[key].originalIndexes.push(index);
+      } else {
+        otherPayments.push(p);
+      }
+    });
+
+    const groupedCash = Object.values(cashGroups).map((group) => {
+      const { payment, count, originalIndexes } = group;
+      // Adjuntamos la cuenta y los índices originales para poder eliminarlos
+      (payment.details as any).count = count;
+      (payment.details as any).originalIndexes = originalIndexes;
+      return payment;
+    });
+
+    return [...groupedCash, ...otherPayments];
+  };
+
   const getPaymentMethodName = (method: string) => {
     switch (method) {
       case "tarjetaCredito":
@@ -61,7 +96,9 @@ export default function PaymentMethodSummary({
     return "Tarjeta";
   };
 
-  const sortedPayments = [...payments].sort((a, b) =>
+  const groupedPayments = groupCashPayments(payments);
+
+  const sortedPayments = [...groupedPayments].sort((a, b) =>
     getPaymentMethodName(a.method).localeCompare(getPaymentMethodName(b.method))
   );
 
@@ -75,7 +112,19 @@ export default function PaymentMethodSummary({
   };
 
   const finalTotal = calculateFinalTotal();
-  const totalPaid = payments.reduce((acc, p) => acc + ((p.details as any).amountPaid || 0), 0);
+  const totalPaid = payments.reduce((acc, p) => {
+    const details = p.details as any;
+    const amount = details.amountPaid || 0;
+
+    if (p.method === "efectivo" && details.currency && details.currency !== "bolivares") {
+      const currency = details.currency === "dolares" ? "USD" : "EUR";
+      const tasa = getTasa(currency);
+      const montoEnBs = amount * (tasa?.monto_equivalencia || 0);
+      return acc + montoEnBs;
+    }
+
+    return acc + amount;
+  }, 0);
   const totalPaidUSD = convertirADolar(totalPaid);
 
   const faltaPorPagar = total - totalPaid > 0 ? total - totalPaid : 0;
@@ -100,14 +149,15 @@ export default function PaymentMethodSummary({
             <CardContent>
               {/* Lista de Métodos de Pago */}
               {sortedPayments.map((payment, sortedIndex) => {
-                const originalIndex = payments.findIndex((p) => p === payment);
-                const amountPaidUSD = convertirADolar((payment.details as any).amountPaid);
                 const isEfectivo = payment.method === "efectivo";
                 const isPuntos = payment.method === "puntos";
-                const currency = isEfectivo ? (payment.details as any).currency : null;
-                const amountInCurrency = isEfectivo
-                  ? (payment.details as any).amountInCurrency
-                  : null;
+                const details = payment.details as any;
+                const originalIndex = isEfectivo
+                  ? details.originalIndexes[0]
+                  : payments.findIndex((p) => p === payment);
+                const amountPaidUSD = convertirADolar(details.amountPaid);
+                const currency = isEfectivo ? details.currency : null;
+                const count = isEfectivo ? details.count : 1;
 
                 return (
                   <div
@@ -134,7 +184,16 @@ export default function PaymentMethodSummary({
                         {onDeletePayment &&
                           (payment.method === "efectivo" || payment.method === "puntos") && (
                             <button
-                              onClick={() => onDeletePayment(originalIndex)}
+                              onClick={() => {
+                                if (isEfectivo) {
+                                  // Eliminar todos los pagos de este grupo
+                                  details.originalIndexes
+                                    .reverse()
+                                    .forEach((idx: number) => onDeletePayment(idx));
+                                } else {
+                                  onDeletePayment(originalIndex);
+                                }
+                              }}
                               className="text-sm text-muted-foreground underline mt-1"
                             >
                               Eliminar
@@ -145,16 +204,19 @@ export default function PaymentMethodSummary({
                     <div className="text-right">
                       <p className="font-semibold text-base">
                         {isPuntos ? (
-                          <>{(payment.details as any).pointsToUse.toFixed(2)} puntos</>
-                        ) : isEfectivo && (currency === "dolares" || currency === "euros") ? (
+                          <>{details.pointsToUse.toFixed(2)} puntos</>
+                        ) : isEfectivo ? (
                           <>
-                            {currency === "dolares" ? "$" : "€"}
-                            {amountInCurrency.toFixed(2)}
+                            {currency === "dolares" ? "$" : currency === "euros" ? "€" : "Bs"}
+                            {details.amountPaid.toFixed(2)}
+                            {count > 1 && (
+                              <span className="text-sm text-gray-500 ml-1">({count}x)</span>
+                            )}
                           </>
                         ) : (
                           <>
-                            Bs {((payment.details as any).amountPaid || 0).toFixed(2)}{" "}
-                            {amountPaidUSD !== null && !isEfectivo && (
+                            Bs {(details.amountPaid || 0).toFixed(2)}{" "}
+                            {amountPaidUSD !== null && (
                               <span className="text-sm text-gray-500">
                                 (${formatCurrency(amountPaidUSD)})
                               </span>
