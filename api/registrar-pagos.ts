@@ -32,7 +32,7 @@ export async function registrarPagos(
       }
 
       // Determinar la moneda y obtener la tasa de cambio
-      let moneda = "VES"; // Moneda por defecto para pagos que no son en efectivo.
+      let moneda = "VES"; // Moneda por defecto para la mayoría de los pagos.
       if (pago.method === "efectivo" && details.currency) {
         if (details.currency === "dolares") {
           moneda = "USD";
@@ -40,6 +40,8 @@ export async function registrarPagos(
           moneda = "EUR";
         }
         // Si es 'bolivares', el valor de 'moneda' se mantiene como 'VES'.
+      } else if (pago.method === "puntos") {
+        moneda = "Punto";
       }
 
       const tasa = await getUltimaTasaByMoneda(moneda);
