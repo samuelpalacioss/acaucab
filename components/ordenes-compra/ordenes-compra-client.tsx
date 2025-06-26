@@ -1,92 +1,129 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode } from "react";
-import { Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { DateRangePicker } from "@/components/date-range-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OrdenesCompraTable } from "@/components/ordenes-compra-table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { obtenerTodasLasOrdenesDeCompra } from "@/lib/server-actions";
+import { OrdenCompraResumen } from "@/models/orden-compra";
+import { ArrowRight } from "lucide-react";
 
-interface OrdenesCompraClientProps {
-  pageTitle?: string;
-  actions?: ReactNode;
-}
+export function OrdenesCompraClient() {
+  const [ordenes, setOrdenes] = useState<OrdenCompraResumen[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-export function OrdenesCompraClient({ pageTitle = "Órdenes de Compra", actions }: OrdenesCompraClientProps) {
-  const [date, setDate] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: undefined,
-    to: undefined,
-  });
+  useEffect(() => {
+    const fetchOrdenes = async () => {
+      try {
+        setLoading(true);
+        const data = await obtenerTodasLasOrdenesDeCompra();
+        setOrdenes(data);
+      } catch (error) {
+        console.error("Error al obtener las órdenes de compra:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrdenes();
+  }, []);
+
+  const handleViewDetails = (id: number) => {
+    router.push(`/dashboard/inventario/ordenes/${id}`);
+  };
+
+  /** Formatear moneda */
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("es-VE", {
+      style: "currency",
+      currency: "VES",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+  
+  /** Formatear fecha */
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  /** Color del badge según el estado */
+  const getStatusBadgeColor = (estado: string): "default" | "secondary" | "destructive" | "outline" => {
+    const estadoLower = estado.toLowerCase();
+    switch (estadoLower) {
+      case "finalizado": return "default";
+      case "aprobado": return "secondary";
+      case "en proceso": return "outline";
+      case "cancelado": return "destructive";
+      default: return "outline";
+    }
+  };
+
+  if (loading) {
+    return <div>Cargando órdenes de compra...</div>;
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{pageTitle}</h1>
-        <div className="flex gap-2">{actions}</div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Filtros</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Buscar por número o proveedor..." className="pl-8" />
-            </div>
-
-            <DateRangePicker
-              date={{
-                from: date.from,
-                to: date.to,
-              }}
-              setDate={(newDate) => {
-                if (newDate) {
-                  setDate({
-                    from: newDate.from,
-                    to: newDate.to,
-                  });
-                }
-              }}
-            />
-
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enviada">Enviada</SelectItem>
-                <SelectItem value="aprobada">Aprobada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <Tabs defaultValue="all">
-            <TabsList className="mb-4">
-              <TabsTrigger value="all">Todas</TabsTrigger>
-              <TabsTrigger value="enviadas">Enviadas</TabsTrigger>
-              <TabsTrigger value="aprobadas">Aprobadas</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardHeader>
-        <CardContent>
-          <OrdenesCompraTable />
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Órdenes de Compra</CardTitle>
+        <CardDescription>
+          Aquí puedes ver un resumen de todas las órdenes de compra registradas.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID Orden</TableHead>
+              <TableHead>Fecha Solicitud</TableHead>
+              <TableHead>Proveedor</TableHead>
+              <TableHead>Solicitante</TableHead>
+              <TableHead className="text-right">Monto Total</TableHead>
+              <TableHead className="text-center">Estado</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {ordenes.length > 0 ? (
+              ordenes.map((orden) => (
+                <TableRow key={orden.orden_id}>
+                  <TableCell className="font-medium">#{orden.orden_id}</TableCell>
+                  <TableCell>{formatDate(orden.fecha_solicitud)}</TableCell>
+                  <TableCell>{orden.proveedor_razon_social || "N/A"}</TableCell>
+                  <TableCell>{orden.usuario_nombre || "N/A"}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(orden.precio_total)}</TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={getStatusBadgeColor(orden.estado_actual)}>
+                      {orden.estado_actual}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="outline" size="sm" onClick={() => handleViewDetails(orden.orden_id)}>
+                      Ver Detalles
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center">
+                  No se encontraron órdenes de compra.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
