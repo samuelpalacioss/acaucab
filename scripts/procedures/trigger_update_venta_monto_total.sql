@@ -18,11 +18,11 @@ BEGIN
     END IF;
 
     /*
-      Actualizar la venta con el nuevo monto total.
+      Actualizar la venta con el nuevo monto total, incluyendo el 16% de IVA.
     */
     UPDATE venta
     SET monto_total = (
-        SELECT COALESCE(SUM(cantidad * precio_unitario), 0)
+        SELECT COALESCE(SUM(cantidad * precio_unitario), 0) * 1.16
         FROM detalle_presentacion
         WHERE fk_venta = v_venta_id
     )

@@ -7,6 +7,7 @@ import {
   PaymentMethod,
 } from '@/lib/schemas';
 import { registrarPagos } from '@/api/registrar-pagos';
+import { finalizarDetallesVenta } from '@/api/finalizar-detalles-venta';
 
 
 /**
@@ -180,21 +181,14 @@ export const useVentaStore = create<VentaStore>()(
         set({ ventaId });
       }
 
-      /** 2. Crear los detalles de presentación usando fn_create_detalle_presentacion */
-      for (const item of carrito) {
-        const detalleData: DetalleVentaData = {
-          cantidad: item.quantity,
-          precio_unitario: item.precio,
-          fk_presentacion: parseInt(item.sku),
-          fk_cerveza: item.id_tipo_cerveza,
-          fk_venta: ventaId,
-        };
-
-        /** TODO: Llamar a la función SQL fn_create_detalle_presentacion */
-        // await createDetallePresentacion(detalleData);
+      /** 2. Actualizar los detalles de la venta con los precios finales. */
+      // Esto activará el trigger para actualizar el monto_total de la venta.
+      const detallesFinalizados = await finalizarDetallesVenta(ventaId, carrito);
+      if (!detallesFinalizados) {
+          throw new Error('No se pudieron actualizar los detalles de la venta.');
       }
 
-      /** 3. Crear los pagos usando la nueva función registrarPagos */
+      /** 3. Crear los pagos usando la función registrarPagos */
       const exitoPagos = await registrarPagos(metodosPago, ventaId);
 
       if (!exitoPagos) {
