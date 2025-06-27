@@ -31,7 +31,38 @@ export async function registrarPagos(
         );
       }
 
-      // Determinar la moneda y obtener la tasa de cambio
+      // Manejo especial para pago con puntos: un pago por cada punto.
+      if (pago.method === "puntos") {
+        const pointsToUse = details.pointsToUse;
+        if (typeof pointsToUse !== "number" || pointsToUse <= 0) {
+          console.warn("No se utilizaron puntos o el valor es inválido, saltando pago de puntos.");
+          continue; // Saltar al siguiente método de pago
+        }
+
+        const tasaPunto = await getUltimaTasaByMoneda("Punto");
+        if (!tasaPunto) {
+          throw new Error(`No se pudo encontrar una tasa de cambio activa para "Punto"`);
+        }
+
+        // Crear un registro de pago por cada punto utilizado
+        for (let i = 0; i < pointsToUse; i++) {
+          const params = {
+            p_monto: tasaPunto.monto_equivalencia, // Valor de 1 punto
+            p_fecha_pago: new Date().toISOString(),
+            p_fk_tasa: tasaPunto.id,
+            p_fk_venta: ventaId,
+            p_fk_cliente_metodo_pago_1: details.metodo_pago_id,
+          };
+          await llamarFuncionSingle("fn_create_pago_cliente", params);
+        }
+
+        console.log(
+          `Se registraron ${pointsToUse} pagos de 1 punto cada uno para la venta ${ventaId}.`
+        );
+        continue; // Continuar con el siguiente pago en la lista
+      }
+
+      // Lógica existente para otros métodos de pago
       let moneda = "VES"; // Moneda por defecto para la mayoría de los pagos.
       if (pago.method === "efectivo" && details.currency) {
         if (details.currency === "dolares") {
@@ -40,8 +71,6 @@ export async function registrarPagos(
           moneda = "EUR";
         }
         // Si es 'bolivares', el valor de 'moneda' se mantiene como 'VES'.
-      } else if (pago.method === "puntos") {
-        moneda = "Punto";
       }
 
       const tasa = await getUltimaTasaByMoneda(moneda);

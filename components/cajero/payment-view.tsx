@@ -221,7 +221,7 @@ export default function PaymentView({
   };
 
   const isPointsAmountValid = () => {
-    const totalInPoints = convertirBsAPuntos(totalInBs);
+    const totalInPoints = Math.floor(convertirBsAPuntos(totalInBs));
     return pointsToUse >= 0 && pointsToUse <= totalInPoints;
   };
 
@@ -676,11 +676,26 @@ export default function PaymentView({
                         id="pointsToUse"
                         type="number"
                         min={0}
+                        step="1"
                         value={pointsToUse || ""}
+                        onKeyDown={(e) => {
+                          // Prevent entering decimal points, 'e', '+', '-'
+                          if (
+                            e.key === "." ||
+                            e.key === "," ||
+                            e.key === "e" ||
+                            e.key === "+" ||
+                            e.key === "-"
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
                         onChange={(e) => {
-                          const maxPoints = convertirBsAPuntos(total);
-                          const value = Math.min(Number(e.target.value) || 0, maxPoints);
-                          setPointsToUse(value);
+                          const maxPoints = Math.floor(convertirBsAPuntos(total));
+                          const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
+                          if (!isNaN(value)) {
+                            setPointsToUse(Math.min(Math.max(0, value), maxPoints));
+                          }
                         }}
                         className={!isPointsAmountValid() ? "border-red-500" : ""}
                         placeholder="Ingrese la cantidad de puntos"
@@ -689,7 +704,7 @@ export default function PaymentView({
                       {!isPointsAmountValid() && pointsToUse > 0 && (
                         <p className="text-sm text-red-500">
                           Los puntos no pueden exceder el restante por pagar (máx:{" "}
-                          {convertirBsAPuntos(total).toFixed(0)} puntos)
+                          {Math.floor(convertirBsAPuntos(total))} puntos)
                         </p>
                       )}
                     </div>
