@@ -82,7 +82,7 @@ CREATE TABLE orden_de_compra (
     fecha_solicitud           DATE NOT NULL,                /** Fecha cuando se solicita la orden */
     fecha_entrega             DATE,                         /** Fecha estimada/real de entrega */
     observacion               VARCHAR(255),                 /** Observaciones adicionales de la orden */
-    fk_usuario               INTEGER,                      /** Referencia al empleado que hace la orden */
+    fk_usuario               INTEGER,                      /** Referencia al empleado que hace ela orden */
     fk_presentacion_cerveza_1 INTEGER NOT NULL,             /** Referencia a presentación cerveza - campo 1 */
     fk_presentacion_cerveza_2 INTEGER NOT NULL,         /** Referencia a presentación cerveza - campo 2 */
     unidades                  INTEGER NOT NULL,             /** Cantidad de unidades a ordenar */
