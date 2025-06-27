@@ -54,7 +54,7 @@ INSERT INTO metodo_pago (tipo, denominación, tipo_tarjeta, número, banco, fech
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
-('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
+('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', CURRENT_DATE - INTERVAL '28 days'),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
 ('punto', NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_DATE - INTERVAL '28 days', NULL),
@@ -328,10 +328,13 @@ INSERT INTO pago (
 
     /** VENTAS 11-50: Clientes naturales (2 ventas por cada cliente natural 1-20) */
     (39.00, CURRENT_DATE - INTERVAL '28 days' + TIME '09:05:00', 4, NULL, NULL, NULL, 11, NULL, NULL, NULL, 101), /** Venta 11: Cliente natural 1 - Tarjeta crédito Visa */
-    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '13:50:00', 4, NULL, NULL, NULL, 12, NULL, NULL, NULL, 101), /** Venta 12: Cliente natural 1 - Tarjeta crédito Visa */
-    (49.00, CURRENT_DATE - INTERVAL '28 days' + TIME '11:50:00', 4, NULL, NULL, NULL, 13, NULL, NULL, NULL, 102), /** Venta 13: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (13.00, CURRENT_DATE - INTERVAL '28 days' + TIME '13:50:00', 4, NULL, NULL, NULL, 12, NULL, NULL, NULL, 101), /** Venta 12: Cliente natural 1 - Tarjeta crédito Visa */
+    (1.00, CURRENT_DATE - INTERVAL '28 days' + TIME '13:50:00', 1, NULL, NULL, NULL, 12, NULL, NULL, NULL, 1), /** Venta 12: Cliente natural 1 -Puntos */
+    (48.00, CURRENT_DATE - INTERVAL '28 days' + TIME '11:50:00', 4, NULL, NULL, NULL, 13, NULL, NULL, NULL, 102), /** Venta 13: Cliente natural 2 - Tarjeta crédito MasterCard */
+    (1.00, CURRENT_DATE - INTERVAL '28 days' + TIME '11:50:00', 1, NULL, NULL, NULL, 13, NULL, NULL, NULL, 11), /** Venta 13: Cliente natural 2 - Punto */
     (29.00, CURRENT_DATE - INTERVAL '28 days' + TIME '14:35:00', 4, NULL, NULL, NULL, 14, NULL, NULL, NULL, 102), /** Venta 14: Cliente natural 2 - Tarjeta crédito MasterCard */
-    (14.00, CURRENT_DATE - INTERVAL '28 days' + TIME '18:30:00', 4, NULL, NULL, NULL, 15, NULL, NULL, NULL, 103), /** Venta 15: Cliente natural 3 - Tarjeta débito */
+    (13.00, CURRENT_DATE - INTERVAL '28 days' + TIME '18:30:00', 4, NULL, NULL, NULL, 15, NULL, NULL, NULL, 103), /** Venta 15: Cliente natural 3 - Tarjeta débito */
+    (1.00, CURRENT_DATE - INTERVAL '28 days' + TIME '18:30:00', 1, NULL, NULL, NULL, 15, NULL, NULL, NULL, 21), /** Venta 15: Cliente natural 3 - punto */
     (59.00, CURRENT_DATE - INTERVAL '25 days' + TIME '08:20:00', 7, NULL, NULL, NULL, 16, NULL, NULL, NULL, 103), /** Venta 16: Cliente natural 3 - Tarjeta débito */
     (27.00, CURRENT_DATE - INTERVAL '25 days' + TIME '09:35:00', 7, NULL, NULL, NULL, 17, NULL, NULL, NULL, 104), /** Venta 17: Cliente natural 4 - Tarjeta débito */
     (10.00, CURRENT_DATE - INTERVAL '25 days' + TIME '13:30:00', 7, NULL, NULL, NULL, 18, NULL, NULL, NULL, 104), /** Venta 18: Cliente natural 4 - Tarjeta débito */
@@ -412,3 +415,14 @@ INSERT INTO pago (
     (23.00, CURRENT_DATE + TIME '18:45:00', 31, NULL, NULL, NULL, 89, NULL, NULL, NULL, 131), /** Venta 89: Cliente jurídico 20 - Tarjeta crédito Visa */
     (39.00, CURRENT_DATE + TIME '19:00:00', 31, NULL, NULL, NULL, 90, NULL, NULL, NULL, 131); /** Venta 90: Cliente jurídico 20 - Tarjeta crédito Visa */
 
+INSERT INTO miembro_metodo_pago (fk_metodo_pago, fk_miembro_1, fk_miembro_2) VALUES
+(140,12345678,'J'),
+(139,111222333, 'J' ),
+(138,444555666, 'V'),
+(137,777888999, 'J'),
+(136,111333555, 'V'),
+(135,222444666, 'J'),
+(134,333555777, 'V'),
+(133,444666888, 'J'),
+(132,555777999, 'V'),
+(131,666888000, 'J');
