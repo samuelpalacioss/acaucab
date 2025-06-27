@@ -18,13 +18,7 @@ import {
   PresentacionType,
   PaymentDetails,
 } from "@/lib/schemas";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader, X } from "lucide-react";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
 import { useVentaStore, EfectivoDetails as StoreEfectivoDetails } from "@/store/venta-store";
@@ -77,9 +71,9 @@ const logVentaStore = (action?: string) => {
         .map(([value, count]) => `${value}: x${count}`)
         .join(", ");
       console.log(
-        `   ${index + 1}. ${pago.method}: ${pago.details.amountInCurrency} ${
-          pago.details.currency
-        } (Desglose: ${breakdownString || "N/A"})`
+        `   ${index + 1}. ${pago.method}: ${pago.details.amountInCurrency} ${pago.details.currency} (Desglose: ${
+          breakdownString || "N/A"
+        })`
       );
     } else {
       console.log(`   ${index + 1}. ${pago.method}:`, pago.details);
@@ -424,15 +418,11 @@ export default function Autopago() {
 
       case Step.CLIENT_WELCOME: {
         const clientName =
-          cliente?.tipo_cliente === "natural"
-            ? cliente.nombre_completo
-            : cliente?.denominacion_comercial;
+          cliente?.tipo_cliente === "natural" ? cliente.nombre_completo : cliente?.denominacion_comercial;
         return (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
             <h1 className="text-4xl font-bold mb-4">Hola, {clientName}!</h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Un momento mientras preparamos todo para ti.
-            </p>
+            <p className="text-lg text-muted-foreground mb-8">Un momento mientras preparamos todo para ti.</p>
             <Loader className="animate-spin" />
           </div>
         );
@@ -477,9 +467,7 @@ export default function Autopago() {
               setError(null);
               try {
                 if (!cliente || !cliente.id_cliente || !cliente.tipo_cliente) {
-                  throw new Error(
-                    "Información del cliente no disponible. Por favor, reinicie el proceso."
-                  );
+                  throw new Error("Información del cliente no disponible. Por favor, reinicie el proceso.");
                 }
 
                 const p_id_cliente = cliente.id_cliente;
@@ -508,9 +496,7 @@ export default function Autopago() {
                   let idIndex = 0;
 
                   // Crear un objeto de pago por cada billete para mostrar en el resumen
-                  for (const [denominacion, cantidad] of Object.entries(
-                    efectivoDetails.breakdown
-                  )) {
+                  for (const [denominacion, cantidad] of Object.entries(efectivoDetails.breakdown)) {
                     for (let i = 0; i < cantidad; i++) {
                       if (idIndex < result.length) {
                         newPayments.push({
@@ -542,10 +528,7 @@ export default function Autopago() {
                     const fullYear = `20${year}`;
                     const date = new Date(Number(fullYear), Number(month), 0);
                     const lastDay = date.getDate();
-                    return `${fullYear}-${month.padStart(2, "0")}-${String(lastDay).padStart(
-                      2,
-                      "0"
-                    )}`;
+                    return `${fullYear}-${month.padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
                   };
 
                   switch (method) {
@@ -595,11 +578,7 @@ export default function Autopago() {
                   }
 
                   if (metodoPagoParams) {
-                    const result = await crearMetodoPago(
-                      metodoPagoParams,
-                      p_id_cliente,
-                      p_tipo_cliente
-                    );
+                    const result = await crearMetodoPago(metodoPagoParams, p_id_cliente, p_tipo_cliente);
 
                     if (typeof result !== "number") {
                       throw new Error("No se pudo crear el método de pago en la base de datos.");

@@ -105,10 +105,7 @@ export default function PaymentMethodSummary({
   const calculateFinalTotal = () => {
     const puntosPayments = payments.filter((p) => p.method === "puntos");
     if (puntosPayments.length > 0) {
-      const puntosDiscount = puntosPayments.reduce(
-        (acc, p) => acc + ((p.details as any).amountPaid || 0),
-        0
-      );
+      const puntosDiscount = puntosPayments.reduce((acc, p) => acc + ((p.details as any).amountPaid || 0), 0);
       return total - puntosDiscount;
     }
     return total;
@@ -163,10 +160,7 @@ export default function PaymentMethodSummary({
                 const count = isEfectivo ? details.count : 1;
 
                 return (
-                  <div
-                    key={originalIndex}
-                    className="flex items-center justify-between py-3 border-b"
-                  >
+                  <div key={originalIndex} className="flex items-center justify-between py-3 border-b">
                     <div className="flex items-center gap-4">
                       <span className="bg-blue-100 text-blue-800 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold">
                         {sortedIndex + 1}
@@ -174,34 +168,28 @@ export default function PaymentMethodSummary({
                       <div>
                         <p className="font-semibold">
                           {getPaymentMethodName(payment.method)}
-                          {payment.method.includes("tarjeta") &&
-                            (payment.details as any).numeroTarjeta && (
-                              <span className="ml-2 font-normal text-gray-500">
-                                {getCardType((payment.details as any).numeroTarjeta)} -{" "}
-                                {(payment.details as any).numeroTarjeta
-                                  .replace(/\s/g, "")
-                                  .slice(-4)}
-                              </span>
-                            )}
-                        </p>
-                        {onDeletePayment &&
-                          (payment.method === "efectivo" || payment.method === "puntos") && (
-                            <button
-                              onClick={() => {
-                                if (isEfectivo) {
-                                  // Eliminar todos los pagos de este grupo
-                                  details.originalIndexes
-                                    .reverse()
-                                    .forEach((idx: number) => onDeletePayment(idx));
-                                } else {
-                                  onDeletePayment(originalIndex);
-                                }
-                              }}
-                              className="text-sm text-muted-foreground underline mt-1"
-                            >
-                              Eliminar
-                            </button>
+                          {payment.method.includes("tarjeta") && (payment.details as any).numeroTarjeta && (
+                            <span className="ml-2 font-normal text-gray-500">
+                              {getCardType((payment.details as any).numeroTarjeta)} -{" "}
+                              {(payment.details as any).numeroTarjeta.replace(/\s/g, "").slice(-4)}
+                            </span>
                           )}
+                        </p>
+                        {onDeletePayment && (payment.method === "efectivo" || payment.method === "puntos") && (
+                          <button
+                            onClick={() => {
+                              if (isEfectivo) {
+                                // Eliminar todos los pagos de este grupo
+                                details.originalIndexes.reverse().forEach((idx: number) => onDeletePayment(idx));
+                              } else {
+                                onDeletePayment(originalIndex);
+                              }
+                            }}
+                            className="text-sm text-muted-foreground underline mt-1"
+                          >
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
@@ -209,25 +197,19 @@ export default function PaymentMethodSummary({
                         {isPuntos ? (
                           <>
                             Bs {(details.amountPaid || 0).toFixed(2)}{" "}
-                            <span className="text-sm text-gray-500">
-                              ({details.pointsToUse} puntos)
-                            </span>
+                            <span className="text-sm text-gray-500">({details.pointsToUse} puntos)</span>
                           </>
                         ) : isEfectivo ? (
                           <>
                             {currency === "dolares" ? "$" : currency === "euros" ? "€" : "Bs"}
                             {details.amountPaid.toFixed(2)}
-                            {count > 1 && (
-                              <span className="text-sm text-gray-500 ml-1">({count}x)</span>
-                            )}
+                            {count > 1 && <span className="text-sm text-gray-500 ml-1">({count}x)</span>}
                           </>
                         ) : (
                           <>
                             Bs {(details.amountPaid || 0).toFixed(2)}{" "}
                             {amountPaidUSD !== null && (
-                              <span className="text-sm text-gray-500">
-                                (${formatCurrency(amountPaidUSD)})
-                              </span>
+                              <span className="text-sm text-gray-500">(${formatCurrency(amountPaidUSD)})</span>
                             )}
                           </>
                         )}
@@ -256,9 +238,7 @@ export default function PaymentMethodSummary({
                     <p>
                       Bs {totalPaid.toFixed(2)}{" "}
                       {totalPaidUSD !== null && (
-                        <span className="text-sm text-gray-500">
-                          (${formatCurrency(totalPaidUSD)})
-                        </span>
+                        <span className="text-sm text-gray-500">(${formatCurrency(totalPaidUSD)})</span>
                       )}
                     </p>
                   </div>
@@ -269,9 +249,7 @@ export default function PaymentMethodSummary({
                     <p className="text-orange-600">
                       Bs {faltaPorPagar.toFixed(2)}{" "}
                       {faltaPorPagarUSD !== null && (
-                        <span className="text-sm text-gray-500">
-                          (${formatCurrency(faltaPorPagarUSD)})
-                        </span>
+                        <span className="text-sm text-gray-500">(${formatCurrency(faltaPorPagarUSD)})</span>
                       )}
                     </p>
                   </div>

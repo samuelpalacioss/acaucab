@@ -20,13 +20,7 @@ import {
 } from "lucide-react";
 import { TarjetaForm } from "../steps/tarjeta-form";
 import { BancoSelector, getBancoNombre } from "@/components/ui/banco-selector";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import OrderSummaryCard from "./order-summary-card";
@@ -48,12 +42,7 @@ const currencySymbols = {
   euros: "€",
 };
 
-export type AvailablePaymentMethods =
-  | "tarjetaCredito"
-  | "tarjetaDebito"
-  | "efectivo"
-  | "cheque"
-  | "puntos";
+export type AvailablePaymentMethods = "tarjetaCredito" | "tarjetaDebito" | "efectivo" | "cheque" | "puntos";
 
 type PaymentDetails = Record<string, any>;
 
@@ -214,8 +203,7 @@ export default function PaymentView({
 
   const isChequeAmountValid = () => {
     if (!chequeAmount) return true;
-    const amount =
-      typeof chequeAmount === "number" ? chequeAmount : parseFloat(chequeAmount.toString());
+    const amount = typeof chequeAmount === "number" ? chequeAmount : parseFloat(chequeAmount.toString());
     const amountInCents = Math.round(amount * 100);
     const totalInCents = Math.round(totalInBs * 100);
     return amountInCents > 0 && amountInCents <= totalInCents;
@@ -265,9 +253,7 @@ export default function PaymentView({
           fechaExpiracion: cardData.fechaExpiracion,
           banco: getBancoNombre(selectedBank),
         };
-        amountPaid = parseFloat(
-          (typeof cardAmount === "number" ? cardAmount : totalInBs).toFixed(2)
-        );
+        amountPaid = parseFloat((typeof cardAmount === "number" ? cardAmount : totalInBs).toFixed(2));
         break;
       case "tarjetaDebito":
         details = {
@@ -276,9 +262,7 @@ export default function PaymentView({
           fechaExpiracion: cardData.fechaExpiracion,
           banco: getBancoNombre(selectedBank),
         };
-        amountPaid = parseFloat(
-          (typeof cardAmount === "number" ? cardAmount : totalInBs).toFixed(2)
-        );
+        amountPaid = parseFloat((typeof cardAmount === "number" ? cardAmount : totalInBs).toFixed(2));
         break;
       case "efectivo":
         details = {
@@ -291,8 +275,7 @@ export default function PaymentView({
         break;
       case "cheque":
         details = { numeroCheque, banco: getBancoNombre(bancoCheque) };
-        amountPaid =
-          typeof chequeAmount === "number" && chequeAmount > 0 ? chequeAmount : totalInBs;
+        amountPaid = typeof chequeAmount === "number" && chequeAmount > 0 ? chequeAmount : totalInBs;
         break;
       case "puntos":
         details = { pointsToUse };
@@ -441,10 +424,7 @@ export default function PaymentView({
                         </div>
                       </RadioGroup>
                     </div>
-                    <TarjetaForm
-                      onDataChange={handleCardDataChange}
-                      onValidationChange={handleCardValidationChange}
-                    />
+                    <TarjetaForm onDataChange={handleCardDataChange} onValidationChange={handleCardValidationChange} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="bankSelector">Banco Emisor</Label>
@@ -468,15 +448,12 @@ export default function PaymentView({
                           step="0.01"
                           placeholder={total.toFixed(2)}
                           value={cardAmount}
-                          onChange={(e) =>
-                            setCardAmount(e.target.value ? Number(e.target.value) : "")
-                          }
+                          onChange={(e) => setCardAmount(e.target.value ? Number(e.target.value) : "")}
                           className={!isCardAmountValid() ? "border-red-500" : ""}
                         />
                         {!isCardAmountValid() && cardAmount && (
                           <p className="text-sm text-red-500">
-                            El monto no puede ser mayor al restante por pagar (Bs {total.toFixed(2)}
-                            )
+                            El monto no puede ser mayor al restante por pagar (Bs {total.toFixed(2)})
                           </p>
                         )}
                       </div>
@@ -553,8 +530,7 @@ export default function PaymentView({
                         <div className="h-5">
                           {!isCashAmountValid() && cashReceived && (
                             <p className="text-sm text-red-500">
-                              El monto no puede ser mayor al restante por pagar (Bs{" "}
-                              {total.toFixed(2)})
+                              El monto no puede ser mayor al restante por pagar (Bs {total.toFixed(2)})
                             </p>
                           )}
                         </div>
@@ -590,9 +566,7 @@ export default function PaymentView({
                             differenceInBs < 0 ? "text-red-600" : "text-red-600"
                           }`}
                         >
-                          <span>
-                            {differenceInBs < 0 ? "Faltaría por pagar:" : "Monto excedido por:"}
-                          </span>
+                          <span>{differenceInBs < 0 ? "Faltaría por pagar:" : "Monto excedido por:"}</span>
                           <span>Bs {formatCurrency(Math.abs(differenceInBs))}</span>
                         </div>
                       )}
@@ -610,9 +584,7 @@ export default function PaymentView({
                           placeholder="000123456"
                           className={submitted && !numeroCheque.trim() ? "border-red-500" : ""}
                         />
-                        {submitted && !numeroCheque.trim() && (
-                          <p className="text-sm text-red-500">Campo requerido</p>
-                        )}
+                        {submitted && !numeroCheque.trim() && <p className="text-sm text-red-500">Campo requerido</p>}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -637,9 +609,7 @@ export default function PaymentView({
                         step="0.01"
                         placeholder={total.toFixed(2)}
                         value={chequeAmount}
-                        onChange={(e) =>
-                          setChequeAmount(e.target.value ? Number(e.target.value) : "")
-                        }
+                        onChange={(e) => setChequeAmount(e.target.value ? Number(e.target.value) : "")}
                         className={!isChequeAmountValid() ? "border-red-500" : ""}
                       />
                       {!isChequeAmountValid() && chequeAmount ? (
@@ -652,9 +622,7 @@ export default function PaymentView({
 
                   <TabsContent value="puntos" className="space-y-4">
                     <div className="p-4 bg-gray-50 rounded-md text-sm mb-4">
-                      <p className="font-medium">
-                        Equivalencia de puntos: 1 Punto = {tasaPunto.toFixed(2)} Bs.
-                      </p>
+                      <p className="font-medium">Equivalencia de puntos: 1 Punto = {tasaPunto.toFixed(2)} Bs.</p>
                       <p>
                         Puntos disponibles: <span className="font-bold">{puntosDisponibles}</span>
                       </p>
@@ -670,13 +638,7 @@ export default function PaymentView({
                         value={pointsToUse || ""}
                         onKeyDown={(e) => {
                           // Prevent entering decimal points, 'e', '+', '-'
-                          if (
-                            e.key === "." ||
-                            e.key === "," ||
-                            e.key === "e" ||
-                            e.key === "+" ||
-                            e.key === "-"
-                          ) {
+                          if (e.key === "." || e.key === "," || e.key === "e" || e.key === "+" || e.key === "-") {
                             e.preventDefault();
                           }
                         }}
@@ -684,9 +646,7 @@ export default function PaymentView({
                           const maxPoints = Math.floor(convertirBsAPuntos(total));
                           const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
                           if (!isNaN(value)) {
-                            setPointsToUse(
-                              Math.min(Math.max(0, value), maxPoints, puntosDisponibles)
-                            );
+                            setPointsToUse(Math.min(Math.max(0, value), maxPoints, puntosDisponibles));
                           }
                         }}
                         className={!isPointsAmountValid() ? "border-red-500" : ""}
