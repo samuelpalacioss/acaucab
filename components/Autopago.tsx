@@ -34,6 +34,7 @@ import { useTasaStore } from "@/store/tasa-store";
 import { registrarVentaEnProceso } from "@/api/registrar-venta-en-proceso";
 import { registrarDetallesVentaEnProceso } from "@/api/registrar-detalles-venta-en-proceso";
 import { crearMetodoPago } from "@/api/crear-metodo-pago";
+import { getPuntos } from "@/api/get-puntos";
 
 // Steps enum for better type safety
 enum Step {
@@ -122,6 +123,7 @@ export default function Autopago() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [puntosDisponibles, setPuntosDisponibles] = useState(0);
   const categories = ["Especial", "Pale", "Negra", "IPA"];
 
   /** Hook para acceder al estado de las tasas */
@@ -320,6 +322,12 @@ export default function Autopago() {
 
       if (clienteEncontrado !== null) {
         setCliente(clienteEncontrado);
+        if (clienteEncontrado.id_usuario) {
+          const puntos = await getPuntos(clienteEncontrado.id_usuario);
+          if (puntos !== null) {
+            setPuntosDisponibles(puntos);
+          }
+        }
         logVentaStore("CLIENTE AUTENTICADO");
         setCurrentStep(Step.CLIENT_WELCOME);
       } else {
@@ -463,6 +471,7 @@ export default function Autopago() {
             existingPayments={metodosPago as any}
             convertirADolar={convertirADolar}
             isProcessing={isProcessingPayment}
+            puntosDisponibles={puntosDisponibles}
             onComplete={async (method: any, details: any) => {
               setIsProcessingPayment(true);
               setError(null);
