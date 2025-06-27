@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { crearClienteServerAction } from '@/lib/supabase'
+import { ejecutarFuncionPostgres } from '@/lib/postgres'
 import { LoginUsuario, LoginResponse } from '@/models/login'
 import { InventoryData } from '@/models/inventory'
 import { OrdenesReposicionData } from '@/models/orden-reposicion'
@@ -23,16 +23,9 @@ export async function llamarFuncion<T = any>(
   nombreFuncion: string,
   parametros: Record<string, any> = {}
 ): Promise<T[]> {
-  const supabase = crearClienteServerAction()
-
   try {
-    const { data, error } = await supabase.rpc(nombreFuncion, parametros)
-
-    if (error) {
-      console.error(`Error en función ${nombreFuncion}:`, error)
-      throw new Error(`Error: ${error.message}`)
-    }
-
+    // Ahora usa PostgreSQL directamente en lugar de Supabase
+    const data = await ejecutarFuncionPostgres<T>(nombreFuncion, parametros)
     return data || []
   } catch (error: any) {
     console.error(`Error al llamar ${nombreFuncion}:`, error)

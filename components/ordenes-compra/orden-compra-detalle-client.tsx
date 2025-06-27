@@ -20,7 +20,6 @@ interface OrdenCompraDetalleClientProps {
 }
 
 export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendiente" }: OrdenCompraDetalleClientProps) {
-
   const { puedeEditarOrdenesDeCompra, puedeEditarOrdenesDeCompraProveedor } = usePermissions();
   const { usuario, esMiembro, getMiembroInfo } = useUser();
   const [isEditStatusModalOpen, setIsEditStatusModalOpen] = useState(false);
@@ -32,14 +31,11 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
   /** Función para verificar si el usuario es el miembro correspondiente a esta orden */
   const esElMiembroCorrespondiente = (): boolean => {
     if (!esMiembro()) return false;
-    
+
     const miembroInfo = getMiembroInfo();
     if (!miembroInfo || !orden.proveedor_rif || !orden.proveedor_naturaleza_rif) return false;
-    
-    return (
-      miembroInfo.rif === orden.proveedor_rif &&
-      miembroInfo.naturaleza_rif === orden.proveedor_naturaleza_rif
-    );
+
+    return miembroInfo.rif === orden.proveedor_rif && miembroInfo.naturaleza_rif === orden.proveedor_naturaleza_rif;
   };
 
   /** Función para obtener los estados disponibles según la jerarquía y permisos del usuario */
@@ -53,12 +49,12 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
       if (!esMiembroOrdenCorrespondiente) {
         return []; // No puede editar órdenes que no le corresponden
       }
-      
+
       // Los miembros solo pueden editar órdenes en estado "aprobado"
       if (estadoLower === "aprobado") {
         return ["En Proceso", "cancelado"];
       }
-      
+
       return []; // No puede editar en otros estados
     }
 
@@ -82,12 +78,12 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
       if (!esMiembroOrdenCorrespondiente) {
         return []; // No puede editar órdenes que no le corresponden
       }
-      
+
       // Solo puede editar órdenes en estado "aprobado"
       if (estadoLower === "aprobado") {
         return ["En Proceso", "cancelado"];
       }
-      
+
       return []; // No puede editar en otros estados
     }
 
@@ -145,7 +141,7 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
       try {
         // Solo incluir observación si el estado es "finalizado"
         const observacionFinal = newStatus.toLowerCase() === "finalizado" ? observation : undefined;
-        
+
         await actualizarEstadoOrdenCompra(orden.orden_id, newStatus, usuario.id, observacionFinal);
         setIsEditStatusModalOpen(false);
         setNewStatus("");
@@ -191,7 +187,7 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
   const canEditStatus = getAvailableStatusOptions(estadoActual).length > 0;
 
   /** Función para obtener mensaje explicativo sobre permisos de edición */
-  const getPermissionMessage = (): { canEdit: boolean; message: string; type: 'info' | 'warning' | 'success' } => {
+  const getPermissionMessage = (): { canEdit: boolean; message: string; type: "info" | "warning" | "success" } => {
     const esMiembroOrdenCorrespondiente = esElMiembroCorrespondiente();
     const estadoLower = estadoActual.toLowerCase();
 
@@ -201,20 +197,21 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
         return {
           canEdit: false,
           message: "Esta orden pertenece a otro proveedor. Solo puedes editar órdenes asignadas a tu empresa.",
-          type: 'warning'
+          type: "warning",
         };
       }
       if (estadoLower !== "aprobado") {
         return {
           canEdit: false,
           message: `Como proveedor, solo puedes editar órdenes en estado "Aprobado". Estado actual: ${estadoActual}`,
-          type: 'info'
+          type: "info",
         };
       }
       return {
         canEdit: true,
-        message: "Puedes cambiar esta orden a 'En Proceso' para comenzar a trabajar en ella, o 'Cancelado' si no puedes cumplirla.",
-        type: 'success'
+        message:
+          "Puedes cambiar esta orden a 'En Proceso' para comenzar a trabajar en ella, o 'Cancelado' si no puedes cumplirla.",
+        type: "success",
       };
     }
 
@@ -224,20 +221,21 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
         return {
           canEdit: false,
           message: "Esta orden ya está finalizada o cancelada y no puede ser modificada.",
-          type: 'info'
+          type: "info",
         };
       }
       if (estadoLower === "aprobado") {
         return {
           canEdit: true,
-          message: "Como empleado, solo puedes cancelar órdenes aprobadas. Para ponerlas 'En Proceso' debe hacerlo el proveedor correspondiente.",
-          type: 'info'
+          message:
+            "Como empleado, solo puedes cancelar órdenes aprobadas. Para ponerlas 'En Proceso' debe hacerlo el proveedor correspondiente.",
+          type: "info",
         };
       }
       return {
         canEdit: true,
         message: "Como empleado, puedes aprobar órdenes pendientes y finalizar órdenes en proceso.",
-        type: 'success'
+        type: "success",
       };
     }
 
@@ -246,14 +244,14 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
       return {
         canEdit: false,
         message: "Tienes permisos de proveedor pero no estás registrado como miembro. Contacta al administrador.",
-        type: 'warning'
+        type: "warning",
       };
     }
 
     return {
       canEdit: false,
       message: "No tienes permisos para editar órdenes de compra.",
-      type: 'warning'
+      type: "warning",
     };
   };
 
@@ -263,15 +261,13 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Orden de Compra #{orden.orden_id}</h1>
-          <p className="text-muted-foreground mt-1">
-            Solicitada el {formatDate(orden.fecha_solicitud)}
-          </p>
+          <p className="text-muted-foreground mt-1">Solicitada el {formatDate(orden.fecha_solicitud)}</p>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant={getStatusBadgeColor(estadoActual)} className="text-sm px-3 py-1">
             {estadoActual}
           </Badge>
-          {canEditStatus && (
+          {canEditStatus && (puedeEditarOrdenesDeCompra() || puedeEditarOrdenesDeCompraProveedor()) && (
             <Button onClick={handleEditStatus} variant="outline">
               <Edit className="h-4 w-4 mr-2" />
               Editar Estado
@@ -283,43 +279,36 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
       {/** Información de permisos de edición */}
       {(() => {
         const permissionInfo = getPermissionMessage();
-        const bgColor = permissionInfo.type === 'success' 
-          ? 'bg-green-50 border-green-200' 
-          : permissionInfo.type === 'warning' 
-          ? 'bg-amber-50 border-amber-200' 
-          : 'bg-blue-50 border-blue-200';
-        const textColor = permissionInfo.type === 'success' 
-          ? 'text-green-800' 
-          : permissionInfo.type === 'warning' 
-          ? 'text-amber-800' 
-          : 'text-blue-800';
-        
+        const bgColor =
+          permissionInfo.type === "success"
+            ? "bg-green-50 border-green-200"
+            : permissionInfo.type === "warning"
+            ? "bg-amber-50 border-amber-200"
+            : "bg-blue-50 border-blue-200";
+        const textColor =
+          permissionInfo.type === "success"
+            ? "text-green-800"
+            : permissionInfo.type === "warning"
+            ? "text-amber-800"
+            : "text-blue-800";
+
         return (
           <Card className={bgColor}>
             <CardContent className="pt-4">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-1">
-                  {permissionInfo.type === 'success' && (
-                    <Check className="h-5 w-5 text-green-600" />
-                  )}
-                  {permissionInfo.type === 'warning' && (
-                    <X className="h-5 w-5 text-amber-600" />
-                  )}
-                  {permissionInfo.type === 'info' && (
-                    <Package className="h-5 w-5 text-blue-600" />
-                  )}
+                  {permissionInfo.type === "success" && <Check className="h-5 w-5 text-green-600" />}
+                  {permissionInfo.type === "warning" && <X className="h-5 w-5 text-amber-600" />}
+                  {permissionInfo.type === "info" && <Package className="h-5 w-5 text-blue-600" />}
                 </div>
                 <div className="flex-grow">
                   <p className={`text-sm font-medium ${textColor} mb-1`}>
-                    {permissionInfo.canEdit ? 'Permisos de Edición' : 'Restricciones de Edición'}
+                    {permissionInfo.canEdit ? "Permisos de Edición" : "Restricciones de Edición"}
                   </p>
-                  <p className={`text-sm ${textColor}`}>
-                    {permissionInfo.message}
-                  </p>
+                  <p className={`text-sm ${textColor}`}>{permissionInfo.message}</p>
                   {esMiembro() && esElMiembroCorrespondiente() && (
                     <p className="text-xs text-gray-600 mt-2">
                       • RIF de tu empresa: {getMiembroInfo()?.naturaleza_rif}-{getMiembroInfo()?.rif}
-                      
                     </p>
                   )}
                 </div>
@@ -399,9 +388,9 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
               <p className="text-2xl font-bold text-primary">{orden.unidades_solicitadas}</p>
             </div>
           </div>
-          
+
           <Separator />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Precio Unitario</p>
@@ -409,9 +398,7 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Precio Total</p>
-              <p className="text-2xl font-bold text-green-600">
-                {formatCurrency(orden.precio_total)}
-              </p>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(orden.precio_total)}</p>
             </div>
           </div>
         </CardContent>
@@ -463,9 +450,7 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
               <p className="text-sm text-muted-foreground">Proveedor</p>
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                <p className="text-lg font-semibold">
-                  {orden.proveedor_razon_social || "No especificado"}
-                </p>
+                <p className="text-lg font-semibold">{orden.proveedor_razon_social || "No especificado"}</p>
               </div>
             </div>
           </CardContent>
@@ -542,11 +527,7 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
               <X className="h-4 w-4 mr-2" />
               Cancelar
             </Button>
-            <Button
-              onClick={handleAcceptStatusChange}
-              className="flex-1"
-              disabled={!newStatus || isUpdatingStatus}
-            >
+            <Button onClick={handleAcceptStatusChange} className="flex-1" disabled={!newStatus || isUpdatingStatus}>
               <Check className="h-4 w-4 mr-2" />
               {isUpdatingStatus ? "Actualizando..." : "Actualizar Estado"}
             </Button>
@@ -555,4 +536,4 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
       </Dialog>
     </div>
   );
-} 
+}
