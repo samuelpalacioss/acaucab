@@ -103,10 +103,13 @@ export default function PaymentMethodSummary({
   );
 
   const calculateFinalTotal = () => {
-    if (payments.some((p) => p.method === "puntos" && (p.details as any).pointsToUse)) {
-      return (
-        total - payments.reduce((acc, p) => acc + ((p.details as any).pointsToUse || 0) / 100, 0)
+    const puntosPayments = payments.filter((p) => p.method === "puntos");
+    if (puntosPayments.length > 0) {
+      const puntosDiscount = puntosPayments.reduce(
+        (acc, p) => acc + ((p.details as any).amountPaid || 0),
+        0
       );
+      return total - puntosDiscount;
     }
     return total;
   };
@@ -204,7 +207,12 @@ export default function PaymentMethodSummary({
                     <div className="text-right">
                       <p className="font-semibold text-base">
                         {isPuntos ? (
-                          <>{details.pointsToUse.toFixed(2)} puntos</>
+                          <>
+                            Bs {(details.amountPaid || 0).toFixed(2)}{" "}
+                            <span className="text-sm text-gray-500">
+                              ({details.pointsToUse} puntos)
+                            </span>
+                          </>
                         ) : isEfectivo ? (
                           <>
                             {currency === "dolares" ? "$" : currency === "euros" ? "€" : "Bs"}

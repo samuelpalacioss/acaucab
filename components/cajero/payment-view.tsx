@@ -74,6 +74,8 @@ interface PaymentViewProps {
   existingPayments?: ExistingPayment[];
   /** Flag para indicar que el pago está en proceso */
   isProcessing?: boolean;
+  /** Puntos que el cliente tiene disponibles */
+  puntosDisponibles?: number;
   onComplete: (paymentMethod: AvailablePaymentMethods, details: PaymentDetails) => void;
   onCancel: () => void;
   /** Callback para ir al resumen de pagos */
@@ -88,6 +90,7 @@ export default function PaymentView({
   amountPaid = 0,
   existingPayments,
   isProcessing,
+  puntosDisponibles = 0,
   onComplete,
   onCancel,
   onViewSummary,
@@ -175,8 +178,6 @@ export default function PaymentView({
   const [confirmationCode, setConfirmationCode] = useState("");
 
   // Points payment state
-  const [customerId, setCustomerId] = useState("");
-  const [pointsAvailable, setPointsAvailable] = useState(0);
   const [pointsToUse, setPointsToUse] = useState(0);
 
   // Validation functions
@@ -222,7 +223,7 @@ export default function PaymentView({
 
   const isPointsAmountValid = () => {
     const totalInPoints = Math.floor(convertirBsAPuntos(totalInBs));
-    return pointsToUse >= 0 && pointsToUse <= totalInPoints;
+    return pointsToUse >= 0 && pointsToUse <= totalInPoints && pointsToUse <= puntosDisponibles;
   };
 
   const isFormValid = () => {
@@ -294,26 +295,12 @@ export default function PaymentView({
           typeof chequeAmount === "number" && chequeAmount > 0 ? chequeAmount : totalInBs;
         break;
       case "puntos":
-        details = { customerId, pointsToUse };
+        details = { pointsToUse };
         amountPaid = convertirPuntosABs(pointsToUse);
         break;
     }
 
     onComplete(paymentMethod, { ...details, amountPaid } as any);
-  };
-
-  // Mock function to simulate fetching customer points
-  const fetchCustomerPoints = () => {
-    if (customerId.trim()) {
-      // Simulate API call
-      setTimeout(() => {
-        const mockPoints = Math.floor(Math.random() * 5000) + 1000;
-        setPointsAvailable(mockPoints);
-        // Set default points to use (convert from total)
-        const defaultPointsToUse = Math.min(mockPoints, Math.floor(total * 100));
-        setPointsToUse(defaultPointsToUse);
-      }, 500);
-    }
   };
 
   // Calculate cart summary
@@ -668,6 +655,9 @@ export default function PaymentView({
                       <p className="font-medium">
                         Equivalencia de puntos: 1 Punto = {tasaPunto.toFixed(2)} Bs.
                       </p>
+                      <p>
+                        Puntos disponibles: <span className="font-bold">{puntosDisponibles}</span>
+                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -694,7 +684,9 @@ export default function PaymentView({
                           const maxPoints = Math.floor(convertirBsAPuntos(total));
                           const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
                           if (!isNaN(value)) {
-                            setPointsToUse(Math.min(Math.max(0, value), maxPoints));
+                            setPointsToUse(
+                              Math.min(Math.max(0, value), maxPoints, puntosDisponibles)
+                            );
                           }
                         }}
                         className={!isPointsAmountValid() ? "border-red-500" : ""}
@@ -704,7 +696,7 @@ export default function PaymentView({
                       {!isPointsAmountValid() && pointsToUse > 0 && (
                         <p className="text-sm text-red-500">
                           Los puntos no pueden exceder el restante por pagar (máx:{" "}
-                          {Math.floor(convertirBsAPuntos(total))} puntos)
+                          {Math.floor(convertirBsAPuntos(total))} puntos) o tus puntos disponibles.
                         </p>
                       )}
                     </div>
