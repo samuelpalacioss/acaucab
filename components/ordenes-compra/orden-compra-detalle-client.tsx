@@ -68,7 +68,7 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
         case "pendiente":
           return ["aprobado", "cancelado"];
         case "aprobado":
-          return ["En Proceso", "cancelado"];
+          return ["cancelado"]; // Los empleados NO pueden poner en proceso, solo cancelar
         case "en proceso":
           return ["finalizado", "cancelado"];
         default:
@@ -227,9 +227,16 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
           type: 'info'
         };
       }
+      if (estadoLower === "aprobado") {
+        return {
+          canEdit: true,
+          message: "Como empleado, solo puedes cancelar órdenes aprobadas. Para ponerlas 'En Proceso' debe hacerlo el proveedor correspondiente.",
+          type: 'info'
+        };
+      }
       return {
         canEdit: true,
-        message: "Como empleado, puedes gestionar el flujo completo de esta orden según su estado actual.",
+        message: "Como empleado, puedes aprobar órdenes pendientes y finalizar órdenes en proceso.",
         type: 'success'
       };
     }
