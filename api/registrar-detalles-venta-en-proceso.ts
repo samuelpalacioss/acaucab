@@ -5,16 +5,26 @@ export async function registrarDetallesVentaEnProceso(
   ventaId: number,
   carrito: CarritoItemType[]
 ): Promise<boolean> {
-  if (!ventaId || !carrito || carrito.length === 0) {
-    console.error("ID de venta o carrito inválidos.");
+  if (!ventaId) {
+    console.error("ID de venta inválido.");
     return false;
   }
 
-  console.log(
-    `Registrando ${carrito.length} tipos de items para la venta ID: ${ventaId}`
-  );
-
   try {
+    // Primero, limpiar los detalles existentes para esta venta
+    await llamarFuncion("fn_limpiar_detalles_venta", { p_venta_id: ventaId });
+
+    // Si el carrito está vacío, no hay nada más que hacer
+    if (!carrito || carrito.length === 0) {
+      console.log(`No hay items en el carrito para la venta ID: ${ventaId}. Detalles limpiados.`);
+      return true;
+    }
+    
+    console.log(
+      `Registrando ${carrito.length} tipos de items para la venta ID: ${ventaId}`
+    );
+
+    // Luego, registrar los nuevos detalles
     for (const item of carrito) {
       await llamarFuncion(
         "fn_registrar_detalle_presentacion_en_proceso",

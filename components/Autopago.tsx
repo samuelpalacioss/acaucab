@@ -111,6 +111,7 @@ export default function Autopago() {
     resetStore,
     isCreatingVenta,
     error: storeError,
+    ventaId,
   } = useVentaStore();
 
   /** Estado local del componente */
@@ -205,15 +206,26 @@ export default function Autopago() {
 
     setIsLoading(true);
     setError(null);
+
     try {
-      const ventaId = await registrarVentaEnProceso(cliente.id_cliente);
-      if (ventaId) {
-        setVentaId(ventaId);
-        await registrarDetallesVentaEnProceso(ventaId, carrito);
+      let currentVentaId = ventaId;
+
+      // Si no hay una venta en curso, crearla.
+      if (!currentVentaId) {
+        const newVentaId = await registrarVentaEnProceso(cliente.id_cliente);
+        if (newVentaId) {
+          setVentaId(newVentaId);
+          currentVentaId = newVentaId;
+        } else {
+          throw new Error("No se pudo iniciar la venta. Por favor, intente de nuevo.");
+        }
+      }
+
+      // Sincronizar los detalles de la venta (crea o actualiza)
+      if (currentVentaId) {
+        await registrarDetallesVentaEnProceso(currentVentaId, carrito);
         logVentaStore("VENTA INICIADA Y DETALLES REGISTRADOS");
         setCurrentStep(Step.PAYMENT);
-      } else {
-        setError("No se pudo iniciar la venta. Por favor, intente de nuevo.");
       }
     } catch (err: any) {
       setError(err.message || "Ocurrió un error al iniciar la venta.");
@@ -640,11 +652,6 @@ export default function Autopago() {
               const updatedPayments = metodosPago.filter((_, index) => index !== paymentIndex);
               setMetodosPago(updatedPayments);
               logVentaStore(`PAGO ELIMINADO - ${paymentToDelete?.method?.toUpperCase()}`);
-
-              // /** Si no quedan pagos, volver a la selección de productos */
-              // if (updatedPayments.length === 0) {
-              //   setCurrentStep(Step.PRODUCT_SELECTION);
-              // }
             }}
           />
         );
