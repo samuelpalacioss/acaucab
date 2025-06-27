@@ -10,6 +10,12 @@ export interface Usuario {
   rol: string;
   nombre: string;
   permisos: string[];
+  // Información del miembro asociado (si aplica)
+  miembro?: {
+    rif: number;
+    naturaleza_rif: string;
+    razon_social: string;
+  } | null;
 }
  
 /**
@@ -96,6 +102,7 @@ export const useUserStore = create(
           'leer_venta',
           'leer_orden_de_compra',
           'leer_inventario',
+          'leer_orden_de_compra_proveedor',
         ]);
       },
 
@@ -162,6 +169,22 @@ export const useUserStore = create(
        */
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
+      },
+
+      /**
+       * Verificar si el usuario es un miembro (proveedor)
+       */
+      esMiembro: () => {
+        const { usuario } = get();
+        return usuario?.miembro !== null && usuario?.miembro !== undefined;
+      },
+
+      /**
+       * Obtener información del miembro asociado al usuario
+       */
+      getMiembroInfo: () => {
+        const { usuario } = get();
+        return usuario?.miembro || null;
       }
     }),
     {
@@ -236,13 +259,15 @@ export const usePermissions = () => {
  * Hook para datos básicos del usuario
  */
 export const useUser = () => {
-  const { usuario, isAuthenticated, isLoading, _hasHydrated } = useUserStore();
+  const { usuario, isAuthenticated, isLoading, _hasHydrated, esMiembro, getMiembroInfo } = useUserStore();
   
   return {
     usuario,
     isAuthenticated,
     isLoading,
     _hasHydrated,
+    esMiembro,
+    getMiembroInfo,
     /** Datos específicos del usuario */
     nombreUsuario: usuario?.nombre,
     emailUsuario: usuario?.email,

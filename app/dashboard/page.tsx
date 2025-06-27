@@ -8,7 +8,7 @@ import ProtectedRoute from "@/components/auth/protected-route";
  */
 export default async function DashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireDashboardAccess={true}>
       <main id="dashboard-page" className="min-h-screen">
         {/* 
           Componente cliente que maneja toda la interfaz de usuario

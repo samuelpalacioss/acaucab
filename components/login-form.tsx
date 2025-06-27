@@ -71,7 +71,8 @@ export default function LoginForm() {
             email: resultado.usuario.email,
             rol: resultado.usuario.rol,
             nombre: resultado.usuario.nombre,
-            permisos: resultado.usuario.permisos
+            permisos: resultado.usuario.permisos,
+            miembro: resultado.usuario.miembro
           });
           
           setSuccessMsg("Inicio de sesión exitoso. Redirigiendo...");

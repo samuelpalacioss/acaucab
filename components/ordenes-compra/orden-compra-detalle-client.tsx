@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { OrdenCompra } from "@/models/orden-compra";
 import { actualizarEstadoOrdenCompra } from "@/lib/server-actions";
 import { useUser } from "@/store/user-store";
+import { usePermissions } from "@/store/user-store";
 
 interface OrdenCompraDetalleClientProps {
   orden: OrdenCompra;
@@ -19,26 +20,79 @@ interface OrdenCompraDetalleClientProps {
 }
 
 export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendiente" }: OrdenCompraDetalleClientProps) {
-  const { usuario } = useUser();
+
+  const { puedeEditarOrdenesDeCompra, puedeEditarOrdenesDeCompraProveedor } = usePermissions();
+  const { usuario, esMiembro, getMiembroInfo } = useUser();
   const [isEditStatusModalOpen, setIsEditStatusModalOpen] = useState(false);
+
   const [newStatus, setNewStatus] = useState("");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [observation, setObservation] = useState("");
 
-  /** Función para obtener los estados disponibles según la jerarquía */
+  /** Función para verificar si el usuario es el miembro correspondiente a esta orden */
+  const esElMiembroCorrespondiente = (): boolean => {
+    if (!esMiembro()) return false;
+    
+    const miembroInfo = getMiembroInfo();
+    if (!miembroInfo || !orden.proveedor_rif || !orden.proveedor_naturaleza_rif) return false;
+    
+    return (
+      miembroInfo.rif === orden.proveedor_rif &&
+      miembroInfo.naturaleza_rif === orden.proveedor_naturaleza_rif
+    );
+  };
+
+  /** Función para obtener los estados disponibles según la jerarquía y permisos del usuario */
   const getAvailableStatusOptions = (currentStatus: string): string[] => {
     const estadoLower = currentStatus.toLowerCase();
+    const esMiembroOrdenCorrespondiente = esElMiembroCorrespondiente();
 
-    switch (estadoLower) {
-      case "pendiente":
-        return ["aprobado", "cancelado"];
-      case "aprobado":
+    /** CASO 1: Usuario es un miembro (proveedor) */
+    if (esMiembro()) {
+      // Los miembros solo pueden editar órdenes que les corresponden
+      if (!esMiembroOrdenCorrespondiente) {
+        return []; // No puede editar órdenes que no le corresponden
+      }
+      
+      // Los miembros solo pueden editar órdenes en estado "aprobado"
+      if (estadoLower === "aprobado") {
         return ["En Proceso", "cancelado"];
-      case "en proceso":
-        return ["finalizado", "cancelado"];
-      default:
-        return [];
+      }
+      
+      return []; // No puede editar en otros estados
     }
+
+    /** CASO 2: Usuario tiene permiso para editar órdenes de compra (empleados) */
+    if (puedeEditarOrdenesDeCompra()) {
+      switch (estadoLower) {
+        case "pendiente":
+          return ["aprobado", "cancelado"];
+        case "aprobado":
+          return ["En Proceso", "cancelado"];
+        case "en proceso":
+          return ["finalizado", "cancelado"];
+        default:
+          return [];
+      }
+    }
+
+    /** CASO 3: Usuario tiene permiso para editar órdenes de compra de proveedores */
+    if (puedeEditarOrdenesDeCompraProveedor()) {
+      // Solo puede editar si es el miembro correspondiente a la orden
+      if (!esMiembroOrdenCorrespondiente) {
+        return []; // No puede editar órdenes que no le corresponden
+      }
+      
+      // Solo puede editar órdenes en estado "aprobado"
+      if (estadoLower === "aprobado") {
+        return ["En Proceso", "cancelado"];
+      }
+      
+      return []; // No puede editar en otros estados
+    }
+
+    /** CASO 4: Usuario sin permisos relevantes */
+    return [];
   };
 
   /** Función para obtener las clases de color según el estado de la orden */
@@ -136,6 +190,66 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
   /** Verificar si se pueden editar estados */
   const canEditStatus = getAvailableStatusOptions(estadoActual).length > 0;
 
+  /** Función para obtener mensaje explicativo sobre permisos de edición */
+  const getPermissionMessage = (): { canEdit: boolean; message: string; type: 'info' | 'warning' | 'success' } => {
+    const esMiembroOrdenCorrespondiente = esElMiembroCorrespondiente();
+    const estadoLower = estadoActual.toLowerCase();
+
+    // Si es miembro
+    if (esMiembro()) {
+      if (!esMiembroOrdenCorrespondiente) {
+        return {
+          canEdit: false,
+          message: "Esta orden pertenece a otro proveedor. Solo puedes editar órdenes asignadas a tu empresa.",
+          type: 'warning'
+        };
+      }
+      if (estadoLower !== "aprobado") {
+        return {
+          canEdit: false,
+          message: `Como proveedor, solo puedes editar órdenes en estado "Aprobado". Estado actual: ${estadoActual}`,
+          type: 'info'
+        };
+      }
+      return {
+        canEdit: true,
+        message: "Puedes cambiar esta orden a 'En Proceso' para comenzar a trabajar en ella, o 'Cancelado' si no puedes cumplirla.",
+        type: 'success'
+      };
+    }
+
+    // Si es empleado con permisos generales
+    if (puedeEditarOrdenesDeCompra()) {
+      if (estadoLower === "finalizado" || estadoLower === "cancelado") {
+        return {
+          canEdit: false,
+          message: "Esta orden ya está finalizada o cancelada y no puede ser modificada.",
+          type: 'info'
+        };
+      }
+      return {
+        canEdit: true,
+        message: "Como empleado, puedes gestionar el flujo completo de esta orden según su estado actual.",
+        type: 'success'
+      };
+    }
+
+    // Si tiene permisos de proveedor pero no es miembro
+    if (puedeEditarOrdenesDeCompraProveedor()) {
+      return {
+        canEdit: false,
+        message: "Tienes permisos de proveedor pero no estás registrado como miembro. Contacta al administrador.",
+        type: 'warning'
+      };
+    }
+
+    return {
+      canEdit: false,
+      message: "No tienes permisos para editar órdenes de compra.",
+      type: 'warning'
+    };
+  };
+
   return (
     <div className="space-y-6">
       {/** Header con información principal */}
@@ -159,6 +273,55 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
         </div>
       </div>
 
+      {/** Información de permisos de edición */}
+      {(() => {
+        const permissionInfo = getPermissionMessage();
+        const bgColor = permissionInfo.type === 'success' 
+          ? 'bg-green-50 border-green-200' 
+          : permissionInfo.type === 'warning' 
+          ? 'bg-amber-50 border-amber-200' 
+          : 'bg-blue-50 border-blue-200';
+        const textColor = permissionInfo.type === 'success' 
+          ? 'text-green-800' 
+          : permissionInfo.type === 'warning' 
+          ? 'text-amber-800' 
+          : 'text-blue-800';
+        
+        return (
+          <Card className={bgColor}>
+            <CardContent className="pt-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-1">
+                  {permissionInfo.type === 'success' && (
+                    <Check className="h-5 w-5 text-green-600" />
+                  )}
+                  {permissionInfo.type === 'warning' && (
+                    <X className="h-5 w-5 text-amber-600" />
+                  )}
+                  {permissionInfo.type === 'info' && (
+                    <Package className="h-5 w-5 text-blue-600" />
+                  )}
+                </div>
+                <div className="flex-grow">
+                  <p className={`text-sm font-medium ${textColor} mb-1`}>
+                    {permissionInfo.canEdit ? 'Permisos de Edición' : 'Restricciones de Edición'}
+                  </p>
+                  <p className={`text-sm ${textColor}`}>
+                    {permissionInfo.message}
+                  </p>
+                  {esMiembro() && esElMiembroCorrespondiente() && (
+                    <p className="text-xs text-gray-600 mt-2">
+                      • RIF de tu empresa: {getMiembroInfo()?.naturaleza_rif}-{getMiembroInfo()?.rif}
+                      
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       {/** Estado actual de la orden */}
       <Card className={getStatusBackgroundColor(estadoActual)}>
         <CardHeader>
@@ -173,7 +336,13 @@ export default function OrdenCompraDetalleClient({ orden, estadoActual = "Pendie
               <p className="text-lg font-semibold">Estado actual: {estadoActual}</p>
               {!canEditStatus && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  Esta orden se encuentra en un estado terminal y no puede ser modificada.
+                  {(() => {
+                    const permissionInfo = getPermissionMessage();
+                    if (!permissionInfo.canEdit) {
+                      return permissionInfo.message;
+                    }
+                    return "Esta orden se encuentra en un estado terminal y no puede ser modificada.";
+                  })()}
                 </p>
               )}
             </div>

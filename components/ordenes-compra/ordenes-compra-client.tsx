@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -9,28 +9,65 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { obtenerTodasLasOrdenesDeCompra } from "@/lib/server-actions";
 import { OrdenCompraResumen } from "@/models/orden-compra";
 import { ArrowRight } from "lucide-react";
-import { usePermissions } from "@/store/user-store";
+import { useUserStore } from "@/store/user-store";
 
 export function OrdenesCompraClient() {
   const [ordenes, setOrdenes] = useState<OrdenCompraResumen[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const router = useRouter();
-  const { puedeEditarOrdenesDeCompra, puedeEditarOrdenesDeCompraProveedor } = usePermissions();
-  useEffect(() => {
-    const fetchOrdenes = async () => {
-      try {
-        setLoading(true);
-        const data = await obtenerTodasLasOrdenesDeCompra();
-        setOrdenes(data);
-      } catch (error) {
-        console.error("Error al obtener las órdenes de compra:", error);
-      } finally {
-        setLoading(false);
+  
+  /** Obtener datos del store directamente */
+  const { usuario, tienePermiso, esMiembro, getMiembroInfo } = useUserStore();
+  
+  /** Verificar permisos para el renderizado */
+  const puedeEditarOrdenesDeCompra = tienePermiso('editar_orden_de_compra');
+  const puedeEditarOrdenesDeCompraProveedor = tienePermiso('editar_orden_de_compra_proveedor');
+  
+  /** Función para cargar datos */
+  const fetchOrdenes = async () => {
+    if (dataLoaded || loading) return; // Evitar múltiples cargas
+    
+    try {
+      setLoading(true);
+      console.log("Cargando órdenes de compra...");
+      const data = await obtenerTodasLasOrdenesDeCompra();
+      console.log("Datos obtenidos:", data);
+      
+      // Verificar permisos al momento de filtrar
+      const puedeEditarOrdenesDeCompra = tienePermiso('editar_orden_de_compra');
+      const puedeEditarOrdenesDeCompraProveedor = tienePermiso('editar_orden_de_compra_proveedor');
+      const esUsuarioMiembro = esMiembro();
+      const miembroInfo = getMiembroInfo();
+      
+      // Filtrar órdenes según permisos del usuario
+      let ordenesFiltradas = data;
+      
+      // Si el usuario solo tiene permisos de proveedor y es un miembro
+      if (!puedeEditarOrdenesDeCompra && puedeEditarOrdenesDeCompraProveedor && esUsuarioMiembro && miembroInfo) {
+        // Filtrar solo las órdenes que pertenecen a este miembro
+        ordenesFiltradas = data.filter(orden => 
+          orden.proveedor_rif === miembroInfo.rif && 
+          orden.proveedor_naturaleza_rif === miembroInfo.naturaleza_rif
+        );
+        console.log("Órdenes filtradas para miembro:", ordenesFiltradas);
       }
-    };
+      
+      setOrdenes(ordenesFiltradas);
+      setDataLoaded(true);
+    } catch (error) {
+      console.error("Error al obtener las órdenes de compra:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchOrdenes();
-  }, []);
+  /** Cargar datos cuando el componente se monta y el usuario está disponible */
+  useEffect(() => {
+    if (usuario && !dataLoaded && !loading) {
+      fetchOrdenes();
+    }
+  }, [usuario?.id]); // Solo depender del ID del usuario, que es estable
 
   const handleViewDetails = (id: number) => {
     router.push(`/dashboard/inventario/ordenes/${id}`);
@@ -99,8 +136,8 @@ export function OrdenesCompraClient() {
                 <TableRow key={orden.orden_id}>
                   <TableCell className="font-medium">#{orden.orden_id}</TableCell>
                   <TableCell>{formatDate(orden.fecha_solicitud)}</TableCell>
-                  <TableCell>{orden.proveedor_razon_social || "N/A"}</TableCell>
-                  <TableCell>{orden.usuario_nombre || "N/A"}</TableCell>
+                  <TableCell>{orden.proveedor_razon_social || "Administrador"}</TableCell>
+                  <TableCell>{orden.usuario_nombre || "Administrador"}</TableCell>
                   <TableCell className="text-right">{formatCurrency(orden.precio_total)}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant={getStatusBadgeColor(orden.estado_actual)}>
@@ -108,7 +145,7 @@ export function OrdenesCompraClient() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    { puedeEditarOrdenesDeCompra() && (
+                    { (puedeEditarOrdenesDeCompra || puedeEditarOrdenesDeCompraProveedor) && (
                     <Button variant="outline" size="sm" onClick={() => handleViewDetails(orden.orden_id)}>
                       Ver Detalles
                       <ArrowRight className="h-4 w-4 ml-2" />

@@ -83,12 +83,22 @@ export async function login(email: string, password: string): Promise<LoginRespo
     const primerRegistro = resultado[0];
     const permisos = resultado.map(row => row.permiso);
 
+    // Construir información del miembro si existe
+    const miembro = (primerRegistro.miembro_rif && 
+                     primerRegistro.miembro_naturaleza_rif && 
+                     primerRegistro.miembro_razon_social) ? {
+      rif: primerRegistro.miembro_rif,
+      naturaleza_rif: primerRegistro.miembro_naturaleza_rif,
+      razon_social: primerRegistro.miembro_razon_social
+    } : null;
+
     const usuario = {
       id: primerRegistro.id_usuario,
       email: primerRegistro.direccion_correo,
       rol: primerRegistro.rol,
       nombre: primerRegistro.nombre_usuario,
-      permisos: permisos
+      permisos: permisos,
+      miembro: miembro
     };
 
     // Verificar si tiene permisos para acceder al dashboard
@@ -101,13 +111,14 @@ export async function login(email: string, password: string): Promise<LoginRespo
         'leer_venta',
         'leer_orden_de_compra',
         'leer_inventario',
+        'leer_orden_de_compra_proveedor',
       ].includes(permiso)
     );
 
     return {
       success: true,
       usuario: usuario,
-      shouldRedirect: tieneAccesoDashboard,
+      shouldRedirect: true,
       redirectTo: tieneAccesoDashboard ? '/dashboard' : '/'
     };
 
@@ -217,7 +228,9 @@ export async function obtenerOrdenesReposicion(): Promise<OrdenesReposicionData>
  */
 export async function obtenerTodasLasOrdenesDeCompra(): Promise<OrdenesCompraData> {
   try {
+    console.log('Llamando función fn_get_all_ordenes_de_compra...');
     const resultado = await llamarFuncion<any>('fn_get_all_ordenes_de_compra')
+    console.log('Resultado de fn_get_all_ordenes_de_compra:', resultado);
     return resultado || []
   } catch (error: any) {
     console.error('Error al obtener órdenes de compra:', error)

@@ -76,7 +76,7 @@ export function MainSidebar() {
   ];
 
   return (
-    <ProtectedRoute requiredPermissions={['leer_usuario', 'leer_permiso', 'leer_orden_de_reposicion', 'leer_rol', 'leer_venta', 'leer_orden_de_compra', 'leer_inventario']}>
+    <ProtectedRoute requireDashboardAccess={true}>
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2 justify-center ">

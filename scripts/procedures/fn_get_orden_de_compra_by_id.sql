@@ -23,6 +23,8 @@ RETURNS TABLE (
     -- Información del usuario que solicita
     usuario_nombre          VARCHAR,
     -- Información del proveedor
+    proveedor_rif           INTEGER,
+    proveedor_naturaleza_rif CHAR(1),
     proveedor_razon_social  VARCHAR(255),
     -- Estado actual de la orden
     estado_actual           VARCHAR(50)
@@ -53,6 +55,8 @@ BEGIN
         )::VARCHAR AS usuario_nombre,
         
         -- Información del proveedor (miembro)
+        prov.rif AS proveedor_rif,
+        prov.naturaleza_rif AS proveedor_naturaleza_rif,
         prov.razón_social AS proveedor_razon_social,
         
         -- Estado actual de la orden

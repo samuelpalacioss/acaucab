@@ -349,6 +349,13 @@ INSERT INTO permiso (nombre, descripción) VALUES
 ('editar_venta_evento',   'Permite modificar ventas en eventos'),
 ('eliminar_venta_evento', 'Permite eliminar ventas en eventos'),
 ('leer_venta_evento',     'Permite ver las ventas en eventos');
+-- Reportes
+('crear_reportes', 'Permite crear reportes'),
+('leer_reportes', 'Permite ver los reportes de ventas'),
+('editar_reportes', 'Permite modificar los reportes de ventas'),
+('eliminar_reportes', 'Permite eliminar los reportes de ventas');
+
+
 
     
 -- Administrador gets all permissions

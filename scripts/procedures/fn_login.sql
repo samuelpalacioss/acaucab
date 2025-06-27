@@ -9,7 +9,10 @@ RETURNS TABLE (
   direccion_correo VARCHAR,
   rol VARCHAR,
   nombre_usuario VARCHAR,
-  permiso VARCHAR
+  permiso VARCHAR,
+  miembro_rif INTEGER,
+  miembro_naturaleza_rif CHAR(1),
+  miembro_razon_social VARCHAR(50)
 )
 language plpgsql
 AS $$
@@ -45,7 +48,10 @@ BEGIN
             cj.denominación_comercial,
             m.razón_social
         ),
-        p.nombre
+        p.nombre,
+        m.rif,
+        m.naturaleza_rif,
+        m.razón_social
     FROM usuario u
     JOIN correo AS c ON u.fk_correo = c.id
     JOIN rol AS r ON u.fk_rol = r.id

@@ -13,6 +13,8 @@ interface ProtectedRouteProps {
   requiredPermissions?: string[];
   /** Sección específica del dashboard */
   requiredSection?: 'usuarios' | 'ventas' | 'compras' | 'inventario' | 'reportes' | 'eventos';
+  /** Usar validación de acceso al dashboard */
+  requireDashboardAccess?: boolean;
   /** Página de redirección si no tiene permisos */
   redirectTo?: string;
   /** Mensaje de error personalizado */
@@ -27,6 +29,7 @@ export default function ProtectedRoute({
   children,
   requiredPermissions = [],
   requiredSection,
+  requireDashboardAccess = false,
   redirectTo = "/login",
   fallback
 }: ProtectedRouteProps) {
@@ -45,10 +48,18 @@ export default function ProtectedRoute({
       return;
     }
 
-    /** Si está autenticado pero no tiene acceso al dashboard, redirigir */
+    /** Si está autenticado pero no tiene acceso al dashboard, redirigir a homepage */
     if (isAuthenticated && !tieneAccesoDashboard()) {
-      router.push("/unauthorized");
+      router.push("/");
       return;
+    }
+
+    /** Verificar acceso al dashboard si se requiere */
+    if (isAuthenticated && requireDashboardAccess) {
+      if (!tieneAccesoDashboard()) {
+        router.push("/");
+        return;
+      }
     }
 
     /** Verificar permisos específicos si se proporcionan */
@@ -66,7 +77,7 @@ export default function ProtectedRoute({
         return;
       }
     }
-  }, [isAuthenticated, isLoading, _hasHydrated, router, requiredPermissions, requiredSection, redirectTo, tieneAlgunPermiso, tieneAccesoSeccion, tieneAccesoDashboard]);
+  }, [isAuthenticated, isLoading, _hasHydrated, router, requiredPermissions, requiredSection, requireDashboardAccess, redirectTo, tieneAlgunPermiso, tieneAccesoSeccion, tieneAccesoDashboard]);
 
   /** Mostrar loading mientras se hidrata o verifica la autenticación */
   if (!_hasHydrated || isLoading) {

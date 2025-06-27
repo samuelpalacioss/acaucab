@@ -22,6 +22,8 @@ export interface OrdenCompra {
   // Información del usuario
   usuario_nombre: string | null;
   // Información del proveedor
+  proveedor_rif: number | null;
+  proveedor_naturaleza_rif: string | null;
   proveedor_razon_social: string | null;
   // Estado actual de la orden
   estado_actual: string;
@@ -33,6 +35,8 @@ export interface OrdenCompra {
 export interface OrdenCompraResumen {
   orden_id: number;
   fecha_solicitud: string;
+  proveedor_rif: number | null;
+  proveedor_naturaleza_rif: string | null;
   proveedor_razon_social: string | null;
   usuario_nombre: string | null;
   precio_total: number;

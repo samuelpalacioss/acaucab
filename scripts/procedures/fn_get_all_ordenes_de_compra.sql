@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS fn_get_all_ordenes_de_compra;
 /**
  * Función que obtiene un resumen de todas las órdenes de compra.
  * @returns tabla con información resumida de las órdenes de compra.
@@ -6,6 +7,8 @@ CREATE OR REPLACE FUNCTION fn_get_all_ordenes_de_compra()
 RETURNS TABLE (
     orden_id                INTEGER,
     fecha_solicitud         DATE,
+    proveedor_rif           INTEGER,
+    proveedor_naturaleza_rif CHAR(1),
     proveedor_razon_social  VARCHAR(255),
     usuario_nombre          VARCHAR,
     precio_total            DECIMAL(10,2),
@@ -16,6 +19,8 @@ BEGIN
     SELECT
         odc.id AS orden_id,
         odc.fecha_solicitud,
+        prov.rif AS proveedor_rif,
+        prov.naturaleza_rif AS proveedor_naturaleza_rif,
         prov.razón_social AS proveedor_razon_social,
         COALESCE(
             e.primer_nombre || ' ' || e.primer_apellido,
@@ -23,12 +28,12 @@ BEGIN
             cj.razón_social,
             m_user.razón_social
         )::VARCHAR AS usuario_nombre,
-        (pc.precio * odc.unidades) AS precio_total,
+        COALESCE(pc.precio * odc.unidades, 0) AS precio_total,
         COALESCE(s.nombre, 'Pendiente')::VARCHAR(50) AS estado_actual
     FROM orden_de_compra odc
     
     -- Joins para obtener información del producto
-    INNER JOIN presentacion_cerveza pc
+    LEFT JOIN presentacion_cerveza pc
         ON odc.fk_presentacion_cerveza_1 = pc.fk_presentacion
         AND odc.fk_presentacion_cerveza_2 = pc.fk_cerveza
     
