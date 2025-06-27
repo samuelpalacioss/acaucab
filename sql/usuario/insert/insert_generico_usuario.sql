@@ -348,7 +348,7 @@ INSERT INTO permiso (nombre, descripción) VALUES
 ('crear_venta_evento',    'Permite crear ventas en eventos'),
 ('editar_venta_evento',   'Permite modificar ventas en eventos'),
 ('eliminar_venta_evento', 'Permite eliminar ventas en eventos'),
-('leer_venta_evento',     'Permite ver las ventas en eventos');
+('leer_venta_evento',     'Permite ver las ventas en eventos'),
 -- Reportes
 ('crear_reportes', 'Permite crear reportes'),
 ('leer_reportes', 'Permite ver los reportes de ventas'),

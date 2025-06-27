@@ -38,10 +38,10 @@ BEGIN
             IF FOUND THEN
                 
                 -- Calcular la cantidad total de productos en la venta, multiplicando la cantidad por las unidades de cada presentación.
-                SELECT SUM(dp.cantidad * pc.unidades)
+                SELECT COALESCE(SUM(dp.cantidad * pc.unidades), 0)
                 INTO v_cantidad_productos
                 FROM detalle_presentacion dp
-                LEFT JOIN presentacion pc ON pc.id = dp.fk_presentacion
+                JOIN presentacion pc ON pc.id = dp.fk_presentacion
                 WHERE dp.fk_venta = NEW.fk_venta;
 
                 -- Si hay productos en la venta, otorgar los puntos
@@ -50,8 +50,8 @@ BEGIN
                     FOR i IN 1..v_cantidad_productos LOOP
                         
                         -- Insertar el nuevo 'punto' como un método de pago
-                        INSERT INTO metodo_pago(tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, numero_cheque, numero_cuenta, fecha_adquisicion, fecha_canjeo) 
-                        VALUES ('punto', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NOW(), NULL)
+                        INSERT INTO metodo_pago(tipo, denominación, tipo_tarjeta, número, banco, fecha_vencimiento, numero_cheque, fecha_adquisicion, fecha_canjeo) 
+                        VALUES ('punto', NULL, NULL, NULL, NULL, NULL, NULL, NOW(), NULL)
                         RETURNING id INTO v_id_metodo_pago;
 
                         -- Asociar el punto recién creado con el cliente
