@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS fn_get_user_info(INTEGER);
+
 CREATE OR REPLACE FUNCTION fn_get_user_info(p_user_id INTEGER)
 RETURNS TABLE (
     usuario_id INTEGER,

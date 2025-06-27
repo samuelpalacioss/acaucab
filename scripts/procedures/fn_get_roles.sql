@@ -1,12 +1,5 @@
-/**
- * @name fn_get_roles
- * @description Obtiene todos los roles del sistema con la cantidad de usuarios y permisos asociados.
- * @returns TABLE - Una tabla con la información de los roles.
- *          id: Identificador único del rol.
- *          nombre: Nombre del rol.
- *          cantidad_usuarios: Número de usuarios asignados a ese rol.
- *          cantidad_permisos: Número de permisos asignados a ese rol.
- */
+DROP FUNCTION IF EXISTS fn_get_roles();
+
 CREATE OR REPLACE FUNCTION fn_get_roles()
 RETURNS TABLE (
     id INT,

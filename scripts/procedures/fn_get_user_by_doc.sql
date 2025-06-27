@@ -1,23 +1,5 @@
 DROP FUNCTION IF EXISTS fn_get_user_by_doc(CHAR, INTEGER);
 
-/**
- * fn_get_user_by_doc
- *
- * Propósito:
- * Esta función busca un usuario (empleado, cliente natural, cliente jurídico o miembro)
- * a partir de su tipo y número de documento de identidad (cédula o RIF).
- * Una vez que encuentra al usuario, reutiliza la función `fn_get_user_by_id` para
- * obtener todos los detalles asociados.
- *
- * Parámetros:
- * p_doc_type (CHAR): El tipo de documento. Por ejemplo: 'V', 'E' para cédulas; 'J', 'G' para RIF.
- * p_doc_number (INTEGER): El número del documento o RIF.
- *
- * Retorno:
- * Una tabla con una única fila que contiene los detalles del usuario encontrado,
- * con la misma estructura que la función `fn_get_user_by_id`.
- * Si no se encuentra ningún usuario, no devuelve ninguna fila.
- */
 CREATE OR REPLACE FUNCTION fn_get_user_by_doc(
     p_doc_type CHAR,
     p_doc_number INTEGER

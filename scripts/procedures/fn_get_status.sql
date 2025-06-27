@@ -1,9 +1,5 @@
-/**
- * Función para obtener todos los status disponibles en el sistema
- * @returns TABLE - Tabla con todos los registros de status
- * @returns id INTEGER - Identificador único del status
- * @returns nombre VARCHAR(50) - Nombre descriptivo del status
- */
+DROP FUNCTION IF EXISTS fn_get_status();
+
 CREATE OR REPLACE FUNCTION fn_get_status()
 RETURNS TABLE (
     id INTEGER,

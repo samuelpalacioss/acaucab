@@ -12,6 +12,7 @@ export interface User {
   rol_nombre: string;
   id_rol: number;
   tipo_usuario: string;
+  puntos: number;
 }
 
 /**

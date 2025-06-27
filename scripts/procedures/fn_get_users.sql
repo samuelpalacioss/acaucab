@@ -9,7 +9,8 @@ RETURNS TABLE (
     telefono VARCHAR,
     rol_nombre VARCHAR,
     id_rol INTEGER,
-    tipo_usuario VARCHAR
+    tipo_usuario VARCHAR,
+    puntos INTEGER
 )
 LANGUAGE plpgsql
 AS $$
@@ -46,7 +47,21 @@ BEGIN
                 WHEN cn.id IS NOT NULL OR cj.id IS NOT NULL THEN 'Cliente'
                 WHEN m.rif IS NOT NULL THEN 'Miembro'
                 ELSE 'Indefinido'
-            END AS tipo_usuario_calc
+            END AS tipo_usuario_calc,
+            
+            -- Calculamos los puntos para los clientes, contando los 'metodo_pago' de tipo 'punto'
+            -- que no han sido canjeados (fecha_canjeo IS NULL).
+            CASE
+                WHEN cn.id IS NOT NULL OR cj.id IS NOT NULL THEN (
+                    SELECT COUNT(*)::INTEGER
+                    FROM cliente_metodo_pago cmp
+                    JOIN metodo_pago mp ON cmp.fk_metodo_pago = mp.id
+                    WHERE mp.tipo = 'punto'
+                      AND mp.fecha_canjeo IS NULL
+                      AND (cmp.fk_cliente_natural = cn.id OR cmp.fk_cliente_juridico = cj.id)
+                )
+                ELSE 0
+            END AS puntos_calc
         FROM usuario u
         -- Unimos con tablas básicas que todo usuario tiene
         JOIN correo c ON u.fk_correo = c.id
@@ -71,7 +86,8 @@ BEGIN
         uc.telefono_calc::VARCHAR AS telefono,
         uc.rol_nombre_calc::VARCHAR AS rol_nombre,
         uc.id_rol_calc AS id_rol,
-        uc.tipo_usuario_calc::VARCHAR AS tipo_usuario
+        uc.tipo_usuario_calc::VARCHAR AS tipo_usuario,
+        uc.puntos_calc AS puntos
     FROM usuarios_completos uc
     ORDER BY
         -- Priorizamos que tengan nombre, luego teléfono, y finalmente por id.

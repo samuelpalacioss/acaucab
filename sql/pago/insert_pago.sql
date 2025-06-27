@@ -1,6 +1,4 @@
--- Truncate tables to ensure a clean state
-TRUNCATE TABLE cliente_metodo_pago CASCADE;
-TRUNCATE TABLE metodo_pago RESTART IDENTITY CASCADE;
+ 
 
 -- Insert data into afiliacion
 INSERT INTO afiliacion (monto_mensual, fecha_inicio) VALUES

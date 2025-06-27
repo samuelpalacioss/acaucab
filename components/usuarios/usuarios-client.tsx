@@ -186,6 +186,10 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
             <TableHead>Usuario</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Rol</TableHead>
+            {/* Mostrar columna de puntos solo para clientes */}
+            {(tipoUsuario === "todos" || tipoUsuario === "cliente") && (
+              <TableHead>Puntos</TableHead>
+            )}
             <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -223,6 +227,18 @@ export default function UsuariosClient({ users, roles }: UsuariosClientProps) {
                   )}
                 </div>
               </TableCell>
+              {/* Mostrar puntos solo para clientes */}
+              {(tipoUsuario === "todos" || tipoUsuario === "cliente") && (
+                <TableCell id={`usuario-puntos-${user.id_usuario}`}>
+                  {user.tipo_usuario === "Cliente" ? (
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      {user.puntos} pts
+                    </Badge>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </TableCell>
+              )}
               <TableCell id={`usuario-acciones-${user.id_usuario}`}>
                 <div className="flex gap-1">
                   <Link href={`/dashboard/usuarios/${user.id_usuario}`}>

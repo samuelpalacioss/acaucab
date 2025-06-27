@@ -1,19 +1,4 @@
-/**
- * Script consolidado de inserts para todas las tablas de status
- * Contiene los inserts para las tablas: status, status_mensualidad, status_orden y status_venta
- * 
- * ORDEN DE EJECUCIÓN:
- * 1. status - Tabla principal con los diferentes estados
- * 2. status_mensualidad - Relaciona estados con mensualidades
- * 3. status_orden - Relaciona estados con órdenes de compra y reposición
- * 4. status_venta - Relaciona estados con ventas regulares y de eventos
- */
-
--- =============================================================================
--- 1. INSERTS PARA LA TABLA STATUS
--- =============================================================================
-
-/**
+ 
  * Inserts para la tabla status
  * Contiene los diferentes estados que puede tener una orden o mensualidad
  */
@@ -36,11 +21,7 @@ INSERT INTO status (id, nombre) VALUES
  * La secuencia se establece al valor máximo de ID existente en la tabla.
  */
 SELECT setval('status_id_seq', (SELECT MAX(id) FROM status));
-
--- =============================================================================
--- 2. INSERTS PARA LA TABLA STATUS_MENSUALIDAD
--- =============================================================================
-
+ 
 /**
  * Inserts para la tabla status_mensualidad
  * Relaciona los estados con las mensualidades existentes
@@ -59,10 +40,7 @@ INSERT INTO status_mensualidad (fecha_actualización, fecha_fin, fk_status, fk_m
     (CURRENT_DATE - INTERVAL '21 days', NULL, 10, 10, 901234567, 'V'),
     (CURRENT_DATE - INTERVAL '20 days', NULL, 10, 11, 12345678, 'J');
 
--- =============================================================================
--- 3. INSERTS PARA LA TABLA STATUS_ORDEN
--- =============================================================================
-
+ 
 /**
  * Inserts para la tabla status_orden
  * Relaciona los estados con las órdenes de compra y reposición

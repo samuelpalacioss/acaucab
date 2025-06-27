@@ -27,7 +27,7 @@ BEGIN
               WHERE new.fk_presentacion=lti.fk_inventario_1 and new.fk_cerveza=lti.fk_inventario_2 and fk_lugar_tienda_2 = id_tienda_fisica and
               lti.fk_lugar_tienda_1= r_inventario.zona and lti.fk_inventario_3=r_inventario.id_almacen;
               
-              v_cantidad_restante := 0; -- Todo restado
+              v_cantidad_restante := 0; 
           ELSE
               v_cantidad_restante := v_cantidad_restante - r_inventario.cant_inv;
               

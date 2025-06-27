@@ -1,19 +1,5 @@
-/**
- * @name fn_update_rol
- * @description Actualiza el nombre de un rol y sincroniza sus permisos.
- *              Esta función primero actualiza el nombre del rol. Luego, elimina
- *              todos los permisos existentes para ese rol y, finalmente, inserta
- *              la nueva lista de permisos proporcionada.
- *
- * @param p_rol_id - El ID del rol que se va a actualizar.
- * @param p_nuevo_nombre - El nuevo nombre para el rol.
- * @param p_permisos_ids - Un array de IDs de los nuevos permisos para el rol.
- *                         Si el array está vacío o es nulo, se eliminarán todos
- *                         los permisos del rol.
- *
- * @returns BOOLEAN - Devuelve TRUE si la operación fue exitosa.
- *                    Lanza una excepción si el rol no existe.
- */
+DROP FUNCTION IF EXISTS fn_update_rol(INT, VARCHAR, INT[]);
+
 CREATE OR REPLACE FUNCTION fn_update_rol(
     p_rol_id INT,
     p_nuevo_nombre VARCHAR,

@@ -1,30 +1,5 @@
 DROP FUNCTION IF EXISTS fn_get_user_by_id(INTEGER);
 
-/**
- * fn_get_user_by_id
- * 
- * Propósito:
- * Esta función recupera información detallada de un usuario específico, identificado por su ID.
- * La información devuelta se adapta según el tipo de usuario (Empleado, Cliente Natural, Cliente Jurídico, Miembro).
- * 
- * Parámetros:
- * p_user_id (INTEGER): El ID del usuario que se desea consultar.
- * 
- * Retorno:
- * Una tabla con una única fila que contiene los detalles del usuario. Las columnas incluyen:
- * - Información básica: id_usuario, nombre_completo, email, telefono, rol, etc.
- * - Detalles de empleado: cargo, departamento, salario, información de la nómina.
- * - Detalles de cliente/miembro: personas de contacto (en formato JSON), razón social, etc.
- * - Detalles de cliente natural: fecha de nacimiento.
- * 
- * Lógica:
- * 1.  Identifica al usuario y sus entidades asociadas (empleado, cliente, miembro) usando el `p_user_id`.
- * 2.  Determina el `tipo_usuario` (Empleado, Cliente Juridico, etc.).
- * 3.  Recopila información básica como nombre, correo, rol y teléfono.
- * 4.  Si el usuario es un 'Empleado', busca su nómina más reciente para obtener detalles del cargo y departamento.
- * 5.  Si es 'Cliente Juridico' o 'Miembro', agrega la información de las personas de contacto en un campo JSON.
- * 6.  Combina toda la información en una única fila de respuesta, utilizando COALESCE para manejar los campos que varían según el tipo de usuario.
- */
 CREATE OR REPLACE FUNCTION fn_get_user_by_id(p_user_id INTEGER)
 RETURNS TABLE (
     id_usuario INTEGER,

@@ -1,13 +1,4 @@
-/**
- * @name fn_get_users_by_role
- * @description Obtiene todos los usuarios que tienen asignado un rol específico.
- * @param p_role_id - El ID del rol a consultar.
- * @returns TABLE - Una tabla con la información de los usuarios.
- *          id: Identificador único del usuario.
- *          correo: Correo electrónico del usuario.
- *          tipo_persona: Tipo de persona (natural, juridico, empleado, miembro).
- *          nombre_completo: Nombre completo del usuario o razón social.
- */
+DROP FUNCTION IF EXISTS fn_get_users_by_role(INT);
 CREATE OR REPLACE FUNCTION fn_get_users_by_role(p_role_id INT)
 RETURNS TABLE (
     id INT,

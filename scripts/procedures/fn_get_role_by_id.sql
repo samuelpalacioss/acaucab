@@ -1,16 +1,5 @@
-/**
- * @name fn_get_role_by_id
- * @description Obtiene la información detallada de un rol específico, incluyendo sus permisos.
- *              Devuelve una fila por cada permiso asociado al rol.
- * @param p_id - El ID del rol a consultar.
- * @returns TABLE - Una tabla con los detalles del rol y sus permisos.
- *          id: Identificador único del rol.
- *          nombre: Nombre del rol.
- *          cantidad_usuarios: Número de usuarios asignados a ese rol.
- *          permiso_id: ID del permiso.
- *          permiso_nombre: Nombre del permiso.
- *          permiso_descripcion: Descripción del permiso.
- */
+DROP FUNCTION IF EXISTS fn_get_role_by_id(INT);
+
 CREATE OR REPLACE FUNCTION fn_get_role_by_id(p_id INT)
 RETURNS TABLE (
     id INT,

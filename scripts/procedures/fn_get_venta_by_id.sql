@@ -1,13 +1,6 @@
 DROP FUNCTION IF EXISTS fn_get_venta_by_id(INTEGER);
 
-/**
- * Obtiene los detalles de una venta específica, incluyendo la información del cliente,
- * el estado de la entrega y un listado de los productos asociados.
- *
- * @param p_venta_id - El ID de la venta a consultar.
- * @returns TABLE - Una tabla con los detalles de la venta y los productos.
- *          Si la venta tiene múltiples productos, se retornará una fila por cada producto.
- */
+ 
 CREATE OR REPLACE FUNCTION fn_get_venta_by_id(p_venta_id INTEGER)
 RETURNS TABLE (
     id INTEGER,

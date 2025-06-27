@@ -1,18 +1,5 @@
-/**
- * Actualiza el estado de una orden de reposición.
- *
- * Esta función se encarga de:
- * 1. Validar la transición de estado.
- * 2. Finalizar el estado actual de la orden de reposición, estableciendo la `fecha_fin`.
- * 3. Insertar un nuevo registro para reflejar el nuevo estado de la orden.
- * 4. Si el nuevo estado es "Finalizado", actualiza las unidades finalizadas y la observación.
- *
- * @param p_orden_id - El ID de la orden de reposición que se va a actualizar.
- * @param p_nuevo_status_nombre - El nombre del nuevo estado que se le asignará a la orden.
- * @param p_usuario_id - El ID del usuario que realiza la acción.
- * @param p_unidades_finalizadas - (Opcional) La cantidad de unidades que se procesaron al finalizar. Requerido si el estado es 'Finalizado'.
- * @param p_observacion_final - (Opcional) Una observación sobre la finalización de la orden.
- */
+DROP FUNCTION IF EXISTS fn_update_status_orden_reposicion(INTEGER, VARCHAR, INTEGER, INTEGER, TEXT);
+
 CREATE OR REPLACE FUNCTION fn_update_status_orden_reposicion(
     p_orden_id INTEGER,
     p_nuevo_status_nombre VARCHAR,
