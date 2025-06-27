@@ -28,7 +28,7 @@ export default async function OrdenCompraDetallePage({
   }
 
   return (
-    <ProtectedRoute requiredPermissions={["leer_orden_de_compra"]} redirectTo="/unauthorized">
+    <ProtectedRoute requiredPermissions={["leer_orden_de_compra", 'leer_orden_de_compra_proveedor']} redirectTo="/unauthorized">
     <main id="orden-compra-detalle-page" className="min-h-screen p-6">
       {/* 
         Componente cliente que maneja toda la interfaz de usuario

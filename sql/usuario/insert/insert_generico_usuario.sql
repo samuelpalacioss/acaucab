@@ -668,6 +668,15 @@ INSERT INTO correo (
     ('distribucion@zetadist.com', 12345678, 'J', NULL),
     ('ventas@omegacom.com', 123456780, 'V', NULL),
     ('omega-importaciones@omegacom.com', 123456780, 'V', NULL),
+    ('contacto@alfaindustrial.com', 111222333, 'J', NULL),
+    ('contacto@bravocomercial.com', 444555666, 'V', NULL),
+    ('contacto@charliedist.com', 777888999, 'J', NULL),
+    ('contacto@deltaimports.com', 111333555, 'V', NULL),
+    ('contacto@echostores.com', 222444666, 'J', NULL),
+    ('contacto@foxtrrottrade.com', 333555777, 'V', NULL),
+    ('contacto@golfdist.com', 444666888, 'J', NULL),
+    ('contacto@hotelimports.com', 555777999, 'V', NULL),
+    ('contacto@indiacorp.com', 666888000, 'J', NULL),
 
     -- Additional emails for user (not members)
     ('admin@acaucab.com', NULL, NULL, NULL),
@@ -716,9 +725,11 @@ INSERT INTO usuario (
     fk_correo
 ) VALUES
     -- System users
-    ('admin123', 1, 14),
+    ('admin123', 1, 23),
     
-    -- Member company users (all with role 4 - Miembro)
+    -- Member company users (all with role 3 - Miembro)
+    ('abc2024', 3, 1),
+    ('xyz2024', 3, 2),
     ('delta2024', 3, 3),
     ('omega2024', 3, 4),
     ('epsilon2024', 3, 5),
@@ -729,30 +740,39 @@ INSERT INTO usuario (
     ('lambda2024', 3, 10),
     ('zeta2024', 3, 11),
     ('omegacom2024', 3, 12),
+    ('alfa2024', 3, 14),
+    ('bravo2024', 3, 15),
+    ('charlie2024', 3, 16),
+    ('deltaimp2024', 3, 17),
+    ('echo2024', 3, 18),
+    ('foxtrot2024', 3, 19),
+    ('golf2024', 3, 20),
+    ('hotel2024', 3, 21),
+    ('india2024', 3, 22),
 
-    -- Employee users (all with role 2 - Empleado)
-    ('maria2024', 7, 18),
-    ('pedro2024', 8, 19),
-    ('ana2024', 9, 20),
-    ('carlos2024', 7, 21),
-    ('laura2024', 10, 22),
-    ('roberto2024', 9, 23),
-    ('sofia2024', 9, 24),
-    ('miguel2024', 4, 25), -- Rol 'Jefe de Compras' para Miguel Morales
-    ('carmen2024', 6, 26), -- Rol 'Jefe de Pasillos' para Carmen Ortiz
+    -- Employee users
+    ('maria2024', 7, 27),
+    ('pedro2024', 8, 28),
+    ('ana2024', 9, 29),
+    ('carlos2024', 7, 30),
+    ('laura2024', 10, 31),
+    ('roberto2024', 9, 32),
+    ('sofia2024', 9, 33),
+    ('miguel2024', 4, 34), 
+    ('carmen2024', 6, 35),
     
     -- Users for clients
-    ('cliente_natural_2', 2, 33),
-    ('cliente_natural_3', 2, 34),
-    ('cliente_natural_4', 2, 35),
-    ('cliente_natural_5', 2, 36),
-    ('cliente_natural_6', 2, 37),
-    ('cliente_juridico_1', 2, 38),
-    ('cliente_juridico_2', 2, 39),
-    ('cliente_juridico_3', 2, 40),
-    ('cliente_juridico_4', 2, 41),
-    ('cliente_juridico_5', 2, 42),
-    ('cliente_juridico_6', 2, 43);
+    ('cliente_natural_2', 2, 42),
+    ('cliente_natural_3', 2, 43),
+    ('cliente_natural_4', 2, 44),
+    ('cliente_natural_5', 2, 45),
+    ('cliente_natural_6', 2, 46),
+    ('cliente_juridico_1', 2, 47),
+    ('cliente_juridico_2', 2, 48),
+    ('cliente_juridico_3', 2, 49),
+    ('cliente_juridico_4', 2, 50),
+    ('cliente_juridico_5', 2, 51),
+    ('cliente_juridico_6', 2, 52);
 
 /**
  * Inserts for cliente_usuario table
@@ -766,19 +786,19 @@ INSERT INTO cliente_usuario (
 ) VALUES
     -- Natural clients
     (NULL, 3, 1),
-    (NULL, 24, 2),
-    (NULL, 25, 3),
-    (NULL, 26, 4),
-    (NULL, 27, 5),
-    (NULL, 28, 6),
+    (NULL, 32, 2),
+    (NULL, 33, 3),
+    (NULL, 34, 4),
+    (NULL, 35, 5),
+    (NULL, 36, 6),
     
     -- Legal clients
-    (1, 29, NULL),
-    (2, 30, NULL),
-    (3, 31, NULL),
-    (4, 32, NULL),
-    (5, 33, NULL),
-    (6, 34, NULL);
+    (1, 37, NULL),
+    (2, 38, NULL),
+    (3, 39, NULL),
+    (4, 40, NULL),
+    (5, 41, NULL),
+    (6, 42, NULL);
 
 /**
  * Inserts for telefono table
@@ -837,16 +857,27 @@ INSERT INTO miembro_usuario (
     fk_miembro_1,
     fk_miembro_2
 ) VALUES
-    (4, 123456789, 'J'),     -- Links ABC Corp with user 4
-    (5, 987654321, 'V'),     -- Links XYZ Inc with user 5
-    (6, 234567890, 'J'),     -- Links Delta Distrib with user 6
-    (7, 345678901, 'V'),     -- Links Omega Imports with user 7
-    (8, 456789012, 'J'),     -- Links Epsilon Trade with user 8
-    (9, 567890123, 'V'),     -- Links Beta Stores with user 9
-    (10, 678901234, 'J'),    -- Links Gamma Dist with user 10
-    (11, 789012345, 'V'),    -- Links Sigma Com with user 11
-    (12, 890123456, 'J'),    -- Links Theta Imports with user 12
-    (13, 901234567, 'V');    -- Links Lambda Stores with user 13
+    (2, 123456789, 'J'),
+    (3, 987654321, 'V'),
+    (4, 234567890, 'J'),
+    (5, 345678901, 'V'),
+    (6, 456789012, 'J'),
+    (7, 567890123, 'V'),
+    (8, 678901234, 'J'),
+    (9, 789012345, 'V'),
+    (10, 890123456, 'J'),
+    (11, 901234567, 'V'),
+    (12, 12345678, 'J'),
+    (13, 123456780, 'V'),
+    (14, 111222333, 'J'),
+    (15, 444555666, 'V'),
+    (16, 777888999, 'J'),
+    (17, 111333555, 'V'),
+    (18, 222444666, 'J'),
+    (19, 333555777, 'V'),
+    (20, 444666888, 'J'),
+    (21, 555777999, 'V'),
+    (22, 666888000, 'J');
 
 
 /**
@@ -859,12 +890,12 @@ INSERT INTO empleado_usuario (
     fk_usuario
 ) VALUES
     (1, 2),     -- Links employee 1 (Juan Pérez) with user 2 (employee user)
-    (2, 15),    -- Links employee 2 (María Rodríguez) with user 15
-    (3, 16),    -- Links employee 3 (Pedro García) with user 16
-    (4, 17),    -- Links employee 4 (Ana Martínez) with user 17
-    (5, 18),    -- Links employee 5 (Carlos López) with user 18
-    (6, 19),    -- Links employee 6 (Laura Sánchez) with user 19
-    (7, 20),    -- Links employee 7 (Roberto Torres) with user 20
-    (8, 21),    -- Links employee 8 (Sofía Díaz) with user 21
-    (9, 22),    -- Links employee 9 (Miguel Morales) with user 22
-    (10, 23);   -- Links employee 10 (Carmen Ortiz) with user 23 
+    (2, 23),    -- Links employee 2 (María Rodríguez) with user 15
+    (3, 24),    -- Links employee 3 (Pedro García) with user 16
+    (4, 25),    -- Links employee 4 (Ana Martínez) with user 17
+    (5, 26),    -- Links employee 5 (Carlos López) with user 18
+    (6, 27),    -- Links employee 6 (Laura Sánchez) with user 19
+    (7, 28),    -- Links employee 7 (Roberto Torres) with user 20
+    (8, 29),    -- Links employee 8 (Sofía Díaz) with user 21
+    (9, 30),    -- Links employee 9 (Miguel Morales) with user 22
+    (10, 31);   -- Links employee 10 (Carmen Ortiz) with user 23 

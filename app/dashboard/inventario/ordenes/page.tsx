@@ -5,7 +5,7 @@ import { OrdenesCompraClient } from "@/components/ordenes-compra/ordenes-compra-
 
 export default function OrdenesCompraPage() {
   return (
-    <ProtectedRoute requiredPermissions={["leer_orden_de_compra"]} redirectTo="/unauthorized">
+    <ProtectedRoute requiredPermissions={["leer_orden_de_compra", 'leer_orden_de_compra_proveedor']} redirectTo="/unauthorized">
       <OrdenesCompraClient />
     </ProtectedRoute>
   );

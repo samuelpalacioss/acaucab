@@ -9,12 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { obtenerTodasLasOrdenesDeCompra } from "@/lib/server-actions";
 import { OrdenCompraResumen } from "@/models/orden-compra";
 import { ArrowRight } from "lucide-react";
+import { usePermissions } from "@/store/user-store";
 
 export function OrdenesCompraClient() {
   const [ordenes, setOrdenes] = useState<OrdenCompraResumen[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
+  const { puedeEditarOrdenesDeCompra, puedeEditarOrdenesDeCompraProveedor } = usePermissions();
   useEffect(() => {
     const fetchOrdenes = async () => {
       try {
@@ -107,10 +108,12 @@ export function OrdenesCompraClient() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
+                    { puedeEditarOrdenesDeCompra() && (
                     <Button variant="outline" size="sm" onClick={() => handleViewDetails(orden.orden_id)}>
                       Ver Detalles
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
