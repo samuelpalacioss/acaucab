@@ -661,4 +661,13 @@ INSERT INTO miembro_presentacion_cerveza (monto_proveedor, fk_miembro_1, fk_miem
 (95.50, 678901234, 'J', 7, 7),      /** Gamma Dist provee barril 30L por $95.50 */
 (155.75, 789012345, 'V', 8, 8),     /** Sigma Com provee barril 50L por $155.75 */
 (8.90, 890123456, 'J', 9, 9),       /** Theta Imports provee growler 1L por $8.90 */
-(42.60, 901234567, 'V', 10, 10);  /** Lambda Stores provee caja 12 unidades 500ml por $42.60 */ 
+(42.60, 901234567, 'V', 10, 10),  /** Lambda Stores provee caja 12 unidades 500ml por $42.60 */
+-- Nuevos registros para igualar la cantidad de presentacion_cerveza
+(1.20, 123456789, 'J', 1, 11),      /** Empresa ABC provee Rogue American Amber - Botella 330ml por $1.20 */
+(2.00, 987654321, 'V', 2, 12),      /** Empresa XYZ provee La Chouffe - Botella 500ml por $2.00 */
+(1.50, 234567890, 'J', 3, 13),      /** Delta Distrib provee Orval - Lata 330ml por $1.50 */
+(10.00, 345678901, 'V', 4, 14),     /** Omega Imports provee Chimay - Six-pack 330ml por $10.00 */
+(38.00, 456789012, 'J', 5, 15),     /** Epsilon Trade provee Leffe Blonde - Caja 24 unidades 330ml por $38.00 */
+(70.00, 567890123, 'V', 6, 16),     /** Beta Stores provee Hoegaarden - Barril 20L por $70.00 */
+(100.00, 678901234, 'J', 7, 17),    /** Gamma Dist provee Pilsner Urquell - Barril 30L por $100.00 */
+(160.00, 789012345, 'V', 8, 18);    /** Sigma Com provee Samuel Adams - Barril 50L por $160.00 */
