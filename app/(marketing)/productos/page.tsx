@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -15,9 +15,53 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
+import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+}
 
 export default function CatalogoCervezas() {
-  const [priceRange, setPriceRange] = useState([1.5, 10]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [priceRange, setPriceRange] = useState([0, 0]);
+  const [sliderBounds, setSliderBounds] = useState([0, 0]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const presentaciones = await getPresentacionesDisponibles();
+        const mappedProducts = presentaciones
+          .map((p: any) => ({
+            id: p.presentacion_id,
+            name: p.nombre_cerveza,
+            price: p.precio,
+            image: p.imagen || "/placeholder.svg?height=400&width=400",
+          }))
+          .filter((p) => p.price != null);
+
+        setProducts(mappedProducts);
+
+        if (mappedProducts.length > 0) {
+          const prices = mappedProducts.map((p) => p.price);
+          const minPrice = Math.min(...prices);
+          const maxPrice = Math.max(...prices);
+          setSliderBounds([minPrice, maxPrice]);
+          setPriceRange([minPrice, maxPrice]);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        // Handle error appropriately, maybe show a toast
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handlePriceChange = (value: number[]) => {
     setPriceRange(value);
@@ -25,17 +69,21 @@ export default function CatalogoCervezas() {
 
   const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
-    if (!isNaN(value) && value >= 1.5 && value <= priceRange[1]) {
+    if (!isNaN(value) && value >= sliderBounds[0] && value <= priceRange[1]) {
       setPriceRange([value, priceRange[1]]);
     }
   };
 
   const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
-    if (!isNaN(value) && value >= priceRange[0] && value <= 10) {
+    if (!isNaN(value) && value >= priceRange[0] && value <= sliderBounds[1]) {
       setPriceRange([priceRange[0], value]);
     }
   };
+
+  const filteredProducts = products.filter(
+    (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -94,11 +142,12 @@ export default function CatalogoCervezas() {
                 <div className="w-[200px]">
                   <Slider
                     value={priceRange}
-                    min={1.5}
-                    max={10}
-                    step={0.5}
+                    min={sliderBounds[0]}
+                    max={sliderBounds[1]}
+                    step={1}
                     onValueChange={handlePriceChange}
                     className="mt-1"
+                    disabled={loading || products.length === 0}
                   />
                 </div>
               </div>
@@ -173,122 +222,23 @@ export default function CatalogoCervezas() {
           </div>
 
           {/* Grid de productos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {beers.map((beer) => (
-              <ProductCard
-                key={beer.id}
-                id={beer.id}
-                name={beer.name}
-                price={beer.price}
-                image={beer.image}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <p>Cargando productos...</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((beer) => (
+                <ProductCard
+                  key={beer.id}
+                  id={beer.id}
+                  name={beer.name}
+                  price={beer.price}
+                  image={beer.image}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
-// Datos de ejemplo
-export const beers = [
-  {
-    id: 1,
-    name: "Amanecer En Choroni",
-    price: 4.5,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 4.5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Pale",
-  },
-  {
-    id: 2,
-    name: "Música de lupulo",
-    price: 7.0,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Pale",
-  },
-  {
-    id: 3,
-    name: "Ávila Pale Ale",
-    price: 8.0,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 2,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Pale",
-  },
-  {
-    id: 4,
-    name: "Sol de Verano",
-    price: 5.0,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Pale",
-  },
-  {
-    id: 5,
-    name: "La Cerveza de la Vida",
-    price: 6.5,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Especial",
-  },
-  {
-    id: 6,
-    name: "Música en el cielo",
-    price: 5.5,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Especial",
-  },
-  {
-    id: 7,
-    name: "Noche de verano",
-    price: 6.0,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Pale",
-  },
-  {
-    id: 8,
-    name: "Cielo azul",
-    price: 8.5,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Pale",
-  },
-  {
-    id: 9,
-    name: "Cristal Imperial",
-    price: 5.0,
-    image: "/placeholder.svg?height=400&width=400",
-    quantity: 1,
-    alcohol: 5,
-    brand: "Artesana",
-    capacity: "355ml",
-    category: "Especial",
-  },
-];

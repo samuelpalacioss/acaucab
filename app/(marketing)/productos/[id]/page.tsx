@@ -2,14 +2,57 @@
 
 import Image from "next/image";
 import { Minus, Plus } from "lucide-react";
-import { beers } from "../page";
 import { notFound } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  brand: string;
+  // alcohol: number;
+  capacity: string;
+}
 
 export default function BeerDetailPage({ params }: { params: { id: string } }) {
-  const beerId = Number.parseInt(params.id);
-  const beer = beers.find((beer) => beer.id === beerId);
+  const [beer, setBeer] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const beerId = Number.parseInt(params.id);
+        const presentaciones = await getPresentacionesDisponibles();
+        const productData = presentaciones.find((p: any) => p.id_presentacion === beerId);
+
+        if (productData) {
+          setBeer({
+            id: productData.presentacion_id,
+            name: productData.nombre_cerveza,
+            price: productData.precio,
+            image: productData.imagen || "/placeholder.svg?height=400&width=400",
+            // TODO: Replace with actual data when available in the API
+            brand: productData.marca || "Marca Desconocida",
+            // alcohol: productData.tipo_cerveza,
+            capacity: productData.presentacion,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [params.id]);
+
+  if (loading) {
+    return <div>Cargando producto...</div>;
+  }
 
   if (!beer) {
     notFound();
@@ -61,11 +104,11 @@ export default function BeerDetailPage({ params }: { params: { id: string } }) {
           </p>
         </div>
 
-        <div className="text-sm text-gray-600">
+        {/* <div className="text-sm text-gray-600">
           <p>
             Porcentaje de alcohol: <span className="font-bold">{beer.alcohol}&#37;</span>
           </p>
-        </div>
+        </div> */}
 
         <div className="text-sm font-bold text-gray-600">
           <p>{beer.capacity}</p>
