@@ -3,7 +3,7 @@ import Link from "next/link";
 
 interface ProductCardProps {
   id: number;
-  name: string;
+  name: React.ReactNode;
   price: number;
   image: string;
 }
@@ -15,7 +15,7 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
         <div className="bg-gray-200 aspect-square mb-3 relative overflow-hidden">
           <Image
             src={image || "/placeholder.svg"}
-            alt={name}
+            alt={typeof name === "string" ? name : "Product image"}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />

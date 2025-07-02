@@ -22,6 +22,25 @@ interface Product {
   name: string;
   price: number;
   image: string;
+  type: string;
+  brand: string;
+}
+
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+
+  return parts.map((part, index) =>
+    regex.test(part) ? (
+      <mark key={index} className="bg-yellow-200">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
 }
 
 export default function CatalogoCervezas() {
@@ -29,6 +48,12 @@ export default function CatalogoCervezas() {
   const [loading, setLoading] = useState(true);
   const [priceRange, setPriceRange] = useState([0, 0]);
   const [sliderBounds, setSliderBounds] = useState([0, 0]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [beerTypes, setBeerTypes] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState("nuevos");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -40,8 +65,10 @@ export default function CatalogoCervezas() {
             name: p.nombre_cerveza,
             price: p.precio,
             image: p.imagen || "/placeholder.svg?height=400&width=400",
+            type: p.tipo_cerveza,
+            brand: p.marca,
           }))
-          .filter((p) => p.price != null);
+          .filter((p) => p.price != null && p.type != null && p.brand != null);
 
         setProducts(mappedProducts);
 
@@ -51,6 +78,12 @@ export default function CatalogoCervezas() {
           const maxPrice = Math.max(...prices);
           setSliderBounds([minPrice, maxPrice]);
           setPriceRange([minPrice, maxPrice]);
+
+          const uniqueTypes = [...new Set(mappedProducts.map((p) => p.type))];
+          setBeerTypes(uniqueTypes);
+
+          const uniqueBrands = [...new Set(mappedProducts.map((p) => p.brand))];
+          setBrands(uniqueBrands);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -81,9 +114,37 @@ export default function CatalogoCervezas() {
     }
   };
 
-  const filteredProducts = products.filter(
-    (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
-  );
+  const handleTypeChange = (type: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
+
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrands((prev) =>
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+    );
+  };
+
+  const filteredProducts = products
+    .filter((product) => product.price >= priceRange[0] && product.price <= priceRange[1])
+    .filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((product) => (selectedTypes.length === 0 ? true : selectedTypes.includes(product.type)))
+    .filter((product) =>
+      selectedBrands.length === 0 ? true : selectedBrands.includes(product.brand)
+    )
+    .sort((a, b) => {
+      if (sortOrder === "precio-bajo") {
+        return a.price - b.price;
+      }
+      if (sortOrder === "precio-alto") {
+        return b.price - a.price;
+      }
+      if (sortOrder === "nuevos") {
+        return b.id - a.id;
+      }
+      return 0;
+    });
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -95,22 +156,16 @@ export default function CatalogoCervezas() {
             <div className="mb-6">
               <h3 className="font-semibold mb-3">Tipo de Cerveza</h3>
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="lager" />
-                  <Label htmlFor="lager">Lager</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="ipa" />
-                  <Label htmlFor="ipa">IPA</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="stout" />
-                  <Label htmlFor="stout">Stout</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="ale" />
-                  <Label htmlFor="ale">Ale</Label>
-                </div>
+                {beerTypes.map((type) => (
+                  <div key={type} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={type.toLowerCase()}
+                      onCheckedChange={() => handleTypeChange(type)}
+                      checked={selectedTypes.includes(type)}
+                    />
+                    <Label htmlFor={type.toLowerCase()}>{type}</Label>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -157,22 +212,16 @@ export default function CatalogoCervezas() {
             <div className="mb-6">
               <h3 className="font-semibold mb-3">Marca</h3>
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="corona" />
-                  <Label htmlFor="corona">Minerva</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="heineken" />
-                  <Label htmlFor="heineken">Cucapá</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="stella" />
-                  <Label htmlFor="stella">Tempus</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="modelo" />
-                  <Label htmlFor="modelo">Calavera</Label>
-                </div>
+                {brands.map((brand) => (
+                  <div key={brand} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={brand.toLowerCase()}
+                      onCheckedChange={() => handleBrandChange(brand)}
+                      checked={selectedBrands.includes(brand)}
+                    />
+                    <Label htmlFor={brand.toLowerCase()}>{brand}</Label>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -181,13 +230,17 @@ export default function CatalogoCervezas() {
         {/* Contenido principal */}
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <p className="text-gray-500 mb-2 sm:mb-0">1-9 de 36 Productos</p>
+            <p className="text-gray-500 mb-2 sm:mb-0">
+              {filteredProducts.length} de {products.length} Productos
+            </p>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Input
                   type="text"
                   placeholder="Buscar productos"
                   className="w-[220px] pl-8 h-10 border rounded-md bg-white focus-visible:ring-0"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -204,18 +257,17 @@ export default function CatalogoCervezas() {
                   />
                 </svg>
               </div>
-              <Select defaultValue="popular">
+              <Select value={sortOrder} onValueChange={setSortOrder}>
                 <SelectTrigger className="w-[220px]">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500">Ordenar por:</span>
-                    <SelectValue defaultValue="popular" />
+                    <SelectValue placeholder="Seleccionar" />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="popular">Popular</SelectItem>
+                  <SelectItem value="nuevos">Más recientes</SelectItem>
                   <SelectItem value="precio-bajo">Menor precio</SelectItem>
                   <SelectItem value="precio-alto">Mayor precio</SelectItem>
-                  <SelectItem value="nuevos">Más recientes</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -230,7 +282,7 @@ export default function CatalogoCervezas() {
                 <ProductCard
                   key={beer.id}
                   id={beer.id}
-                  name={beer.name}
+                  name={highlightText(beer.name, searchTerm)}
                   price={beer.price}
                   image={beer.image}
                 />
