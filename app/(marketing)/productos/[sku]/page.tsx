@@ -95,10 +95,12 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
         <div className="text-2xl font-semibold">{beer.price.toFixed(2)} Bs</div>
 
         <div className="prose max-w-none">
+          {/* TODO: Agregar descripción general a cada presentacion_cerveza */}
           <p>
             Cerveza artesanal de alta calidad con sabor excepcional y aroma distintivo. Elaborada
             con ingredientes seleccionados para ofrecer una experiencia única.
           </p>
+          $
         </div>
 
         <div className="text-sm text-gray-600">
