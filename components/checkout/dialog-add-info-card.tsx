@@ -64,7 +64,12 @@ export default function DialogAddInfoCard({ onSubmit }: DialogAddInfoCardProps) 
           </div>
         </DialogHeader>
 
-        <PaymentForm showHeader={true} onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+        <PaymentForm
+          showHeader={true}
+          onSubmit={handleFormSubmit}
+          isSubmitting={isSubmitting}
+          context="dialog"
+        />
       </DialogContent>
     </Dialog>
   );

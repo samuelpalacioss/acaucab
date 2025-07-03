@@ -8,15 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import AddressModal from "@/components/checkout/address-modal";
 import OrderSummary from "@/components/checkout/order-summary";
-import PaymentForm from "@/components/checkout/payment-form";
+import PaymentForm, { PaymentFormData } from "@/components/checkout/payment-form";
 import SavedPaymentMethod from "@/components/checkout/saved-payment-method";
 import { useVentaStore } from "@/store/venta-store";
 import { SHIPPING_COST } from "@/lib/constants";
+import { toast } from "@/hooks/use-toast";
 
 export default function CheckoutPage() {
-  // Simulamos que el usuario tiene una tarjeta guardada
-  // En un caso real, esto vendría de un contexto de autenticación o una API
-  const [hasStoredPaymentMethod] = useState(true);
+  // const [hasStoredPaymentMethod, setHasStoredPaymentMethod] = useState(true);
+  const [hasStoredPaymentMethod, setHasStoredPaymentMethod] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { carrito } = useVentaStore();
 
   const orderItems = carrito.map((item) => ({
@@ -26,6 +28,26 @@ export default function CheckoutPage() {
     quantity: item.quantity,
     image: item.imagen ?? "/placeholder.svg", // Fallback to a placeholder image
   }));
+
+  const handleAddNewCard = async (data: PaymentFormData) => {
+    setIsSubmitting(true);
+    console.log("Submitting new card:", data);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    toast({
+      title: "Éxito",
+      description: "La nueva tarjeta ha sido guardada exitosamente.",
+      variant: "default",
+    });
+
+    setIsSubmitting(false);
+    setHasStoredPaymentMethod(true); // Switch back to the saved method view
+  };
+
+  const handleCancel = () => {
+    setHasStoredPaymentMethod(true);
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -81,12 +103,17 @@ export default function CheckoutPage() {
                 <SavedPaymentMethod
                   cardType="visa"
                   lastFourDigits="4242"
-                  // cardholderName="Juan Pérez"
                   expiryDate="04/26"
                   isDefault={true}
                 />
               ) : (
-                <PaymentForm maxWidth="max-w-4xl" />
+                <PaymentForm
+                  maxWidth="max-w-4xl"
+                  onSubmit={handleAddNewCard}
+                  isSubmitting={isSubmitting}
+                  context="page"
+                  onCancel={handleCancel}
+                />
               )}
             </CardContent>
           </Card>

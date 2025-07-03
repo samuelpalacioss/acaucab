@@ -64,6 +64,8 @@ interface PaymentFormProps {
   showHeader?: boolean;
   onSubmit?: (data: PaymentFormData) => void;
   isSubmitting?: boolean;
+  onCancel?: () => void;
+  context?: "page" | "dialog";
 }
 
 export default function PaymentForm({
@@ -71,6 +73,8 @@ export default function PaymentForm({
   showHeader = true,
   onSubmit,
   isSubmitting = false,
+  onCancel,
+  context = "page",
 }: PaymentFormProps) {
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -233,11 +237,18 @@ export default function PaymentForm({
 
           {onSubmit && (
             <div className="flex justify-end gap-2 mt-6">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
+              {context === "dialog" && (
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Cancelar
+                  </Button>
+                </DialogClose>
+              )}
+              {context === "page" && onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel}>
                   Cancelar
                 </Button>
-              </DialogClose>
+              )}
               <Button type="submit" disabled={!isValid || isSubmitting}>
                 {isSubmitting ? "Guardando..." : "Guardar tarjeta"}
               </Button>
