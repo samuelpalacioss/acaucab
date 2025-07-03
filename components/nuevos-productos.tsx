@@ -2,11 +2,11 @@
 
 import { ProductCard } from "@/components/product-card";
 import Link from "next/link";
-import { beers } from "@/app/(marketing)/productos/page"; // Temporarily importing from here, should be moved to a proper data layer
+// import { beers } from "@/app/(marketing)/productos/page"; // Temporarily importing from here, should be moved to a proper data layer
 
 export function NuevosProductos() {
   // Get the last 4 products
-  const latestProducts = beers.slice(-4);
+  // const latestProducts = beers.slice(-4);
 
   return (
     <section className="container mx-auto px-4 py-12">
@@ -24,7 +24,7 @@ export function NuevosProductos() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {latestProducts.map((product) => (
+        {/* {latestProducts.map((product) => (
           <ProductCard
             key={product.id}
             id={product.id}
@@ -32,7 +32,7 @@ export function NuevosProductos() {
             price={product.price}
             image={product.image}
           />
-        ))}
+        ))} */}
       </div>
     </section>
   );
