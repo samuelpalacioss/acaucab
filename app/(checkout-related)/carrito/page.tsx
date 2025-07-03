@@ -1,62 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useVentaStore } from "@/store/venta-store";
 import { CartList } from "@/components/carrito-compras/cart-list";
 import { OrderSummary } from "@/components/carrito-compras/order-summary";
-import { CarritoItemType } from "@/lib/schemas";
-
-// This would typically come from a context or state management library
-const initialItems: CarritoItemType[] = [
-  {
-    sku: "CERV001",
-    nombre_cerveza: "Cerveza Especial",
-    presentacion: "355ml",
-    precio: 12,
-    id_tipo_cerveza: 1,
-    tipo_cerveza: "Especial",
-    stock_total: 100,
-    marca: "Cervecería La Esquina",
-    imagen: "/placeholder.svg?height=128&width=128",
-    quantity: 1,
-  },
-  {
-    sku: "CERV002",
-    nombre_cerveza: "Cerveza Pale",
-    presentacion: "355ml",
-    precio: 10,
-    id_tipo_cerveza: 2,
-    tipo_cerveza: "Pale",
-    stock_total: 50,
-    marca: "Artesana",
-    imagen: "/placeholder.svg?height=128&width=128",
-    quantity: 1,
-  },
-];
+import { useRouter } from "next/navigation";
 
 export default function CarritoCompras() {
-  const [cartItems, setCartItems] = useState<CarritoItemType[]>(initialItems);
-
-  const handleRemoveItem = (sku: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.sku !== sku));
-  };
-
-  const handleUpdateQuantity = (sku: string, newQuantity: number) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) => (item.sku === sku ? { ...item, quantity: newQuantity } : item))
-    );
-  };
+  const router = useRouter();
+  const { carrito, eliminarDelCarrito, actualizarCantidad } = useVentaStore();
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+    return carrito.reduce((sum, item) => sum + item.precio * item.quantity, 0);
   };
 
   const calculateTotalItems = () => {
-    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    return carrito.reduce((sum, item) => sum + item.quantity, 0);
   };
 
   const handleCheckout = () => {
-    alert("Procesando pago...");
-    // In a real application, you would navigate to checkout page
+    router.push("/checkout");
   };
 
   return (
@@ -66,9 +28,9 @@ export default function CarritoCompras() {
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <CartList
-            items={cartItems}
-            onRemoveItem={handleRemoveItem}
-            onUpdateQuantity={handleUpdateQuantity}
+            items={carrito}
+            onRemoveItem={eliminarDelCarrito}
+            onUpdateQuantity={actualizarCantidad}
             isCheckout={true}
           />
         </div>

@@ -15,7 +15,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
-import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { getPresentacionesDisponiblesWeb } from "@/api/get-presentaciones-disponibles-web";
 import { Loader } from "lucide-react";
 
 interface Product {
@@ -59,7 +59,7 @@ export default function CatalogoCervezas() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const presentaciones = await getPresentacionesDisponibles();
+        const presentaciones = await getPresentacionesDisponiblesWeb();
         const mappedProducts = presentaciones
           .map((p: any) => ({
             sku: p.sku,

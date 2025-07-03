@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUser, usePermissions } from "@/store/user-store";
 import { useLogout } from "@/components/auth/logout-button";
+import { useVentaStore } from "@/store/venta-store";
 
 const navLinks = [
   { href: "/eventos", label: "Eventos" },
@@ -28,6 +29,9 @@ export default function Navbar() {
   const { nombreUsuario, emailUsuario, rolUsuario, isAuthenticated } = useUser();
   const { tieneAccesoDashboard } = usePermissions();
   const { logout } = useLogout();
+  const { carrito } = useVentaStore();
+
+  const totalItems = carrito.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <header className="w-full py-4 border-b border-gray-200 bg-white">
@@ -52,8 +56,16 @@ export default function Navbar() {
 
         <div className="flex items-center space-x-4 ml-auto">
           {/** Carrito de compras */}
-          <Link href="/carrito" className="text-black hover:text-gray-600">
+          <Link href="/carrito" className="relative text-black hover:text-gray-600 p-2">
             <ShoppingCart className="h-6 w-6" />
+            {totalItems > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs p-1"
+              >
+                {totalItems}
+              </Badge>
+            )}
           </Link>
 
           {/** Si no está autenticado, mostrar botón de login */}
@@ -70,9 +82,9 @@ export default function Navbar() {
               {tieneAccesoDashboard() && (
                 <Link
                   href="/dashboard"
-                  className={buttonVariants({ 
-                    variant: "default", 
-                    className: "font-medium bg-blue-600 hover:bg-blue-700" 
+                  className={buttonVariants({
+                    variant: "default",
+                    className: "font-medium bg-blue-600 hover:bg-blue-700",
                   })}
                 >
                   <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -86,7 +98,11 @@ export default function Navbar() {
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-gray-100 text-gray-800">
-                        {nombreUsuario ? nombreUsuario.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
+                        {nombreUsuario ? (
+                          nombreUsuario.charAt(0).toUpperCase()
+                        ) : (
+                          <User className="h-4 w-4" />
+                        )}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -103,7 +119,7 @@ export default function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  
+
                   {/** Mostrar rol si está disponible */}
                   {rolUsuario && (
                     <>
@@ -119,13 +135,9 @@ export default function Navbar() {
                       <DropdownMenuSeparator />
                     </>
                   )}
-                 
-                  
+
                   {/** Logout con confirmación */}
-                  <DropdownMenuItem 
-                    onClick={logout}
-                    className="text-red-600 focus:text-red-600"
-                  >
+                  <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
                     Cerrar Sesión
                   </DropdownMenuItem>

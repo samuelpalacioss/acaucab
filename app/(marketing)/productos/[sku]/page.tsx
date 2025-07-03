@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Loader, Minus, Plus } from "lucide-react";
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
-import { getPresentacionBySku } from "@/api/get-presentacion-by-sku";
+import { getPresentacionBySkuTiendaWeb } from "@/api/get-presentacion-by-sku_tienda_web";
 import { useVentaStore } from "@/store/venta-store";
 import { PresentacionType } from "@/lib/schemas";
 
@@ -17,7 +17,7 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const productData = await getPresentacionBySku(params.sku);
+        const productData = await getPresentacionBySkuTiendaWeb(params.sku);
 
         if (productData) {
           setBeer(productData);
@@ -54,8 +54,9 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
     };
 
     agregarAlCarrito(itemToAdd);
-    console.log("Añadido al carrito:", itemToAdd);
-    console.log("Estado actual del carrito:", useVentaStore.getState().carrito);
+    console.log(`🛒 Producto añadido: ${itemToAdd.nombre_cerveza}`);
+    console.log("📦 Detalles:", itemToAdd);
+    console.log("🛒 Carrito ahora:", useVentaStore.getState().carrito);
     // TODO: add toast notification
   };
 
@@ -98,7 +99,6 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
             Cerveza artesanal de alta calidad con sabor excepcional y aroma distintivo. Elaborada
             con ingredientes seleccionados para ofrecer una experiencia única.
           </p>
-          $
         </div>
 
         <div className="text-sm text-gray-600">
