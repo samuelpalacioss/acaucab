@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Download, FileText } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Download, FileText } from "lucide-react";
 
-const backUrl="http://localhost:8081/reporte"
+const backUrl = "http://localhost:8081/reporte";
 
 // Datos de ejemplo para los reportes
 const allReports = [
@@ -46,42 +46,77 @@ const allReports = [
     format: "PDF",
     file: "Puntualidad",
   },
-]
+  {
+    id: 6,
+    name: "Comparación de Ventas entre Tienda Física y Tienda Web",
+    category: "Ventas",
+    format: "PDF",
+    file: "comparacion-ventas",
+  },
+  {
+    id: 7,
+    name: "Top 10 productos más vendidos",
+    category: "Ventas",
+    format: "PDF",
+    file: "top10productos",
+  },
+  {
+    id: 8,
+    name: "Niveles de Stock",
+    category: "Ventas",
+    format: "PDF",
+    file: "nivel-stock",
+  },
+  {
+    id: 9,
+    name: "Gráfico de Tendencia de Ventas",
+    category: "Ventas",
+    format: "PDF",
+    file: "grafico-ventas",
+  },
+];
 
 interface ReportsTableProps {
-  category?: string
+  category?: string;
 }
 
 export function ReportsTable({ category }: ReportsTableProps) {
   // Filtrar reportes por categoría si se proporciona
-  const reports = category ? allReports.filter((report) => report.category === category) : allReports
+  const reports = category ? allReports.filter((report) => report.category === category) : allReports;
 
   // Estadísticas de reportes
-  const totalReports = reports.length
-  const pdfReports = reports.filter((report) => report.format === "PDF").length
-  const excelReports = reports.filter((report) => report.format === "Excel").length
+  const totalReports = reports.length;
+  const pdfReports = reports.filter((report) => report.format === "PDF").length;
+  const excelReports = reports.filter((report) => report.format === "Excel").length;
 
-  const handleDownload = (reportId: number, reportName: string, reportFile:string) => {
-    const startDateInput = document.getElementById(`start-date-${reportId}`) as HTMLInputElement
-    const endDateInput = document.getElementById(`end-date-${reportId}`) as HTMLInputElement
+  const handleDownload = (reportId: number, reportName: string, reportFile: string) => {
+    if (reportFile === "nivel-stock") {
+      console.log(`Descargando reporte "${reportName}"`);
+      const url = `${backUrl}/nivel-stock`;
+      window.open(url, "_blank");
+      return;
+    }
 
-    const startDate = startDateInput?.value
-    const endDate = endDateInput?.value
+    const startDateInput = document.getElementById(`start-date-${reportId}`) as HTMLInputElement;
+    const endDateInput = document.getElementById(`end-date-${reportId}`) as HTMLInputElement;
+
+    const startDate = startDateInput?.value;
+    const endDate = endDateInput?.value;
 
     if (!startDate || !endDate) {
-      alert("Por favor selecciona ambas fechas para generar el reporte")
-      return
+      alert("Por favor selecciona ambas fechas para generar el reporte");
+      return;
     }
 
     if (new Date(startDate) > new Date(endDate)) {
-      alert("La fecha de inicio debe ser anterior a la fecha de fin")
-      return
+      alert("La fecha de inicio debe ser anterior a la fecha de fin");
+      return;
     }
 
-    console.log(`Descargando reporte "${reportName}" desde ${startDate} hasta ${endDate}`)
-    const url = `${backUrl}?fechaInicio=${startDate}&fechaFin=${endDate}&nombreReporte=${reportFile}`
-    window.open(url, "_blank")
-  }
+    console.log(`Descargando reporte "${reportName}" desde ${startDate} hasta ${endDate}`);
+    const url = `${backUrl}?fechaInicio=${startDate}&fechaFin=${endDate}&nombreReporte=${reportFile}`;
+    window.open(url, "_blank");
+  };
 
   return (
     <div className="space-y-4">
@@ -137,29 +172,44 @@ export function ReportsTable({ category }: ReportsTableProps) {
                   <Badge variant="outline">{report.format}</Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-end gap-2 justify-end">
-                    <div className="flex flex-col gap-1">
-                      <Label htmlFor={`start-date-${report.id}`} className="text-xs">
-                        Fecha inicio
-                      </Label>
-                      <Input id={`start-date-${report.id}`} type="date" className="w-36 h-8 text-xs" />
+                  {report.file === "nivel-stock" ? (
+                    <div className="flex items-center justify-end gap-4">
+                      <p className="text-sm text-muted-foreground italic">Traerá los niveles más recientes</p>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleDownload(report.id, report.name, report.file)}
+                        className="h-8"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Descargar
+                      </Button>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label htmlFor={`end-date-${report.id}`} className="text-xs">
-                        Fecha fin
-                      </Label>
-                      <Input id={`end-date-${report.id}`} type="date" className="w-36 h-8 text-xs" />
+                  ) : (
+                    <div className="flex items-end gap-2 justify-end">
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor={`start-date-${report.id}`} className="text-xs">
+                          Fecha inicio
+                        </Label>
+                        <Input id={`start-date-${report.id}`} type="date" className="w-36 h-8 text-xs" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor={`end-date-${report.id}`} className="text-xs">
+                          Fecha fin
+                        </Label>
+                        <Input id={`end-date-${report.id}`} type="date" className="w-36 h-8 text-xs" />
+                      </div>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleDownload(report.id, report.name, report.file)}
+                        className="h-8"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Descargar
+                      </Button>
                     </div>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handleDownload(report.id, report.name,report.file)}
-                      className="h-8"
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Descargar
-                    </Button>
-                  </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -181,5 +231,5 @@ export function ReportsTable({ category }: ReportsTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
