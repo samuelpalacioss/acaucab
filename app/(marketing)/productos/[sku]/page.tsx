@@ -149,7 +149,7 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
 
           <div className="text-sm text-gray-500 space-y-2">
             <p>Precio no incluye IVA ni envío</p>
-            <p>Precio del envío varia según la zona</p>
+            {/* <p>Precio del envío varia según la zona</p> */}
           </div>
         </div>
       </div>
