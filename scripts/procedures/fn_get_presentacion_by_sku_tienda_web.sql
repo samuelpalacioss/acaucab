@@ -1,7 +1,8 @@
-DROP FUNCTION IF EXISTS fn_get_presentacion_by_sku(VARCHAR);
+DROP FUNCTION IF EXISTS fn_get_presentacion_by_sku_tienda_web(VARCHAR, INTEGER);
 
-CREATE OR REPLACE FUNCTION fn_get_presentacion_by_sku(
-    p_sku VARCHAR
+CREATE OR REPLACE FUNCTION fn_get_presentacion_by_sku_tienda_web(
+    p_sku VARCHAR,
+    p_id_tienda_web INTEGER DEFAULT 1
 )
 RETURNS TABLE (
     sku VARCHAR,
@@ -16,7 +17,6 @@ RETURNS TABLE (
     presentacion_id INTEGER,
     cerveza_id INTEGER
 )
-LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
@@ -40,10 +40,11 @@ BEGIN
         pc.fk_presentacion = mpc.fk_presentacion_cerveza_1 AND 
         pc.fk_cerveza = mpc.fk_presentacion_cerveza_2
     LEFT JOIN miembro m ON mpc.fk_miembro_1 = m.rif AND mpc.fk_miembro_2 = m.naturaleza_rif
-    LEFT JOIN inventario i ON 
+    JOIN inventario i ON 
         pc.fk_presentacion = i.fk_presentacion_cerveza_1 AND 
         pc.fk_cerveza = i.fk_presentacion_cerveza_2
-    WHERE pc.sku = p_sku
+    JOIN almacen a ON i.fk_almacen = a.id
+    WHERE pc.sku = p_sku AND a.fk_tienda_web = p_id_tienda_web
     GROUP BY 
         pc.sku,
         c.nombre,
@@ -57,4 +58,4 @@ BEGIN
         c.id
     HAVING SUM(COALESCE(i.cantidad_almacen, 0)) >= 1;
 END;
-$$;
+$$ LANGUAGE plpgsql;

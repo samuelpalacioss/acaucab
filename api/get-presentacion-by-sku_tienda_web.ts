@@ -1,9 +1,10 @@
 import { llamarFuncion } from "@/lib/server-actions";
 
-export const getPresentacionBySku = async (sku: string) => {
+export const getPresentacionBySkuTiendaWeb = async (sku: string, id_tienda_web?: number) => {
   try {
-    const response = await llamarFuncion('fn_get_presentacion_by_sku', { 
-      p_sku: sku 
+    const response = await llamarFuncion('fn_get_presentacion_by_sku_tienda_web', { 
+      p_sku: sku,
+      p_id_tienda_web: id_tienda_web
     });
     
     // The function returns an array, we expect only one result for a given SKU
