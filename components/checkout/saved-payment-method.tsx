@@ -20,11 +20,13 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
+import DialogAddInfoCard from "./dialog-add-info-card";
 
 interface SavedPaymentMethodProps {
   cardType: "visa" | "mastercard" | "amex";
   lastFourDigits: string;
-  cardholderName: string;
+  // cardholderName: string;
   expiryDate: string;
   isDefault?: boolean;
 }
@@ -58,10 +60,15 @@ const detectCardType = (cardNumber: string): "visa" | "mastercard" | "amex" => {
   return "visa"; // Default fallback
 };
 
+// Mock de una función que guarda la tarjeta en la "BD"
+const saveCardToDatabase = async (cardData: any) => {
+  // ... existing code ...
+};
+
 export default function SavedPaymentMethod({
   cardType: initialCardType,
   lastFourDigits: initialLastFourDigits,
-  cardholderName: initialCardholderName,
+  // cardholderName: initialCardholderName,
   expiryDate: initialExpiryDate,
   isDefault = true,
 }: SavedPaymentMethodProps) {
@@ -74,7 +81,7 @@ export default function SavedPaymentMethod({
       id: "1",
       cardType: "visa" as const,
       lastFourDigits: "4242",
-      cardholderName: "Juan Pérez",
+      // cardholderName: "Juan Pérez",
       expiryDate: "04/26",
       isDefault: true,
     },
@@ -82,7 +89,7 @@ export default function SavedPaymentMethod({
       id: "2",
       cardType: "mastercard" as const,
       lastFourDigits: "5678",
-      cardholderName: "Juan Pérez",
+      // cardholderName: "Juan Pérez",
       expiryDate: "08/25",
       isDefault: false,
     },
@@ -90,7 +97,7 @@ export default function SavedPaymentMethod({
       id: "3",
       cardType: "amex" as const,
       lastFourDigits: "9012",
-      cardholderName: "Juan Pérez",
+      // cardholderName: "Juan Pérez",
       expiryDate: "12/24",
       isDefault: false,
     },
@@ -99,7 +106,7 @@ export default function SavedPaymentMethod({
   const [selectedCard, setSelectedCard] = useState({
     cardType: initialCardType,
     lastFourDigits: initialLastFourDigits,
-    cardholderName: initialCardholderName,
+    // cardholderName: initialCardholderName,
     expiryDate: initialExpiryDate,
   });
 
@@ -122,33 +129,22 @@ export default function SavedPaymentMethod({
       setSelectedCard({
         cardType: newSelectedCard.cardType,
         lastFourDigits: newSelectedCard.lastFourDigits,
-        cardholderName: newSelectedCard.cardholderName,
+        // cardholderName: newSelectedCard.cardholderName,
         expiryDate: newSelectedCard.expiryDate,
       });
     }
     setIsExpanded(false);
   };
 
-  const handleSaveNewCard = (formData: z.infer<typeof paymentFormSchema>) => {
-    const cardType = detectCardType(formData.numeroTarjeta);
-    const newCard = {
-      id: (savedCards.length + 1).toString(),
-      cardType,
-      lastFourDigits: formData.numeroTarjeta.slice(-4),
-      cardholderName: formData.nombreTitular,
-      expiryDate: formData.fechaExpiracion,
-      isDefault: false,
-    };
-
-    setSavedCards([...savedCards, newCard]);
-    setSelectedCardId(newCard.id);
-    setSelectedCard({
-      cardType: newCard.cardType,
-      lastFourDigits: newCard.lastFourDigits,
-      cardholderName: newCard.cardholderName,
-      expiryDate: newCard.expiryDate,
+  const handleSaveNewCard = async (data: any) => {
+    console.log("Nueva tarjeta guardada:", data);
+    await saveCardToDatabase(data);
+    toast({
+      title: "Éxito",
+      description: "La nueva tarjeta ha sido guardada.",
+      variant: "default",
     });
-    setDialogOpen(false);
+    // Aquí podrías cerrar el modal si es necesario
   };
 
   return (
@@ -171,7 +167,8 @@ export default function SavedPaymentMethod({
             <div className="grid grid-cols-[48px_1fr_200px_100px] text-sm text-muted-foreground mb-2">
               <div></div>
               <div></div>
-              <div className="pl-4">Nombre en tarjeta</div>
+
+              {/* <div className="pl-4">Nombre en tarjeta</div> */}
               <div>Expira el</div>
             </div>
             <Separator className="my-2" />
@@ -198,7 +195,7 @@ export default function SavedPaymentMethod({
                       terminada en {card.lastFourDigits}
                     </p>
                   </div>
-                  <div className="pl-4 text-sm text-muted-foreground">{card.cardholderName}</div>
+                  {/* <div className="pl-4 text-sm text-muted-foreground">{card.cardholderName}</div> */}
                   <div className="text-sm text-muted-foreground">{card.expiryDate}</div>
                 </label>
               </div>
@@ -206,22 +203,7 @@ export default function SavedPaymentMethod({
           </RadioGroup>
 
           <div className="px-4 mt-4 space-y-4">
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Agregar una nueva tarjeta
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Agregar nueva tarjeta</DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                  <PaymentForm showHeader={false} onSubmit={handleSaveNewCard} />
-                </div>
-              </DialogContent>
-            </Dialog>
+            <DialogAddInfoCard onSubmit={handleSaveNewCard} />
 
             <div className="flex justify-end gap-2">
               <Button

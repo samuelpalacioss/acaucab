@@ -10,12 +10,22 @@ import AddressModal from "@/components/checkout/address-modal";
 import OrderSummary from "@/components/checkout/order-summary";
 import PaymentForm from "@/components/checkout/payment-form";
 import SavedPaymentMethod from "@/components/checkout/saved-payment-method";
-import { beers } from "@/app/(marketing)/productos/page";
+import { useVentaStore } from "@/store/venta-store";
+import { SHIPPING_COST } from "@/lib/constants";
 
 export default function CheckoutPage() {
   // Simulamos que el usuario tiene una tarjeta guardada
   // En un caso real, esto vendría de un contexto de autenticación o una API
   const [hasStoredPaymentMethod] = useState(true);
+  const { carrito } = useVentaStore();
+
+  const orderItems = carrito.map((item) => ({
+    id: item.presentacion_id,
+    name: `${item.nombre_cerveza} ${item.presentacion}`,
+    price: item.precio,
+    quantity: item.quantity,
+    image: item.imagen ?? "/placeholder.svg", // Fallback to a placeholder image
+  }));
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -43,7 +53,7 @@ export default function CheckoutPage() {
                   <p className="text-sm text-muted-foreground">Teléfono: (0212) 555-7890</p>
                 </div>
                 <AddressModal isEditing={true}>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="outline" size="sm">
                     Editar
                   </Button>
                 </AddressModal>
@@ -60,7 +70,7 @@ export default function CheckoutPage() {
                   <p className="font-medium">Envío Estándar (3-5 días hábiles)</p>
                 </div>
               </div>
-              <p className="font-medium">$4.00</p>
+              <p className="font-medium">${SHIPPING_COST.toFixed(2)}</p>
             </div>
           </div>
 
@@ -71,7 +81,7 @@ export default function CheckoutPage() {
                 <SavedPaymentMethod
                   cardType="visa"
                   lastFourDigits="4242"
-                  cardholderName="Juan Pérez"
+                  // cardholderName="Juan Pérez"
                   expiryDate="04/26"
                   isDefault={true}
                 />
@@ -84,7 +94,7 @@ export default function CheckoutPage() {
 
         {/* Order Summary Section */}
         <div className="md:col-span-1">
-          <OrderSummary orderItems={beers.slice(0, 3)} />
+          <OrderSummary orderItems={orderItems} />
         </div>
       </div>
     </div>

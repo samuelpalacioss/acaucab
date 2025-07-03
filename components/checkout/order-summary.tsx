@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CheckoutItem } from "./checkout-item";
+import { SHIPPING_COST } from "@/lib/constants";
 
 interface OrderItem {
   id: number;
@@ -17,7 +18,7 @@ interface OrderSummaryProps {
 
 export default function OrderSummary({ orderItems }: OrderSummaryProps) {
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = 4.0;
+  const shipping = SHIPPING_COST;
   const iva = subtotal * 0.16;
   // Calcular el total incluyendo IVA
   const total = subtotal + iva + shipping;

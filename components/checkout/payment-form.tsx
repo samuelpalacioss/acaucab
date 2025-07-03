@@ -1,44 +1,90 @@
 "use client";
 
-import { Form } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { TarjetaForm } from "@/components/steps/tarjeta-form";
-import { CreditCard } from "lucide-react";
-import { PaymentMethodsBanner } from "@/components/payment-methods-banner";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { PaymentMethodsBanner } from "@/components/payment-methods-banner";
 import { DialogClose } from "@/components/ui/dialog";
 
-const formSchema = z.object({
-  nombreTitular: z.string().min(3, "Ingrese el nombre completo del titular"),
-  numeroTarjeta: z.string().min(16, "Ingrese un número de tarjeta válido"),
-  fechaExpiracion: z.string().min(5, "Ingrese una fecha válida"),
-  codigoSeguridad: z.string().min(3, "Ingrese un código de seguridad válido"),
+const paymentFormSchema = z.object({
+  nombreTitular: z.string().min(1, "El nombre es requerido"),
+  numeroTarjeta: z.string().refine((val) => val.replace(/\s/g, "").length === 16, {
+    message: "El número de tarjeta debe tener 16 dígitos",
+  }),
+  fechaExpiracion: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "El formato debe ser MM/AA")
+    .refine(
+      (val) => {
+        const [monthStr, yearStr] = val.split("/");
+        if (!monthStr || !yearStr) return false;
+
+        const month = parseInt(monthStr, 10);
+        const year = parseInt(yearStr, 10);
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
+        const cardYear = 2000 + year;
+
+        if (cardYear < currentYear) return false;
+        if (cardYear === currentYear && month < currentMonth) return false;
+        if (cardYear > currentYear + 5) return false;
+
+        return true;
+      },
+      {
+        message: "La tarjeta está expirada o la fecha es inválida",
+      }
+    ),
+  codigoSeguridad: z
+    .string()
+    .min(3, "El CVV debe tener 3-4 dígitos")
+    .max(4, "El CVV debe tener 3-4 dígitos"),
+  tipoTarjeta: z.enum(["credito", "debito"]),
 });
+
+export type PaymentFormData = z.infer<typeof paymentFormSchema>;
 
 interface PaymentFormProps {
   maxWidth?: string;
   showHeader?: boolean;
-  onSubmit?: (data: z.infer<typeof formSchema>) => void;
+  onSubmit?: (data: PaymentFormData) => void;
+  isSubmitting?: boolean;
 }
 
 export default function PaymentForm({
   maxWidth = "max-w-2xl",
   showHeader = true,
   onSubmit,
+  isSubmitting = false,
 }: PaymentFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<PaymentFormData>({
+    resolver: zodResolver(paymentFormSchema),
+    mode: "onChange",
     defaultValues: {
       nombreTitular: "",
       numeroTarjeta: "",
       fechaExpiracion: "",
       codigoSeguridad: "",
+      tipoTarjeta: "credito",
     },
   });
 
-  const isValid = form.formState.isValid;
+  const { isValid } = form.formState;
 
   const handleSubmit = form.handleSubmit((data) => {
     if (onSubmit) {
@@ -48,40 +94,152 @@ export default function PaymentForm({
 
   return (
     <div>
-      {showHeader ? (
+      {showHeader && (
         <div>
-          <div className="flex items-center gap-2 mb-4">
-            <CreditCard className="h-5 w-5" />
-            <h2 className="text-lg font-semibold">Método de Pago</h2>
-          </div>
-
-          <div className="mb-4">
+          <div className="mb-2">
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-medium">Tarjeta de Crédito</p>
                 <p className="text-sm text-muted-foreground">Visa, Mastercard, American Express</p>
               </div>
               <div className="flex gap-2">
-                <PaymentMethodsBanner className="mt-4" />
+                <PaymentMethodsBanner />
               </div>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <TarjetaForm maxWidth={maxWidth} />
+          <FormField
+            control={form.control}
+            name="tipoTarjeta"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Tipo de Tarjeta</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex space-x-4"
+                  >
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl>
+                        <RadioGroupItem value="credito" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Crédito</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl>
+                        <RadioGroupItem value="debito" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Débito</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          {!showHeader && (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Información de Tarjeta</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <FormField
+                control={form.control}
+                name="nombreTitular"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre del Titular</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Como aparece en la tarjeta" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="numeroTarjeta"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número de Tarjeta</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="0000 0000 0000 0000"
+                        maxLength={19}
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          const formatted = value.replace(/(\d{4})/g, "$1 ").trim();
+                          field.onChange(formatted);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="fechaExpiracion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fecha de Expiración</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="MM/AA"
+                        maxLength={5}
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          let formatted = value;
+                          if (value.length > 2) {
+                            formatted = value.slice(0, 2) + "/" + value.slice(2, 4);
+                          }
+                          field.onChange(formatted);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="codigoSeguridad"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código de Seguridad</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="CVV"
+                        maxLength={4}
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          field.onChange(value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {onSubmit && (
             <div className="flex justify-end gap-2 mt-6">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={!isValid}>
-                Guardar tarjeta
+              <Button type="submit" disabled={!isValid || isSubmitting}>
+                {isSubmitting ? "Guardando..." : "Guardar tarjeta"}
               </Button>
             </div>
           )}
