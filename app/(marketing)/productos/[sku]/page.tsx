@@ -5,21 +5,14 @@ import { Loader, Minus, Plus } from "lucide-react";
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getPresentacionBySku } from "@/api/get-presentacion-by-sku";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  brand: string;
-  // alcohol: number;
-  capacity: string;
-}
+import { useVentaStore } from "@/store/venta-store";
+import { PresentacionType } from "@/lib/schemas";
 
 export default function BeerDetailPage({ params }: { params: { sku: string } }) {
-  const [beer, setBeer] = useState<Product | null>(null);
+  const [beer, setBeer] = useState<PresentacionType | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const agregarAlCarrito = useVentaStore((state) => state.agregarAlCarrito);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -27,16 +20,7 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
         const productData = await getPresentacionBySku(params.sku);
 
         if (productData) {
-          setBeer({
-            id: productData.presentacion_id,
-            name: productData.nombre_cerveza,
-            price: productData.precio,
-            image: productData.imagen || "/placeholder.svg?height=400&width=400",
-            // TODO: Replace with actual data when available in the API
-            brand: productData.marca || "Marca Desconocida",
-            // alcohol: productData.tipo_cerveza,
-            capacity: productData.presentacion,
-          });
+          setBeer(productData);
         }
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -61,6 +45,20 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
     notFound();
   }
 
+  const handleAddToCart = () => {
+    if (!beer) return;
+
+    const itemToAdd = {
+      ...beer,
+      quantity: quantity,
+    };
+
+    agregarAlCarrito(itemToAdd);
+    console.log("Añadido al carrito:", itemToAdd);
+    console.log("Estado actual del carrito:", useVentaStore.getState().carrito);
+    // TODO: add toast notification
+  };
+
   const handleIncrease = () => {
     setQuantity(quantity + 1);
   };
@@ -77,8 +75,8 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
       <div className="w-full md:w-1/2">
         <div className="aspect-square relative bg-gray-100 rounded-md overflow-hidden">
           <Image
-            src={beer.image || "/placeholder.svg"}
-            alt={beer.name}
+            src={beer.imagen || "/placeholder.svg"}
+            alt={beer.nombre_cerveza}
             fill
             className="object-cover"
             priority
@@ -89,10 +87,10 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
       {/* Información del producto */}
       <div className="w-full md:w-1/2 space-y-6">
         <div className="flex justify-between items-start">
-          <h1 className="text-2xl md:text-3xl font-bold">{beer.name}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{beer.nombre_cerveza}</h1>
         </div>
 
-        <div className="text-2xl font-semibold">{beer.price.toFixed(2)} Bs</div>
+        <div className="text-2xl font-semibold">{beer.precio.toFixed(2)} Bs</div>
 
         <div className="prose max-w-none">
           {/* TODO: Agregar descripción general a cada presentacion_cerveza */}
@@ -105,7 +103,7 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
 
         <div className="text-sm text-gray-600">
           <p>
-            Hecha por: <span className="font-bold">{beer.brand}</span>
+            Hecha por: <span className="font-bold">{beer.marca}</span>
           </p>
         </div>
 
@@ -116,7 +114,7 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
         </div> */}
 
         <div className="text-sm font-bold text-gray-600">
-          <p>{beer.capacity}</p>
+          <p>{beer.presentacion}</p>
         </div>
 
         <div className="space-y-4">
@@ -143,7 +141,10 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
             </div>
           </div>
 
-          <button className="w-full max-w-[300px] bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors">
+          <button
+            onClick={handleAddToCart}
+            className="w-full max-w-[300px] bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors"
+          >
             Añadir al carrito
           </button>
 
