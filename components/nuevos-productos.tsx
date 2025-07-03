@@ -13,7 +13,7 @@ export function NuevosProductos() {
   useEffect(() => {
     async function fetchLatestProducts() {
       try {
-        const products = await getPresentacionesDisponiblesWeb(1); // Tienda WEB
+        const products = await getPresentacionesDisponiblesWeb(); // Tienda WEB
         // Get the last 4 products
         setLatestProducts(products.slice(-4));
       } catch (error) {
@@ -84,7 +84,7 @@ export function NuevosProductos() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {/* {latestProducts.map((product) => (
+        {latestProducts.map((product) => (
           <ProductCard
             key={product.sku}
             sku={product.sku}
@@ -92,7 +92,7 @@ export function NuevosProductos() {
             price={product.precio}
             image={product.imagen || "/placeholder.svg"}
           />
-        ))} */}
+        ))}
       </div>
     </section>
   );
