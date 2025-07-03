@@ -16,9 +16,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { Loader } from "lucide-react";
 
 interface Product {
-  id: number;
+  sku: string;
   name: string;
   price: number;
   image: string;
@@ -61,7 +62,7 @@ export default function CatalogoCervezas() {
         const presentaciones = await getPresentacionesDisponibles();
         const mappedProducts = presentaciones
           .map((p: any) => ({
-            id: p.presentacion_id,
+            sku: p.sku,
             name: p.nombre_cerveza,
             price: p.precio,
             image: p.imagen || "/placeholder.svg?height=400&width=400",
@@ -79,10 +80,10 @@ export default function CatalogoCervezas() {
           setSliderBounds([minPrice, maxPrice]);
           setPriceRange([minPrice, maxPrice]);
 
-          const uniqueTypes = [...new Set(mappedProducts.map((p) => p.type))];
+          const uniqueTypes = [...new Set(mappedProducts.map((p) => p.type))].sort();
           setBeerTypes(uniqueTypes);
 
-          const uniqueBrands = [...new Set(mappedProducts.map((p) => p.brand))];
+          const uniqueBrands = [...new Set(mappedProducts.map((p) => p.brand))].sort();
           setBrands(uniqueBrands);
         }
       } catch (error) {
@@ -141,7 +142,7 @@ export default function CatalogoCervezas() {
         return b.price - a.price;
       }
       if (sortOrder === "nuevos") {
-        return b.id - a.id;
+        return 0;
       }
       return 0;
     });
@@ -275,13 +276,16 @@ export default function CatalogoCervezas() {
 
           {/* Grid de productos */}
           {loading ? (
-            <p>Cargando productos...</p>
+            <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+              <p className="text-xl font-medium">Cargando productos...</p>
+              <Loader className="h-8 w-8 animate-spin" />
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProducts.map((beer) => (
                 <ProductCard
-                  key={beer.id}
-                  id={beer.id}
+                  key={beer.sku}
+                  sku={beer.sku}
                   name={highlightText(beer.name, searchTerm)}
                   price={beer.price}
                   image={beer.image}

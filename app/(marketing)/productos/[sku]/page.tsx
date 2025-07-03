@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Minus, Plus } from "lucide-react";
+import { Loader, Minus, Plus } from "lucide-react";
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
-import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { getPresentacionBySku } from "@/api/get-presentacion-by-sku";
 
 interface Product {
   id: number;
@@ -16,7 +16,7 @@ interface Product {
   capacity: string;
 }
 
-export default function BeerDetailPage({ params }: { params: { id: string } }) {
+export default function BeerDetailPage({ params }: { params: { sku: string } }) {
   const [beer, setBeer] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -24,9 +24,7 @@ export default function BeerDetailPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const beerId = Number.parseInt(params.id);
-        const presentaciones = await getPresentacionesDisponibles();
-        const productData = presentaciones.find((p: any) => p.id_presentacion === beerId);
+        const productData = await getPresentacionBySku(params.sku);
 
         if (productData) {
           setBeer({
@@ -48,10 +46,15 @@ export default function BeerDetailPage({ params }: { params: { id: string } }) {
     };
 
     fetchProduct();
-  }, [params.id]);
+  }, [params.sku]);
 
   if (loading) {
-    return <div>Cargando producto...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <p className="text-xl font-medium">Cargando producto...</p>
+        <Loader className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   if (!beer) {
@@ -89,7 +92,7 @@ export default function BeerDetailPage({ params }: { params: { id: string } }) {
           <h1 className="text-2xl md:text-3xl font-bold">{beer.name}</h1>
         </div>
 
-        <div className="text-2xl font-semibold">${beer.price.toFixed(2)}</div>
+        <div className="text-2xl font-semibold">{beer.price.toFixed(2)} Bs</div>
 
         <div className="prose max-w-none">
           <p>

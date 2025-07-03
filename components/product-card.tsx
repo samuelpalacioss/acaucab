@@ -2,16 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 
 interface ProductCardProps {
-  id: number;
+  sku: string;
   name: React.ReactNode;
   price: number;
   image: string;
 }
 
-export function ProductCard({ id, name, price, image }: ProductCardProps) {
+export function ProductCard({ sku, name, price, image }: ProductCardProps) {
   return (
     <div className="group">
-      <Link href={`/productos/${id}`} className="block">
+      <Link href={`/productos/${sku}`} className="block">
         <div className="bg-gray-200 aspect-square mb-3 relative overflow-hidden">
           <Image
             src={image || "/placeholder.svg"}
