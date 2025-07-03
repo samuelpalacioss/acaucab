@@ -105,6 +105,9 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
           <p>
             Hecha por: <span className="font-bold">{beer.marca}</span>
           </p>
+          <p>
+            Tipo de cerveza: <span className="font-bold">{beer.tipo_cerveza}</span>
+          </p>
         </div>
 
         {/* <div className="text-sm text-gray-600">
