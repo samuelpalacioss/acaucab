@@ -84,7 +84,7 @@ export function NuevosProductos() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {latestProducts.map((product) => (
+        {/* {latestProducts.map((product) => (
           <ProductCard
             key={product.sku}
             sku={product.sku}
@@ -92,7 +92,7 @@ export function NuevosProductos() {
             price={product.precio}
             image={product.imagen || "/placeholder.svg"}
           />
-        ))}
+        ))} */}
       </div>
     </section>
   );
