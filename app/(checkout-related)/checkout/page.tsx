@@ -5,7 +5,7 @@ import { MapPin, Truck } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AddressModal from "@/components/checkout/address-modal";
 import OrderSummary from "@/components/checkout/order-summary";
 import PaymentForm, { PaymentFormData } from "@/components/checkout/payment-form";
@@ -14,6 +14,7 @@ import SavedPaymentMethod, {
   detectCardType,
 } from "@/components/checkout/saved-payment-method";
 import { useVentaStore } from "@/store/venta-store";
+import { useUser } from "@/store/user-store";
 import { SHIPPING_COST } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -28,6 +29,9 @@ export default function CheckoutPage() {
   const [hasStoredPaymentMethod, setHasStoredPaymentMethod] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { carrito } = useVentaStore();
+  const { isAuthenticated, usuario } = useUser();
+
+  console.log("User object on checkout:", usuario);
 
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
 
@@ -70,6 +74,24 @@ export default function CheckoutPage() {
       setHasStoredPaymentMethod(true);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto py-8 px-4 flex justify-center items-center h-[60vh]">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <CardTitle>Acceso Requerido</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>Tienes que iniciar sesión para realizar el pago.</p>
+            <Button asChild>
+              <Link href="/login">Ir a Iniciar Sesión</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
