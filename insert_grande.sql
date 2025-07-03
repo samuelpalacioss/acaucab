@@ -3472,6 +3472,17 @@ INSERT INTO inventario (cantidad_almacen, fk_presentacion_cerveza_1, fk_presenta
 (80, 6, 16, 1),       /** Hoegaarden - Barril 20L **/
 (40, 7, 17, 1),       /** Pilsner Urquell - Barril 30L **/
 (25, 8, 18, 1);       /** Samuel Adams - Barril 50L **/
+/** Almacenes de tienda web **/
+(750, 1, 1, 2),     /** Destilo - Botella 330ml en Almacén 2 **/
+(320, 2, 2, 3),     /** Dos Leones - Botella 500ml en Almacén 3 **/
+(150, 5, 5, 4),     /** Ángel o Demonio - Caja 24u 330ml en Almacén 4 **/
+(280, 6, 6, 5),     /** Barricas Saison Belga - Barril 20L en Almacén 5 **/
+(600, 7, 7, 6),     /** Aldarra Mantuana - Barril 30L en Almacén 6 **/
+(430, 8, 8, 7),     /** Tröegs HopBack Amber - Barril 50L en Almacén 7 **/
+(290, 9, 9, 8),     /** Full Sail Amber - Growler 1L en Almacén 8 **/
+(180, 10, 10, 9),   /** Deschutes Cinder Cone - Caja 12u 500ml en Almacén 9 **/
+(520, 1, 11, 2),    /** Rogue American Amber - Botella 330ml en Almacén 2 **/
+(340, 2, 12, 3);    /** La Chouffe - Botella 500ml en Almacén 3 **/
 
 /**
  * Inserción de datos para el inventario de lugares de tienda
