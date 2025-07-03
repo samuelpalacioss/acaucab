@@ -9,17 +9,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import AddressModal from "@/components/checkout/address-modal";
 import OrderSummary from "@/components/checkout/order-summary";
 import PaymentForm, { PaymentFormData } from "@/components/checkout/payment-form";
-import SavedPaymentMethod from "@/components/checkout/saved-payment-method";
+import SavedPaymentMethod, {
+  SavedCard,
+  detectCardType,
+} from "@/components/checkout/saved-payment-method";
 import { useVentaStore } from "@/store/venta-store";
 import { SHIPPING_COST } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function CheckoutPage() {
-  // const [hasStoredPaymentMethod, setHasStoredPaymentMethod] = useState(true);
   const [hasStoredPaymentMethod, setHasStoredPaymentMethod] = useState(false);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { carrito } = useVentaStore();
+
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
 
   const orderItems = carrito.map((item) => ({
     id: item.presentacion_id,
@@ -35,6 +45,16 @@ export default function CheckoutPage() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
+    const newCard: SavedCard = {
+      id: crypto.randomUUID(),
+      cardType: detectCardType(data.numeroTarjeta),
+      lastFourDigits: data.numeroTarjeta.slice(-4),
+      expiryDate: data.fechaExpiracion,
+      isDefault: savedCards.length === 0,
+    };
+
+    setSavedCards((prev) => [...prev, newCard]);
+
     toast({
       title: "Éxito",
       description: "La nueva tarjeta ha sido guardada exitosamente.",
@@ -46,7 +66,9 @@ export default function CheckoutPage() {
   };
 
   const handleCancel = () => {
-    setHasStoredPaymentMethod(true);
+    if (savedCards.length > 0) {
+      setHasStoredPaymentMethod(true);
+    }
   };
 
   return (
@@ -99,12 +121,10 @@ export default function CheckoutPage() {
           {/* Payment Method Section */}
           <Card>
             <CardContent className="p-4">
-              {hasStoredPaymentMethod ? (
+              {hasStoredPaymentMethod || savedCards.length > 0 ? (
                 <SavedPaymentMethod
-                  cardType="visa"
-                  lastFourDigits="4242"
-                  expiryDate="04/26"
-                  isDefault={true}
+                  initialCards={savedCards}
+                  onAddNewCard={() => setHasStoredPaymentMethod(false)}
                 />
               ) : (
                 <PaymentForm

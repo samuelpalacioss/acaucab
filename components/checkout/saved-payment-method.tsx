@@ -23,12 +23,17 @@ import {
 import { toast } from "@/hooks/use-toast";
 import DialogAddInfoCard from "./dialog-add-info-card";
 
-interface SavedPaymentMethodProps {
+export type SavedCard = {
+  id: string;
   cardType: "visa" | "mastercard" | "amex";
   lastFourDigits: string;
-  // cardholderName: string;
   expiryDate: string;
   isDefault?: boolean;
+};
+
+interface SavedPaymentMethodProps {
+  initialCards: SavedCard[];
+  onAddNewCard: () => void;
 }
 
 // Esquema para validación del formulario de tarjeta
@@ -39,7 +44,9 @@ const paymentFormSchema = z.object({
   codigoSeguridad: z.string().min(3, "Ingrese un código de seguridad válido"),
 });
 
-const detectCardType = (cardNumber: string): "visa" | "mastercard" | "amex" => {
+type PaymentFormValues = z.infer<typeof paymentFormSchema>;
+
+export const detectCardType = (cardNumber: string): "visa" | "mastercard" | "amex" => {
   const cleanNumber = cardNumber.replace(/\D/g, "");
 
   // American Express: comienza con 34 o 37
@@ -66,48 +73,24 @@ const saveCardToDatabase = async (cardData: any) => {
 };
 
 export default function SavedPaymentMethod({
-  cardType: initialCardType,
-  lastFourDigits: initialLastFourDigits,
-  // cardholderName: initialCardholderName,
-  expiryDate: initialExpiryDate,
-  isDefault = true,
+  initialCards,
+  onAddNewCard,
 }: SavedPaymentMethodProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showNewCardForm, setShowNewCardForm] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState("1");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [savedCards, setSavedCards] = useState([
-    {
-      id: "1",
-      cardType: "visa" as const,
-      lastFourDigits: "4242",
-      // cardholderName: "Juan Pérez",
-      expiryDate: "04/26",
-      isDefault: true,
-    },
-    {
-      id: "2",
-      cardType: "mastercard" as const,
-      lastFourDigits: "5678",
-      // cardholderName: "Juan Pérez",
-      expiryDate: "08/25",
-      isDefault: false,
-    },
-    {
-      id: "3",
-      cardType: "amex" as const,
-      lastFourDigits: "9012",
-      // cardholderName: "Juan Pérez",
-      expiryDate: "12/24",
-      isDefault: false,
-    },
-  ]);
+  const [savedCards, setSavedCards] = useState(initialCards);
+  const [selectedCardId, setSelectedCardId] = useState(
+    initialCards.find((c) => c.isDefault)?.id ?? initialCards[0]?.id ?? ""
+  );
 
-  const [selectedCard, setSelectedCard] = useState({
-    cardType: initialCardType,
-    lastFourDigits: initialLastFourDigits,
-    // cardholderName: initialCardholderName,
-    expiryDate: initialExpiryDate,
+  const [selectedCard, setSelectedCard] = useState(() => {
+    const defaultCard = initialCards.find((c) => c.isDefault) ?? initialCards[0];
+    return defaultCard
+      ? {
+          cardType: defaultCard.cardType,
+          lastFourDigits: defaultCard.lastFourDigits,
+          expiryDate: defaultCard.expiryDate,
+        }
+      : null;
   });
 
   const getCardTypeText = (type: "visa" | "mastercard" | "amex") => {
@@ -129,15 +112,26 @@ export default function SavedPaymentMethod({
       setSelectedCard({
         cardType: newSelectedCard.cardType,
         lastFourDigits: newSelectedCard.lastFourDigits,
-        // cardholderName: newSelectedCard.cardholderName,
         expiryDate: newSelectedCard.expiryDate,
       });
     }
     setIsExpanded(false);
   };
 
-  const handleSaveNewCard = async (data: any) => {
+  const handleSaveNewCard = async (data: PaymentFormValues) => {
     console.log("Nueva tarjeta guardada:", data);
+
+    const newCard = {
+      id: crypto.randomUUID(),
+      cardType: detectCardType(data.numeroTarjeta),
+      lastFourDigits: data.numeroTarjeta.slice(-4),
+      expiryDate: data.fechaExpiracion,
+      isDefault: false,
+    };
+
+    setSavedCards((prevCards) => [...prevCards, newCard]);
+    setSelectedCardId(newCard.id);
+
     await saveCardToDatabase(data);
     toast({
       title: "Éxito",
@@ -146,6 +140,17 @@ export default function SavedPaymentMethod({
     });
     // Aquí podrías cerrar el modal si es necesario
   };
+
+  if (!selectedCard) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-6">
+        <p className="mb-4">No tienes métodos de pago guardados.</p>
+        <Button onClick={onAddNewCard}>
+          <Plus className="mr-2 h-4 w-4" /> Agregar Tarjeta
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -167,8 +172,6 @@ export default function SavedPaymentMethod({
             <div className="grid grid-cols-[48px_1fr_200px_100px] text-sm text-muted-foreground mb-2">
               <div></div>
               <div></div>
-
-              {/* <div className="pl-4">Nombre en tarjeta</div> */}
               <div>Expira el</div>
             </div>
             <Separator className="my-2" />
@@ -195,7 +198,6 @@ export default function SavedPaymentMethod({
                       terminada en {card.lastFourDigits}
                     </p>
                   </div>
-                  {/* <div className="pl-4 text-sm text-muted-foreground">{card.cardholderName}</div> */}
                   <div className="text-sm text-muted-foreground">{card.expiryDate}</div>
                 </label>
               </div>
@@ -211,7 +213,6 @@ export default function SavedPaymentMethod({
                 size="sm"
                 onClick={() => {
                   setIsExpanded(false);
-                  setShowNewCardForm(false);
                 }}
               >
                 Cancelar
