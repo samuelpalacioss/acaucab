@@ -107,7 +107,13 @@ export default function CheckoutPage() {
     const fetchInitialData = async () => {
       if (isAuthenticated && usuario?.id) {
         // Fetch client data first
-        const clienteData = await getClienteByUsuarioId(usuario.id);
+        let clienteData = await getClienteByUsuarioId(usuario.id);
+
+        // Defensive check: API might return an array, ensure we have a single object
+        if (Array.isArray(clienteData) && clienteData.length > 0) {
+          clienteData = clienteData[0];
+        }
+
         if (clienteData) {
           setCliente(clienteData);
           // Now fetch data that depends on the client

@@ -214,7 +214,7 @@ export default function Autopago() {
 
       // Si no hay una venta en curso, crearla.
       if (!currentVentaId) {
-        const newVentaId = await registrarVentaEnProceso(cliente.id_cliente);
+        const newVentaId = await registrarVentaEnProceso(cliente.id_cliente, "cliente");
         if (newVentaId) {
           setVentaId(newVentaId);
           currentVentaId = newVentaId;
