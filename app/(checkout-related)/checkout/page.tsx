@@ -41,6 +41,7 @@ import { isPuntosDetails, isTarjetaDetails, PuntosDetails, TarjetaDetails } from
 import { finalizarDetallesVenta } from "@/api/finalizar-detalles-venta";
 import { registrarPagos } from "@/api/registrar-pagos";
 import { CompletarVenta } from "@/api/completar-venta";
+import { DespacharVenta } from "@/api/despachar-venta";
 
 // Helper to format date for DB
 const formatExpiryDateForDB = (expiryDate: string): string => {
@@ -377,9 +378,10 @@ export default function CheckoutPage() {
       }
 
       await CompletarVenta(ventaId);
+      await DespacharVenta(ventaId);
 
       toast({
-        title: "Venta Completada",
+        title: "Venta Completada y DespaDespachadachando",
         description: "Tu orden ha sido procesada y finalizada exitosamente.",
         variant: "default",
       });

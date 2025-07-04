@@ -92,7 +92,7 @@ export default function CarritoCompras() {
     if (!cliente?.id_cliente) {
       toast({
         title: "Error",
-        description: "No se ha podido identificar al cliente. Por favor, reinicie el proceso.",
+        description: "No se ha podido identificar al cliente. Por favor, inicie sesión.",
         variant: "destructive",
       });
       return;
