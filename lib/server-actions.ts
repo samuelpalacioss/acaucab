@@ -322,4 +322,37 @@ export async function actualizarEstadoOrdenCompra(
     throw new Error(`Error al actualizar estado: ${error.message}`);
   }
 }
+
+/**
+ * Obtener estadísticas de ventas por empleado usando la función fn_get_stats_tienda_empleado
+ * 
+ * @returns Array con las estadísticas de ventas por empleado
+ */
+export async function obtenerEstadisticasVentasPorEmpleado(): Promise<any[]> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_get_stats_tienda_empleado')
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener estadísticas de ventas por empleado:', error)
+    throw new Error('Error al cargar estadísticas de ventas por empleado')
+  }
+}
+
+/**
+ * Obtener información de un empleado por ID usando la función fn_get_empleado_info_by_id
+ * 
+ * @param empleadoId - ID del empleado
+ * @returns Información del empleado o null si no existe
+ */
+export async function obtenerInformacionEmpleadoPorId(empleadoId: number): Promise<any | null> {
+  try {
+    const resultado = await llamarFuncionSingle<any>('fn_get_empleado_info_by_id', {
+      p_empleado_id: empleadoId
+    })
+    return resultado
+  } catch (error: any) {
+    console.error(`Error al obtener información del empleado ${empleadoId}:`, error)
+    throw new Error('Error al cargar información del empleado')
+  }
+}
  
