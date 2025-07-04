@@ -281,7 +281,7 @@ export default function CheckoutPage() {
           if (!p_id_cliente) {
             throw new Error("No se pudo determinar el cliente para el método de pago guardado.");
           }
-          metodo_pago_id = selectedPaymentMethod.fk_metodo_pago;
+          metodo_pago_id = selectedPaymentMethod.id;
           details = {
             cardId: selectedPaymentMethod.id.toString(),
             amountPaid: remainingTotalInBs,

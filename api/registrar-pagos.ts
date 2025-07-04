@@ -33,8 +33,8 @@ export async function registrarPagos(
 
       // Manejo especial para pago con puntos: un pago por cada punto.
       if (pago.method === "puntos") {
-        const pointsToUse = details.pointsToUse;
-        if (typeof pointsToUse !== "number" || pointsToUse <= 0) {
+        const puntosUtilizados = details.puntosUtilizados;
+        if (typeof puntosUtilizados !== "number" || puntosUtilizados <= 0) {
           console.warn("No se utilizaron puntos o el valor es inválido, saltando pago de puntos.");
           continue; // Saltar al siguiente método de pago
         }
@@ -45,7 +45,7 @@ export async function registrarPagos(
         }
 
         // Crear un registro de pago por cada punto utilizado
-        for (let i = 0; i < pointsToUse; i++) {
+        for (let i = 0; i < puntosUtilizados; i++) {
           const params = {
             p_monto: tasaPunto.monto_equivalencia, // Valor de 1 punto
             p_fecha_pago: new Date().toISOString(),
@@ -57,7 +57,7 @@ export async function registrarPagos(
         }
 
         console.log(
-          `Se registraron ${pointsToUse} pagos de 1 punto cada uno para la venta ${ventaId}.`
+          `Se registraron ${puntosUtilizados} pagos de 1 punto cada uno para la venta ${ventaId}.`
         );
         continue; // Continuar con el siguiente pago en la lista
       }
