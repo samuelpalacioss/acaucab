@@ -17,6 +17,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { PaymentMethodsBanner } from "@/components/payment-methods-banner";
 import { DialogClose } from "@/components/ui/dialog";
+import { BancoSelector } from "../ui/banco-selector";
 
 export const paymentFormSchema = z.object({
   nombreTitular: z.string().min(1, "El nombre es requerido"),
@@ -55,6 +56,7 @@ export const paymentFormSchema = z.object({
     .min(3, "El CVV debe tener 3-4 dígitos")
     .max(4, "El CVV debe tener 3-4 dígitos"),
   tipoTarjeta: z.enum(["credito", "debito"]),
+  banco: z.string().min(1, "Debe seleccionar un banco"),
 });
 
 export type PaymentFormData = z.infer<typeof paymentFormSchema>;
@@ -67,6 +69,7 @@ interface PaymentFormProps {
   isSubmitting?: boolean;
   onCancel?: () => void;
   context?: "page" | "dialog";
+  submitText?: string;
 }
 
 export default function PaymentForm({
@@ -77,6 +80,7 @@ export default function PaymentForm({
   isSubmitting = false,
   onCancel,
   context = "page",
+  submitText = "Guardar tarjeta",
 }: PaymentFormProps) {
   const { isValid } = form.formState;
 
@@ -175,6 +179,21 @@ export default function PaymentForm({
                 )}
               />
             </div>
+            <div className="mb-4">
+              <FormField
+                control={form.control}
+                name="banco"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Banco Emisor</FormLabel>
+                    <FormControl>
+                      <BancoSelector onValueChange={field.onChange} value={field.value} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -234,7 +253,7 @@ export default function PaymentForm({
                   </Button>
                 </DialogClose>
                 <Button type="submit" disabled={!isValid || isSubmitting}>
-                  {isSubmitting ? "Guardando..." : "Guardar tarjeta"}
+                  {isSubmitting ? "Guardando..." : submitText}
                 </Button>
               </>
             )}

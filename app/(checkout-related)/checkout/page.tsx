@@ -42,6 +42,7 @@ import { finalizarDetallesVenta } from "@/api/finalizar-detalles-venta";
 import { registrarPagos } from "@/api/registrar-pagos";
 import { CompletarVenta } from "@/api/completar-venta";
 import { DespacharVenta } from "@/api/despachar-venta";
+import { getBancoNombre } from "@/components/ui/banco-selector";
 
 // Helper to format date for DB
 const formatExpiryDateForDB = (expiryDate: string): string => {
@@ -57,6 +58,7 @@ const formatExpiryDateForDB = (expiryDate: string): string => {
 
 export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingCard, setIsSavingCard] = useState(false);
   const { carrito, setMetodosPago, cliente, setCliente, ventaId, metodosPago } = useVentaStore();
   const { isAuthenticated, usuario } = useUser();
   const [userPoints, setUserPoints] = useState(0);
@@ -83,6 +85,7 @@ export default function CheckoutPage() {
       fechaExpiracion: "",
       codigoSeguridad: "",
       tipoTarjeta: "credito",
+      banco: "",
     },
   });
 
@@ -221,9 +224,79 @@ export default function CheckoutPage() {
     setSelectedPaymentMethod(fullMethod || null);
   };
 
-  const handleNewCardSubmit = (data: PaymentFormData) => {
+  const handlePayWithNewCard = (data: PaymentFormData) => {
     // This will trigger the main payment processing logic
     handleProcessPayment(data);
+  };
+
+  const handleSaveNewCard = async (
+    data: PaymentFormData,
+    onSuccess?: () => void
+  ): Promise<void> => {
+    if (!cliente) {
+      toast({
+        title: "Error de Cliente",
+        description: "No se pudo identificar al cliente para guardar la tarjeta.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsSavingCard(true);
+    try {
+      const expiryDate = formatExpiryDateForDB(data.fechaExpiracion);
+      const tipo_metodo_pago =
+        data.tipoTarjeta === "credito" ? "tarjeta_credito" : "tarjeta_debito";
+
+      const metodoPagoParamsDetails: any = {
+        numero: parseInt(data.numeroTarjeta.replace(/\s/g, "")),
+        banco: getBancoNombre(data.banco), // Not collected in this form
+        fecha_vencimiento: expiryDate,
+      };
+      if (tipo_metodo_pago === "tarjeta_credito") {
+        metodoPagoParamsDetails.tipo_tarjeta = getCardType(data.numeroTarjeta || "");
+      }
+
+      const result = await crearMetodoPago(
+        { tipo: tipo_metodo_pago, details: metodoPagoParamsDetails },
+        cliente.id_cliente,
+        cliente.tipo_cliente
+      );
+
+      if (typeof result !== "number") {
+        throw new Error("La respuesta del servidor no fue válida al crear el método de pago.");
+      }
+      const metodo_pago_id = result;
+
+      const newCardToDisplay: MetodoPagoCliente = {
+        id: metodo_pago_id,
+        fk_metodo_pago: metodo_pago_id,
+        fk_cliente_natural: cliente.tipo_cliente === "natural" ? cliente.id_cliente : null,
+        fk_cliente_juridico: cliente.tipo_cliente === "juridico" ? cliente.id_cliente : null,
+        tipo_cliente: cliente.tipo_cliente,
+        tipo_pago: tipo_metodo_pago,
+        numero_tarjeta: parseInt(data.numeroTarjeta.replace(/\s/g, "")),
+        banco: getBancoNombre(data.banco),
+        fecha_vencimiento: expiryDate,
+      };
+
+      setSavedPaymentMethods((prev) => [...prev, newCardToDisplay]);
+      setSelectedPaymentMethod(newCardToDisplay); // Auto-select the new card
+      paymentForm.reset();
+      toast({
+        title: "Tarjeta Guardada",
+        description: "Tu nueva tarjeta se ha guardado exitosamente.",
+      });
+      onSuccess?.(); // Close dialog on success
+    } catch (error: any) {
+      console.error("Error saving new card:", error);
+      toast({
+        title: "Error al Guardar Tarjeta",
+        description: error.message || "Ocurrió un error inesperado.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingCard(false);
+    }
   };
 
   const handleProcessPayment = async (
@@ -301,7 +374,7 @@ export default function CheckoutPage() {
 
           const metodoPagoParamsDetails: any = {
             numero: parseInt(newCardData.numeroTarjeta.replace(/\s/g, "")),
-            banco: "N/A", // Not collected in this form
+            banco: getBancoNombre(newCardData.banco), // Not collected in this form
             fecha_vencimiento: expiryDate,
           };
 
@@ -327,7 +400,7 @@ export default function CheckoutPage() {
             numeroTarjeta: newCardData.numeroTarjeta.replace(/\s/g, ""),
             fechaExpiracion: newCardData.fechaExpiracion,
             amountPaid: remainingTotalInBs,
-            banco: "N/A",
+            banco: getBancoNombre(newCardData.banco),
             metodo_pago_id: metodo_pago_id,
           };
 
@@ -340,7 +413,7 @@ export default function CheckoutPage() {
             tipo_cliente: cliente.tipo_cliente,
             tipo_pago: tipo_metodo_pago,
             numero_tarjeta: parseInt(newCardData.numeroTarjeta.replace(/\s/g, "")),
-            banco: "N/A",
+            banco: getBancoNombre(newCardData.banco),
             fecha_vencimiento: expiryDate,
           };
           setSavedPaymentMethods((prev) => [...prev, newCardToDisplay]);
@@ -614,14 +687,16 @@ export default function CheckoutPage() {
                     initialCards={formattedCards}
                     onCardSelect={handleCardSelect}
                     isSubmitting={isSubmitting}
+                    isSavingCard={isSavingCard}
                     paymentForm={paymentForm}
-                    onNewCardSubmit={handleNewCardSubmit}
+                    onPayWithNewCard={handlePayWithNewCard}
+                    onSaveCard={handleSaveNewCard}
                   />
                 ) : (
                   <PaymentForm
                     form={paymentForm}
                     maxWidth="max-w-4xl"
-                    onSubmit={handleNewCardSubmit}
+                    onSubmit={handlePayWithNewCard}
                     isSubmitting={isSubmitting}
                     context="page"
                     onCancel={handleCancel}

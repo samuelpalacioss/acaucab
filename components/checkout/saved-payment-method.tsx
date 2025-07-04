@@ -28,8 +28,10 @@ interface SavedPaymentMethodProps {
   initialCards: SavedCard[];
   onCardSelect: (card: SavedCard) => void;
   isSubmitting: boolean;
+  isSavingCard: boolean;
   paymentForm: UseFormReturn<PaymentFormData>;
-  onNewCardSubmit: (data: PaymentFormData) => void;
+  onPayWithNewCard: (data: PaymentFormData) => void;
+  onSaveCard: (data: PaymentFormData, onSuccess: () => void) => void;
 }
 
 // Esquema para validación del formulario de tarjeta
@@ -38,6 +40,7 @@ const paymentFormSchema = z.object({
   numeroTarjeta: z.string().min(16, "Ingrese un número de tarjeta válido"),
   fechaExpiracion: z.string().min(5, "Ingrese una fecha válida"),
   codigoSeguridad: z.string().min(3, "Ingrese un código de seguridad válido"),
+  banco: z.string().min(1, "Debe seleccionar un banco"),
 });
 
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
@@ -74,10 +77,13 @@ export default function SavedPaymentMethod({
   initialCards,
   onCardSelect,
   isSubmitting,
+  isSavingCard,
   paymentForm,
-  onNewCardSubmit,
+  onPayWithNewCard,
+  onSaveCard,
 }: SavedPaymentMethodProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isNewCardDialogOpen, setIsNewCardDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(
     initialCards.find((c) => c.isDefault)?.id ?? initialCards[0]?.id ?? ""
   );
@@ -190,7 +196,7 @@ export default function SavedPaymentMethod({
           </RadioGroup>
 
           <div className="px-4 mt-4 space-y-4">
-            <Dialog>
+            <Dialog open={isNewCardDialogOpen} onOpenChange={setIsNewCardDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full">
                   <Plus className="mr-2 h-4 w-4" /> Agregar Nueva Tarjeta
@@ -205,9 +211,11 @@ export default function SavedPaymentMethod({
                 </DialogHeader>
                 <PaymentForm
                   form={paymentForm}
-                  onSubmit={onNewCardSubmit}
-                  isSubmitting={isSubmitting}
+                  // The form has two potential actions now
+                  onSubmit={(data) => onSaveCard(data, () => setIsNewCardDialogOpen(false))}
+                  isSubmitting={isSavingCard} // Use the new saving state for the button
                   context="dialog"
+                  submitText="Guardar Tarjeta" // Change button text
                 />
               </DialogContent>
             </Dialog>
