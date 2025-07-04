@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CheckoutItem } from "./checkout-item";
 import { SHIPPING_COST } from "@/lib/constants";
+import { useTasaStore } from "@/store/tasa-store";
 
 interface OrderItem {
   id: number;
@@ -18,11 +19,25 @@ interface OrderSummaryProps {
 }
 
 export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderSummaryProps) {
+  const { getTasa } = useTasaStore();
+
+  const convertirADolar = (monto: number) => {
+    const tasa = getTasa("USD");
+    if (!tasa?.monto_equivalencia) return null;
+    return monto / tasa.monto_equivalencia;
+  };
+
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = SHIPPING_COST;
   const iva = subtotal * 0.16;
   // Calcular el total incluyendo IVA y restando puntos
   const total = subtotal + iva + shipping - puntosAplicados;
+
+  const subtotalUSD = convertirADolar(subtotal);
+  const ivaUSD = convertirADolar(iva);
+  const shippingUSD = convertirADolar(shipping);
+  const puntosAplicadosUSD = convertirADolar(puntosAplicados);
+  const totalUSD = convertirADolar(total);
 
   return (
     <Card>
@@ -45,23 +60,51 @@ export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderS
 
           <div className="flex justify-between">
             <p>Subtotal</p>
-            <p className="font-medium">${subtotal.toFixed(2)}</p>
+            <p className="font-medium">
+              {subtotal.toFixed(2)} Bs
+              {subtotalUSD !== null && (
+                <span className="text-sm font-normal text-gray-500 ml-2">
+                  (${subtotalUSD.toFixed(2)})
+                </span>
+              )}
+            </p>
           </div>
 
           <div className="flex justify-between">
             <span>IVA (16%)</span>
-            <span>${iva.toFixed(2)}</span>
+            <span>
+              {iva.toFixed(2)} Bs
+              {ivaUSD !== null && (
+                <span className="text-sm font-normal text-gray-500 ml-2">
+                  (${ivaUSD.toFixed(2)})
+                </span>
+              )}
+            </span>
           </div>
 
           <div className="flex justify-between">
             <p>Envío</p>
-            <p className="font-medium">${shipping.toFixed(2)}</p>
+            <p className="font-medium">
+              {shipping.toFixed(2)} Bs
+              {shippingUSD !== null && (
+                <span className="text-sm font-normal text-gray-500 ml-2">
+                  (${shippingUSD.toFixed(2)})
+                </span>
+              )}
+            </p>
           </div>
 
           {puntosAplicados > 0 && (
             <div className="flex justify-between text-green-600">
               <p>Puntos Aplicados</p>
-              <p className="font-medium">-${puntosAplicados.toFixed(2)}</p>
+              <p className="font-medium">
+                -{puntosAplicados.toFixed(2)} Bs
+                {puntosAplicadosUSD !== null && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    (-${puntosAplicadosUSD.toFixed(2)})
+                  </span>
+                )}
+              </p>
             </div>
           )}
 
@@ -69,7 +112,14 @@ export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderS
 
           <div className="flex justify-between">
             <p className="font-semibold">Total</p>
-            <p className="font-bold text-lg">${total.toFixed(2)}</p>
+            <p className="font-bold text-lg">
+              {total.toFixed(2)} Bs
+              {totalUSD !== null && (
+                <span className="text-sm font-normal text-gray-500 ml-2">
+                  (${totalUSD.toFixed(2)})
+                </span>
+              )}
+            </p>
           </div>
         </div>
       </CardContent>

@@ -241,7 +241,14 @@ export default function CheckoutPage() {
                   <p className="font-medium">Envío Estándar (3-5 días hábiles)</p>
                 </div>
               </div>
-              <p className="font-medium">${SHIPPING_COST.toFixed(2)}</p>
+              <p className="font-medium">
+                ${SHIPPING_COST.toFixed(2)}
+                {tasaDolar && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    ({(SHIPPING_COST * tasaDolar).toFixed(2)} Bs)
+                  </span>
+                )}
+              </p>
             </div>
           </div>
 
