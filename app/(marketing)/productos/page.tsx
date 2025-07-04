@@ -17,6 +17,7 @@ import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import { getPresentacionesDisponiblesWeb } from "@/api/get-presentaciones-disponibles-web";
 import { Loader } from "lucide-react";
+import { useTasaStore } from "@/store/tasa-store";
 
 interface Product {
   sku: string;
@@ -55,6 +56,14 @@ export default function CatalogoCervezas() {
   const [brands, setBrands] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState("nuevos");
+  const { getTasa, fetchTasas } = useTasaStore();
+  const tasas = useTasaStore((state) => state.tasas);
+
+  const convertirADolar = (monto: number) => {
+    const tasa = getTasa("USD");
+    if (!tasa?.monto_equivalencia) return null;
+    return monto / tasa.monto_equivalencia;
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -96,6 +105,20 @@ export default function CatalogoCervezas() {
 
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    // Initial fetch
+    fetchTasas();
+
+    // Set up polling every 5 minutes
+    const intervalId = setInterval(() => {
+      console.log("🔄 Refreshing exchange rates in product catalog...");
+      fetchTasas();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [fetchTasas]);
 
   const handlePriceChange = (value: number[]) => {
     setPriceRange(value);
@@ -288,6 +311,7 @@ export default function CatalogoCervezas() {
                   sku={beer.sku}
                   name={highlightText(beer.name, searchTerm)}
                   price={beer.price}
+                  priceInUSD={convertirADolar(beer.price)}
                   image={beer.image}
                 />
               ))}

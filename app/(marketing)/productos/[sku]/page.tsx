@@ -7,12 +7,20 @@ import { useState, useEffect } from "react";
 import { getPresentacionBySkuTiendaWeb } from "@/api/get-presentacion-by-sku_tienda_web";
 import { useVentaStore } from "@/store/venta-store";
 import { PresentacionType } from "@/lib/schemas";
+import { useTasaStore } from "@/store/tasa-store";
 
 export default function BeerDetailPage({ params }: { params: { sku: string } }) {
   const [beer, setBeer] = useState<PresentacionType | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const agregarAlCarrito = useVentaStore((state) => state.agregarAlCarrito);
+  const { getTasa } = useTasaStore();
+
+  const convertirADolar = (monto: number) => {
+    const tasa = getTasa("USD");
+    if (!tasa?.monto_equivalencia) return null;
+    return monto / tasa.monto_equivalencia;
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,6 +52,8 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
   if (!beer) {
     notFound();
   }
+
+  const priceInUSD = beer ? convertirADolar(beer.precio) : null;
 
   const handleAddToCart = () => {
     if (!beer) return;
@@ -91,7 +101,14 @@ export default function BeerDetailPage({ params }: { params: { sku: string } }) 
           <h1 className="text-2xl md:text-3xl font-bold">{beer.nombre_cerveza}</h1>
         </div>
 
-        <div className="text-2xl font-semibold">{beer.precio.toFixed(2)} Bs</div>
+        <div className="text-2xl font-semibold">
+          {beer.precio.toFixed(2)} Bs
+          {priceInUSD !== null && (
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              (${priceInUSD.toFixed(2)})
+            </span>
+          )}
+        </div>
 
         <div className="prose max-w-none">
           {/* TODO: Agregar descripción general a cada presentacion_cerveza */}

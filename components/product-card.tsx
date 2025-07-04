@@ -5,10 +5,11 @@ interface ProductCardProps {
   sku: string;
   name: React.ReactNode;
   price: number;
+  priceInUSD?: number | null;
   image: string;
 }
 
-export function ProductCard({ sku, name, price, image }: ProductCardProps) {
+export function ProductCard({ sku, name, price, priceInUSD, image }: ProductCardProps) {
   return (
     <div className="group">
       <Link href={`/productos/${sku}`} className="block">
@@ -21,7 +22,14 @@ export function ProductCard({ sku, name, price, image }: ProductCardProps) {
           />
         </div>
         <h3 className="font-medium">{name}</h3>
-        <p className="text-gray-900 font-semibold mt-1">{price} Bs</p>
+        <p className="text-gray-900 font-semibold mt-1">
+          {price.toFixed(2)} Bs
+          {priceInUSD !== null && typeof priceInUSD !== "undefined" && (
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              (${priceInUSD.toFixed(2)})
+            </span>
+          )}
+        </p>
       </Link>
     </div>
   );

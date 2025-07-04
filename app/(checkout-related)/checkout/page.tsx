@@ -48,10 +48,18 @@ export default function CheckoutPage() {
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
 
   useEffect(() => {
-    if (tasas.length === 0) {
+    // Initial fetch
+    fetchTasas();
+
+    // Set up polling every 5 minutes
+    const intervalId = setInterval(() => {
+      console.log("🔄 Refreshing exchange rates in cart...");
       fetchTasas();
-    }
-  }, [fetchTasas, tasas.length]);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [fetchTasas]);
 
   const fetchPoints = useCallback(async () => {
     if (usuario?.id) {
