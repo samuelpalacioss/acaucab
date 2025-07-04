@@ -58,6 +58,7 @@ export default function CarritoCompras() {
             totalItems={calculateTotalItems()}
             onCheckout={handleCheckout}
             isCheckout={true}
+            isCartEmpty={carrito.length === 0}
           />
         </div>
       </div>

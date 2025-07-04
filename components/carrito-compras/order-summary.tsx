@@ -11,6 +11,7 @@ interface OrderSummaryProps {
   totalItems: number;
   onCheckout: () => void;
   isCheckout?: boolean;
+  isCartEmpty: boolean;
 }
 
 export function OrderSummary({
@@ -18,6 +19,7 @@ export function OrderSummary({
   totalItems,
   onCheckout,
   isCheckout = false,
+  isCartEmpty,
 }: OrderSummaryProps) {
   const { getTasa } = useTasaStore();
 
@@ -90,17 +92,9 @@ export function OrderSummary({
           </span>
         </div>
 
-        <Link
-          href="/checkout"
-          className={cn(
-            buttonVariants({
-              variant: "default",
-              className: "w-full",
-            })
-          )}
-        >
+        <Button onClick={onCheckout} disabled={isCartEmpty} className="w-full">
           Continuar al pago
-        </Link>
+        </Button>
       </div>
     </div>
   );

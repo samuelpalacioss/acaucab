@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -18,7 +18,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { PaymentMethodsBanner } from "@/components/payment-methods-banner";
 import { DialogClose } from "@/components/ui/dialog";
 
-const paymentFormSchema = z.object({
+export const paymentFormSchema = z.object({
   nombreTitular: z.string().min(1, "El nombre es requerido"),
   numeroTarjeta: z.string().refine((val) => val.replace(/\s/g, "").length === 16, {
     message: "El número de tarjeta debe tener 16 dígitos",
@@ -60,15 +60,17 @@ const paymentFormSchema = z.object({
 export type PaymentFormData = z.infer<typeof paymentFormSchema>;
 
 interface PaymentFormProps {
+  form: UseFormReturn<PaymentFormData>;
   maxWidth?: string;
   showHeader?: boolean;
-  onSubmit?: (data: PaymentFormData) => void;
+  onSubmit: (data: PaymentFormData) => void;
   isSubmitting?: boolean;
   onCancel?: () => void;
   context?: "page" | "dialog";
 }
 
 export default function PaymentForm({
+  form,
   maxWidth = "max-w-2xl",
   showHeader = true,
   onSubmit,
@@ -76,18 +78,6 @@ export default function PaymentForm({
   onCancel,
   context = "page",
 }: PaymentFormProps) {
-  const form = useForm<PaymentFormData>({
-    resolver: zodResolver(paymentFormSchema),
-    mode: "onChange",
-    defaultValues: {
-      nombreTitular: "",
-      numeroTarjeta: "",
-      fechaExpiracion: "",
-      codigoSeguridad: "",
-      tipoTarjeta: "credito",
-    },
-  });
-
   const { isValid } = form.formState;
 
   const handleSubmit = form.handleSubmit((data) => {
@@ -235,25 +225,25 @@ export default function PaymentForm({
             </div>
           </div>
 
-          {onSubmit && (
-            <div className="flex justify-end gap-2 mt-6">
-              {context === "dialog" && (
+          <div className="flex justify-end gap-2 mt-6">
+            {context === "dialog" && (
+              <>
                 <DialogClose asChild>
                   <Button type="button" variant="outline">
                     Cancelar
                   </Button>
                 </DialogClose>
-              )}
-              {context === "page" && onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel}>
-                  Cancelar
+                <Button type="submit" disabled={!isValid || isSubmitting}>
+                  {isSubmitting ? "Guardando..." : "Guardar tarjeta"}
                 </Button>
-              )}
-              <Button type="submit" disabled={!isValid || isSubmitting}>
-                {isSubmitting ? "Guardando..." : "Guardar tarjeta"}
+              </>
+            )}
+            {context === "page" && onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancelar
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </form>
       </Form>
     </div>

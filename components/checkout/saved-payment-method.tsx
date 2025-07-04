@@ -1,25 +1,9 @@
 import { useState } from "react";
 import { CreditCard, Plus } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import PaymentForm from "./payment-form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import DialogAddInfoCard from "./dialog-add-info-card";
 
@@ -34,6 +18,8 @@ export type SavedCard = {
 interface SavedPaymentMethodProps {
   initialCards: SavedCard[];
   onAddNewCard: () => void;
+  onCardSelect: (card: SavedCard) => void;
+  isSubmitting: boolean;
 }
 
 // Esquema para validación del formulario de tarjeta
@@ -69,12 +55,16 @@ export const detectCardType = (cardNumber: string): "visa" | "mastercard" | "ame
 
 // Mock de una función que guarda la tarjeta en la "BD"
 const saveCardToDatabase = async (cardData: any) => {
-  // ... existing code ...
+  console.log("Simulando guardado en BD:", cardData);
+  // Simula una llamada a una API
+  return new Promise((resolve) => setTimeout(resolve, 1000));
 };
 
 export default function SavedPaymentMethod({
   initialCards,
   onAddNewCard,
+  onCardSelect,
+  isSubmitting,
 }: SavedPaymentMethodProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [savedCards, setSavedCards] = useState(initialCards);
@@ -106,14 +96,25 @@ export default function SavedPaymentMethod({
     }
   };
 
-  const handleConfirm = () => {
-    const newSelectedCard = savedCards.find((card) => card.id === selectedCardId);
+  const handleCardSelectionChange = (cardId: string) => {
+    const newSelectedCard = savedCards.find((card) => card.id === cardId);
     if (newSelectedCard) {
+      setSelectedCardId(cardId);
       setSelectedCard({
         cardType: newSelectedCard.cardType,
         lastFourDigits: newSelectedCard.lastFourDigits,
         expiryDate: newSelectedCard.expiryDate,
       });
+      onCardSelect(newSelectedCard);
+      setIsExpanded(false);
+    }
+  };
+
+  const handleConfirm = () => {
+    const newSelectedCard = savedCards.find((card) => card.id === selectedCardId);
+    if (newSelectedCard) {
+      setSelectedCard(newSelectedCard);
+      onCardSelect(newSelectedCard);
     }
     setIsExpanded(false);
   };
@@ -132,7 +133,6 @@ export default function SavedPaymentMethod({
     setSavedCards((prevCards) => [...prevCards, newCard]);
     setSelectedCardId(newCard.id);
 
-    await saveCardToDatabase(data);
     toast({
       title: "Éxito",
       description: "La nueva tarjeta ha sido guardada.",
@@ -166,7 +166,7 @@ export default function SavedPaymentMethod({
         )}
       </div>
 
-      {isExpanded && (
+      {isExpanded ? (
         <div className="space-y-2">
           <div className="px-4">
             <div className="grid grid-cols-[48px_1fr_200px_100px] text-sm text-muted-foreground mb-2">
@@ -179,8 +179,9 @@ export default function SavedPaymentMethod({
 
           <RadioGroup
             defaultValue={selectedCardId}
-            onValueChange={setSelectedCardId}
+            onValueChange={handleCardSelectionChange}
             className="space-y-1"
+            disabled={isSubmitting}
           >
             {savedCards.map((card) => (
               <div key={card.id} className="flex items-center py-3 hover:bg-accent/50 rounded-lg">
@@ -206,8 +207,7 @@ export default function SavedPaymentMethod({
 
           <div className="px-4 mt-4 space-y-4">
             <DialogAddInfoCard onSubmit={handleSaveNewCard} />
-
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end space-x-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -223,7 +223,7 @@ export default function SavedPaymentMethod({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CheckoutItem } from "./checkout-item";
-import { SHIPPING_COST } from "@/lib/constants";
 import { useTasaStore } from "@/store/tasa-store";
 
 interface OrderItem {
@@ -16,10 +15,20 @@ interface OrderItem {
 interface OrderSummaryProps {
   orderItems: OrderItem[];
   puntosAplicados?: number;
+  shippingCost: number;
+  onFinalize: () => void;
+  isSubmitting: boolean;
 }
 
-export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderSummaryProps) {
+export default function OrderSummary({
+  orderItems,
+  puntosAplicados = 0,
+  shippingCost,
+  onFinalize,
+  isSubmitting,
+}: OrderSummaryProps) {
   const { getTasa } = useTasaStore();
+  const tasaDolar = getTasa("USD")?.monto_equivalencia ?? 0;
 
   const convertirADolar = (monto: number) => {
     const tasa = getTasa("USD");
@@ -28,14 +37,14 @@ export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderS
   };
 
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = SHIPPING_COST;
+  const shippingInBs = shippingCost * tasaDolar;
   const iva = subtotal * 0.16;
   // Calcular el total incluyendo IVA y restando puntos
-  const total = subtotal + iva + shipping - puntosAplicados;
+  const total = subtotal + iva + shippingInBs - puntosAplicados;
 
   const subtotalUSD = convertirADolar(subtotal);
   const ivaUSD = convertirADolar(iva);
-  const shippingUSD = convertirADolar(shipping);
+  const shippingUSD = shippingCost;
   const puntosAplicadosUSD = convertirADolar(puntosAplicados);
   const totalUSD = convertirADolar(total);
 
@@ -85,7 +94,7 @@ export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderS
           <div className="flex justify-between">
             <p>Envío</p>
             <p className="font-medium">
-              {shipping.toFixed(2)} Bs
+              {shippingInBs.toFixed(2)} Bs
               {shippingUSD !== null && (
                 <span className="text-sm font-normal text-gray-500 ml-2">
                   (${shippingUSD.toFixed(2)})
@@ -125,7 +134,9 @@ export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderS
       </CardContent>
 
       <CardFooter>
-        <Button className="w-full">Finalizar Compra</Button>
+        <Button className="w-full" onClick={onFinalize} disabled={isSubmitting}>
+          {isSubmitting ? "Procesando..." : "Finalizar Compra"}
+        </Button>
       </CardFooter>
     </Card>
   );

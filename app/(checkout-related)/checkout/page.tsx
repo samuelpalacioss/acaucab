@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MapPin, Truck, Award } from "lucide-react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AddressModal from "@/components/checkout/address-modal";
 import OrderSummary from "@/components/checkout/order-summary";
-import PaymentForm, { PaymentFormData } from "@/components/checkout/payment-form";
+import PaymentForm, {
+  PaymentFormData,
+  paymentFormSchema,
+} from "@/components/checkout/payment-form";
 import SavedPaymentMethod, {
   SavedCard,
   detectCardType,
@@ -21,6 +26,7 @@ import { useTasaStore } from "@/store/tasa-store";
 import { SHIPPING_COST } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
 import { getPuntos } from "@/api/get-puntos";
+import { getMetodosDePago, MetodoPagoCliente } from "@/api/get-cliente-metodos-pago";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +36,6 @@ import {
 } from "@/components/ui/dialog";
 
 export default function CheckoutPage() {
-  const [hasStoredPaymentMethod, setHasStoredPaymentMethod] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { carrito } = useVentaStore();
   const { isAuthenticated, usuario } = useUser();
@@ -41,11 +46,24 @@ export default function CheckoutPage() {
 
   const tasaPunto = getTasa("PUNTO")?.monto_equivalencia || 1;
   const tasaDolar = getTasa("USD")?.monto_equivalencia;
-  const pointValueInDollars = tasaPunto / (tasaDolar ?? 1);
 
   console.log("User object on checkout:", usuario);
 
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const [selectedCard, setSelectedCard] = useState<SavedCard | null>(null);
+  const [showNewCardForm, setShowNewCardForm] = useState(false);
+
+  const paymentForm = useForm<PaymentFormData>({
+    resolver: zodResolver(paymentFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      nombreTitular: "",
+      numeroTarjeta: "",
+      fechaExpiracion: "",
+      codigoSeguridad: "",
+      tipoTarjeta: "credito",
+    },
+  });
 
   useEffect(() => {
     // Initial fetch
@@ -60,6 +78,33 @@ export default function CheckoutPage() {
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
   }, [fetchTasas]);
+
+  const fetchPaymentMethods = useCallback(async () => {
+    if (usuario?.id) {
+      try {
+        const paymentMethods = await getMetodosDePago(usuario.id);
+        if (paymentMethods) {
+          const formattedCards: SavedCard[] = paymentMethods.map((pm: MetodoPagoCliente) => ({
+            id: pm.id.toString(), // Assuming pm.id can be used as a unique key
+            cardType: detectCardType(pm.numero_tarjeta.toString()),
+            lastFourDigits: pm.numero_tarjeta.toString().slice(-4),
+            expiryDate: pm.fecha_vencimiento,
+            isDefault: false, // You might need logic to determine the default card
+          }));
+          setSavedCards(formattedCards);
+          if (formattedCards.length > 0) {
+            setSelectedCard(formattedCards[0]); // Select the first card by default
+          }
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar tus métodos de pago.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [usuario?.id]);
 
   const fetchPoints = useCallback(async () => {
     if (usuario?.id) {
@@ -80,8 +125,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchPoints();
+      fetchPaymentMethods();
     }
-  }, [isAuthenticated, fetchPoints]);
+  }, [isAuthenticated, fetchPoints, fetchPaymentMethods]);
 
   const orderItems = carrito.map((item) => ({
     id: item.presentacion_id,
@@ -91,10 +137,12 @@ export default function CheckoutPage() {
     image: item.imagen ?? "/placeholder.svg", // Fallback to a placeholder image
   }));
 
-  const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const iva = subtotal * 0.16;
-  const totalOrder = subtotal + iva + SHIPPING_COST;
-  const remainingTotal = totalOrder - appliedPoints * pointValueInDollars;
+  const subtotalInBs = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const ivaInBs = subtotalInBs * 0.16;
+  const shippingInBs = SHIPPING_COST * (tasaDolar as number);
+  const totalOrderInBs = subtotalInBs + ivaInBs + shippingInBs;
+  const puntosAplicadosEnBs = appliedPoints * tasaPunto;
+  const remainingTotalInBs = totalOrderInBs - puntosAplicadosEnBs;
 
   const handleApplyPoints = () => {
     const pointsValue = Number(pointsToApply);
@@ -114,7 +162,7 @@ export default function CheckoutPage() {
       });
       return;
     }
-    if (pointsValue > totalOrder) {
+    if (pointsValue * tasaPunto > totalOrderInBs) {
       toast({
         title: "Cantidad Excesiva",
         description: "No puedes aplicar más puntos que el total de la orden.",
@@ -130,35 +178,157 @@ export default function CheckoutPage() {
     });
   };
 
-  const handleAddNewCard = async (data: PaymentFormData) => {
+  const logPaymentProcessing = () => {
+    const { cliente: ventaCliente } = useVentaStore.getState();
+    console.group("🛒 PAYMENT PROCESSING - Checkout");
+    console.log(
+      "👤 Cliente:",
+      ventaCliente?.nombre_completo || ventaCliente?.denominacion_comercial || "No disponible"
+    );
+    console.log("🆔 ID Cliente:", usuario?.id || "N/A");
+    console.log("🛍️ Items en carrito:", carrito.length);
+    carrito.forEach((item, index) => {
+      console.log(
+        `   ${index + 1}. ${item.nombre_cerveza} x${item.quantity} - ${item.precio.toFixed(2)} Bs`
+      );
+    });
+
+    console.log("💰 Totales:");
+    console.log(`   - Subtotal: ${subtotalInBs.toFixed(2)} Bs`);
+    console.log(`   - IVA (16%): ${ivaInBs.toFixed(2)} Bs`);
+    console.log(`   - Envío: ${shippingInBs.toFixed(2)} Bs`);
+    console.log(`   - Total: ${totalOrderInBs.toFixed(2)} Bs`);
+
+    console.log("💳 Métodos de pago a procesar:");
+    if (appliedPoints > 0) {
+      console.log(
+        `   - Puntos: ${appliedPoints} por un valor de ${puntosAplicadosEnBs.toFixed(2)} Bs`
+      );
+    }
+    if (remainingTotalInBs > 0) {
+      if (showNewCardForm) {
+        console.log(`   - Nueva Tarjeta: Monto de ${remainingTotalInBs.toFixed(2)} Bs`);
+      } else if (selectedCard) {
+        console.log(
+          `   - Tarjeta Guardada: terminada en ${
+            selectedCard.lastFourDigits
+          }, Monto de ${remainingTotalInBs.toFixed(2)} Bs`
+        );
+      }
+    }
+    console.groupEnd();
+  };
+
+  const handleRemovePoints = () => {
+    setAppliedPoints(0);
+    toast({
+      title: "Puntos Eliminados",
+      description: "Los puntos han sido eliminados de tu orden.",
+    });
+  };
+
+  const handleProcessPayment = async (
+    paymentData?: PaymentFormData | { cardId: string; lastFour: string }
+  ) => {
     setIsSubmitting(true);
-    console.log("Submitting new card:", data);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const newCard: SavedCard = {
-      id: crypto.randomUUID(),
-      cardType: detectCardType(data.numeroTarjeta),
-      lastFourDigits: data.numeroTarjeta.slice(-4),
-      expiryDate: data.fechaExpiracion,
-      isDefault: savedCards.length === 0,
-    };
+    let mainPaymentMethod: any = null;
+    let pointsPaymentMethod: any = null;
 
-    setSavedCards((prev) => [...prev, newCard]);
+    if (appliedPoints > 0) {
+      pointsPaymentMethod = {
+        method: "puntos",
+        details: { pointsUsed: appliedPoints, amount: puntosAplicadosEnBs },
+      };
+      console.log("Processing points payment:", pointsPaymentMethod);
+    }
+
+    if (remainingTotalInBs > 0) {
+      if (!paymentData) {
+        toast({
+          title: "Error de Pago",
+          description: "No se proporcionaron los detalles del pago.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const paymentDetails =
+        "cardId" in paymentData
+          ? { cardId: paymentData.cardId, amount: remainingTotalInBs }
+          : {
+              nombreTitular: paymentData.nombreTitular,
+              numeroTarjeta: paymentData.numeroTarjeta.replace(/\s/g, ""),
+              fechaExpiracion: paymentData.fechaExpiracion,
+              amount: remainingTotalInBs,
+            };
+
+      mainPaymentMethod = {
+        method: "tarjetaCredito",
+        details: paymentDetails,
+      };
+
+      if ("cardId" in paymentData) {
+        console.log(
+          `Processing saved card payment for card ending in ${paymentData.lastFour}:`,
+          mainPaymentMethod
+        );
+      } else {
+        console.log("Processing new card payment:", mainPaymentMethod);
+        // Add the new card to saved cards
+        const newCard: SavedCard = {
+          id: crypto.randomUUID(),
+          cardType: detectCardType(paymentData.numeroTarjeta),
+          lastFourDigits: paymentData.numeroTarjeta.slice(-4),
+          expiryDate: paymentData.fechaExpiracion,
+          isDefault: savedCards.length === 0,
+        };
+        setSavedCards((prev) => [...prev, newCard]);
+        setSelectedCard(newCard); // Select the newly added card
+      }
+    }
+
+    logPaymentProcessing();
+
+    // Simulate API call for payment processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     toast({
-      title: "Éxito",
-      description: "La nueva tarjeta ha sido guardada exitosamente.",
+      title: "Pago Exitoso",
+      description: "Tu orden ha sido procesada correctamente.",
       variant: "default",
     });
 
     setIsSubmitting(false);
-    setHasStoredPaymentMethod(true); // Switch back to the saved method view
+    setShowNewCardForm(false);
+  };
+
+  const handleFinalizeCheckout = () => {
+    if (remainingTotalInBs > 0) {
+      if (showNewCardForm) {
+        paymentForm.handleSubmit(handleProcessPayment)();
+      } else if (selectedCard) {
+        handleProcessPayment({
+          cardId: selectedCard.id,
+          lastFour: selectedCard.lastFourDigits,
+        });
+      } else {
+        toast({
+          title: "Error de Pago",
+          description: "Por favor, seleccione un método de pago.",
+          variant: "destructive",
+        });
+      }
+    } else if (appliedPoints > 0) {
+      // Only points are used for payment
+      handleProcessPayment();
+    }
   };
 
   const handleCancel = () => {
     if (savedCards.length > 0) {
-      setHasStoredPaymentMethod(true);
+      setShowNewCardForm(false);
     }
   };
 
@@ -270,66 +440,83 @@ export default function CheckoutPage() {
                     Cada punto equivale a {tasaPunto.toFixed(2)} Bs.
                   </p>
                 )}
-                <div className="flex items-center gap-4">
-                  <div className="w-full">
-                    <Label htmlFor="points" className="sr-only">
-                      Puntos a aplicar
-                    </Label>
-                    <Input
-                      id="points"
-                      type="number"
-                      placeholder="Introduce los puntos a usar"
-                      value={pointsToApply}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Sanitize to only allow digits.
-                        const numericValue = value.replace(/[^0-9]/g, "");
-
-                        if (numericValue === "") {
-                          setPointsToApply("");
-                          return;
-                        }
-
-                        // parseInt will handle leading zeros (e.g., "05" becomes 5)
-                        let num = parseInt(numericValue, 10);
-
-                        if (num > userPoints) {
-                          num = userPoints;
-                        }
-
-                        setPointsToApply(num);
-                      }}
-                      onKeyDown={(e) => {
-                        // Prevent entering decimals or other non-integer characters
-                        if ([".", ",", "e", "E", "+", "-"].includes(e.key)) {
-                          e.preventDefault();
-                        }
-                      }}
-                      max={userPoints}
-                      min={0}
-                    />
+                {appliedPoints > 0 ? (
+                  <div className="flex items-center justify-between rounded-md border border-green-200 bg-green-50 p-3">
+                    <p className="text-sm font-medium text-green-700">
+                      Estás usando {appliedPoints} puntos en esta compra.
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemovePoints}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      Quitar
+                    </Button>
                   </div>
-                  <Button onClick={handleApplyPoints} disabled={Number(pointsToApply) <= 0}>
-                    Aplicar
-                  </Button>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="w-full">
+                      <Label htmlFor="points" className="sr-only">
+                        Puntos a aplicar
+                      </Label>
+                      <Input
+                        id="points"
+                        type="number"
+                        placeholder="Introduce los puntos a usar"
+                        value={pointsToApply}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numericValue = value.replace(/[^0-9]/g, "");
+
+                          if (numericValue === "") {
+                            setPointsToApply("");
+                            return;
+                          }
+
+                          let num = parseInt(numericValue, 10);
+                          const maxPointsForOrder = Math.floor(totalOrderInBs / tasaPunto);
+
+                          if (num > userPoints) num = userPoints;
+                          if (num > maxPointsForOrder) num = maxPointsForOrder;
+
+                          setPointsToApply(num);
+                        }}
+                        onKeyDown={(e) => {
+                          // Prevent entering decimals or other non-integer characters
+                          if ([".", ",", "e", "E", "+", "-"].includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        max={userPoints}
+                        min={0}
+                      />
+                    </div>
+                    <Button onClick={handleApplyPoints} disabled={Number(pointsToApply) <= 0}>
+                      Aplicar
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
           {/* Payment Method Section */}
-          {remainingTotal > 0 && (
+          {remainingTotalInBs > 0 && (
             <Card>
               <CardContent className="p-4">
-                {hasStoredPaymentMethod || savedCards.length > 0 ? (
+                {savedCards.length > 0 && !showNewCardForm ? (
                   <SavedPaymentMethod
                     initialCards={savedCards}
-                    onAddNewCard={() => setHasStoredPaymentMethod(false)}
+                    onAddNewCard={() => setShowNewCardForm(true)}
+                    onCardSelect={setSelectedCard}
+                    isSubmitting={isSubmitting}
                   />
                 ) : (
                   <PaymentForm
+                    form={paymentForm}
                     maxWidth="max-w-4xl"
-                    onSubmit={handleAddNewCard}
+                    onSubmit={handleProcessPayment}
                     isSubmitting={isSubmitting}
                     context="page"
                     onCancel={handleCancel}
@@ -344,7 +531,10 @@ export default function CheckoutPage() {
         <div className="md:col-span-1">
           <OrderSummary
             orderItems={orderItems}
-            puntosAplicados={appliedPoints * pointValueInDollars}
+            puntosAplicados={puntosAplicadosEnBs}
+            shippingCost={SHIPPING_COST}
+            onFinalize={handleFinalizeCheckout}
+            isSubmitting={isSubmitting}
           />
         </div>
       </div>
