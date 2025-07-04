@@ -1,13 +1,30 @@
 "use client";
 
+import { useEffect } from "react";
 import { useVentaStore } from "@/store/venta-store";
 import { CartList } from "@/components/carrito-compras/cart-list";
 import { OrderSummary } from "@/components/carrito-compras/order-summary";
 import { useRouter } from "next/navigation";
+import { useTasaStore } from "@/store/tasa-store";
 
 export default function CarritoCompras() {
   const router = useRouter();
   const { carrito, eliminarDelCarrito, actualizarCantidad } = useVentaStore();
+  const { fetchTasas } = useTasaStore();
+
+  useEffect(() => {
+    // Initial fetch
+    fetchTasas();
+
+    // Set up polling every 5 minutes
+    const intervalId = setInterval(() => {
+      console.log("🔄 Refreshing exchange rates in cart...");
+      fetchTasas();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [fetchTasas]);
 
   const calculateSubtotal = () => {
     return carrito.reduce((sum, item) => sum + item.precio * item.quantity, 0);

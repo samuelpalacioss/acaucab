@@ -14,14 +14,15 @@ interface OrderItem {
 
 interface OrderSummaryProps {
   orderItems: OrderItem[];
+  puntosAplicados?: number;
 }
 
-export default function OrderSummary({ orderItems }: OrderSummaryProps) {
+export default function OrderSummary({ orderItems, puntosAplicados = 0 }: OrderSummaryProps) {
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = SHIPPING_COST;
   const iva = subtotal * 0.16;
-  // Calcular el total incluyendo IVA
-  const total = subtotal + iva + shipping;
+  // Calcular el total incluyendo IVA y restando puntos
+  const total = subtotal + iva + shipping - puntosAplicados;
 
   return (
     <Card>
@@ -56,6 +57,13 @@ export default function OrderSummary({ orderItems }: OrderSummaryProps) {
             <p>Envío</p>
             <p className="font-medium">${shipping.toFixed(2)}</p>
           </div>
+
+          {puntosAplicados > 0 && (
+            <div className="flex justify-between text-green-600">
+              <p>Puntos Aplicados</p>
+              <p className="font-medium">-${puntosAplicados.toFixed(2)}</p>
+            </div>
+          )}
 
           <Separator />
 

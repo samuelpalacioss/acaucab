@@ -1,6 +1,8 @@
+"use client";
 import Image from "next/image";
 import { ItemQuantity } from "./item-quantity";
 import { CarritoItemType } from "@/lib/schemas";
+import { useTasaStore } from "@/store/tasa-store";
 
 interface CartItemProps {
   item: CarritoItemType;
@@ -9,6 +11,14 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
+  const { getTasa } = useTasaStore();
+
+  const convertirADolar = (monto: number) => {
+    const tasa = getTasa("USD");
+    if (!tasa?.monto_equivalencia) return null;
+    return monto / tasa.monto_equivalencia;
+  };
+
   const handleIncrease = () => {
     onUpdateQuantity(item.sku, item.quantity + 1);
   };
@@ -21,6 +31,7 @@ export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
 
   // Add safety check for precio
   const safePrice = typeof item.precio === "number" ? item.precio : 0;
+  const priceInUSD = convertirADolar(safePrice);
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 py-6 border-t">
@@ -36,7 +47,14 @@ export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
       <div className="flex-grow">
         <h3 className="text-xl font-bold">{item.nombre_cerveza}</h3>
         <p className="text-md mb-1">{item.presentacion}</p>
-        <p className="text-lg font-bold mb-1">${safePrice.toFixed(2)}</p>
+        <p className="text-lg font-bold mb-1">
+          {safePrice.toFixed(2)} Bs
+          {priceInUSD !== null && (
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              (${priceInUSD.toFixed(2)})
+            </span>
+          )}
+        </p>
         <p className="text-sm text-gray-600 mb-2">Hecha por {item.marca}</p>
 
         <div className="mt-2 inline-block">

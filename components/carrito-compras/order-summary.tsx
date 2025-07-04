@@ -1,8 +1,11 @@
+"use client";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useTasaStore } from "@/store/tasa-store";
+
 interface OrderSummaryProps {
   subtotal: number;
   totalItems: number;
@@ -16,10 +19,21 @@ export function OrderSummary({
   onCheckout,
   isCheckout = false,
 }: OrderSummaryProps) {
+  const { getTasa } = useTasaStore();
+
+  const convertirADolar = (monto: number) => {
+    const tasa = getTasa("USD");
+    if (!tasa?.monto_equivalencia) return null;
+    return monto / tasa.monto_equivalencia;
+  };
   // Calcular el IVA (16% del subtotal)
   const iva = subtotal * 0.16;
   // Calcular el total incluyendo IVA
   const total = subtotal + iva;
+
+  const subtotalEnDolares = convertirADolar(subtotal);
+  const ivaEnDolares = convertirADolar(iva);
+  const totalEnDolares = convertirADolar(total);
 
   return (
     <div>
@@ -35,12 +49,26 @@ export function OrderSummary({
 
         <div className="flex justify-between">
           <span>IVA (16%)</span>
-          <span>${iva.toFixed(2)}</span>
+          <span>
+            {iva.toFixed(2)} Bs
+            {ivaEnDolares !== null && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (${ivaEnDolares.toFixed(2)})
+              </span>
+            )}
+          </span>
         </div>
 
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>
+            {subtotal.toFixed(2)} Bs
+            {subtotalEnDolares !== null && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (${subtotalEnDolares.toFixed(2)})
+              </span>
+            )}
+          </span>
         </div>
 
         <Separator />
@@ -52,7 +80,14 @@ export function OrderSummary({
               ({totalItems} {totalItems === 1 ? "item" : "items"})
             </span>
           </p>
-          <span>${total.toFixed(2)}</span>
+          <span>
+            {total.toFixed(2)} Bs
+            {totalEnDolares !== null && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (${totalEnDolares.toFixed(2)})
+              </span>
+            )}
+          </span>
         </div>
 
         <Link
