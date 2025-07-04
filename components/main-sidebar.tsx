@@ -73,6 +73,14 @@ export function MainSidebar() {
         { title: "Roles y Permisos", path: "/dashboard/usuarios/roles" },
       ],
     },
+    {
+      title: "Eventos",
+      icon: Calendar,
+      submenu: [
+        { title: "Todos los eventos", path: "/dashboard/eventos/gestion" },
+        { title: "Añadir un nuevo evento", path: "/dashboard/eventos/nuevo" },
+      ],
+    },
   ];
 
   return (

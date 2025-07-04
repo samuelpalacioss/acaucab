@@ -14,19 +14,19 @@
  */
 INSERT INTO venta_evento (
     monto_total,
-    fk_cliente_juridico,
-    fk_cliente_natural
+    fk_evento_cliente_1
+    fk_evento_cliente_2
 ) VALUES
-    (450.00, 1, NULL),        /** Venta a cliente jurídico */
-    (280.50, NULL, 1),        /** Venta a cliente natural */
-    (650.75, 2, NULL),        /** Venta a cliente jurídico */
-    (320.25, 2, NULL),        /** Venta a cliente natural */
-    (890.00, 3, NULL),        /** Venta a cliente jurídico */
-    (150.00, 3, NULL),        /** Venta a cliente natural */
-    (750.50, 4, NULL),        /** Venta a cliente jurídico */
-    (420.75, 4, NULL),        /** Venta a cliente natural */
-    (580.25, 5, NULL),        /** Venta a cliente jurídico */
-    (290.00, 5, NULL);        /** Venta a cliente natural */
+    (450.00, 1, 1),        /** Venta a cliente jurídico */
+    (280.50, 2, 2),        /** Venta a cliente natural */
+    (650.75, 3, 3),        /** Venta a cliente jurídico */
+    (320.25, 4, 4),        /** Venta a cliente natural */
+    (890.00, 5, 5),        /** Venta a cliente jurídico */
+    (150.00, 6, 6),        /** Venta a cliente natural */
+    (750.50, 7, 7),        /** Venta a cliente jurídico */
+    (420.75, 8, 8),        /** Venta a cliente natural */
+    (580.25, 9, 9),        /** Venta a cliente jurídico */
+    (290.00, 10, 10);        /** Venta a cliente natural */
 
 /**
  * Inserción de órdenes de compra

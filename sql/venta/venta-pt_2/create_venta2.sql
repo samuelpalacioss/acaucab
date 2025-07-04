@@ -5,25 +5,15 @@
 CREATE TABLE venta_evento (
     id                  SERIAL,                           /** Identificador único de la venta */
     monto_total         DECIMAL(10,2) NOT NULL,           /** Monto total de la venta */
-    fk_cliente_juridico INTEGER,                          /** Referencia a cliente jurídico (opcional) */
-    fk_cliente_natural  INTEGER,                          /** Referencia a cliente natural (opcional) */
+    fk_evento_cliente_1 INTEGER,                          
+    fk_evento_cliente_2  INTEGER,                          
     
     /** Constraint de clave primaria */
     CONSTRAINT venta_evento_pk PRIMARY KEY (id),
     
-    /** Constraint de verificación - solo uno de los dos tipos de cliente puede estar presente */
-    CONSTRAINT venta_evento_check_cliente CHECK (
-        (fk_cliente_juridico IS NOT NULL AND fk_cliente_natural IS NULL) OR
-        (fk_cliente_natural IS NOT NULL AND fk_cliente_juridico IS NULL)
-    ),
-    
     /** Constraint de clave foránea hacia cliente jurídico */
-    CONSTRAINT venta_evento_fk_juridico FOREIGN KEY (fk_cliente_juridico)
-        REFERENCES cliente_juridico (id),
-    
-    /** Constraint de clave foránea hacia cliente natural */
-    CONSTRAINT venta_evento_fk_natural FOREIGN KEY (fk_cliente_natural)
-        REFERENCES cliente_natural (id)
+    CONSTRAINT venta_evento_fk_evento_cliente FOREIGN KEY (fk_evento_cliente_1,fk_evento_cliente_2)
+        REFERENCES evento_cliente (id,fk_evento),
 );
 
 

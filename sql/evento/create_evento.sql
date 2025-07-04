@@ -99,10 +99,11 @@ CREATE TABLE invitado_evento (
  * @param fk_cliente_natural - Referencia al cliente natural (debe ser NULL si hay cliente jurídico)
  */
 CREATE TABLE evento_cliente (
+    id SERIAL,
     fk_evento           INTEGER NOT NULL,
     fk_cliente_juridico INTEGER,
     fk_cliente_natural  INTEGER,
-    CONSTRAINT evento_cliente_pk PRIMARY KEY (fk_evento),
+    CONSTRAINT evento_cliente_pk PRIMARY KEY (id,fk_evento),
     CONSTRAINT evento_cliente_evento_fk FOREIGN KEY (fk_evento) REFERENCES evento(id),
     CONSTRAINT evento_cliente_juridico_fk FOREIGN KEY (fk_cliente_juridico) REFERENCES cliente_juridico(id),
     CONSTRAINT evento_cliente_natural_fk FOREIGN KEY (fk_cliente_natural) REFERENCES cliente_natural(id),
