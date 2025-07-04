@@ -12,6 +12,7 @@ interface OrderSummaryProps {
   onCheckout: () => void;
   isCheckout?: boolean;
   isCartEmpty: boolean;
+  isProcessing: boolean;
 }
 
 export function OrderSummary({
@@ -20,6 +21,7 @@ export function OrderSummary({
   onCheckout,
   isCheckout = false,
   isCartEmpty,
+  isProcessing,
 }: OrderSummaryProps) {
   const { getTasa } = useTasaStore();
 
@@ -92,8 +94,8 @@ export function OrderSummary({
           </span>
         </div>
 
-        <Button onClick={onCheckout} disabled={isCartEmpty} className="w-full">
-          Continuar al pago
+        <Button onClick={onCheckout} disabled={isCartEmpty || isProcessing} className="w-full">
+          {isProcessing ? "Procesando..." : "Continuar al pago"}
         </Button>
       </div>
     </div>

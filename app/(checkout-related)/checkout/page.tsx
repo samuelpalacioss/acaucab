@@ -27,6 +27,9 @@ import { SHIPPING_COST } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
 import { getPuntos } from "@/api/get-puntos";
 import { getMetodosDePago, MetodoPagoCliente } from "@/api/get-cliente-metodos-pago";
+import { getClienteByUsuarioId } from "@/api/get-cliente-by-usuario-id";
+import { crearMetodoPago } from "@/api/crear-metodo-pago";
+import { getCardType } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -34,10 +37,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { isPuntosDetails, isTarjetaDetails, PuntosDetails, TarjetaDetails } from "@/lib/schemas";
+import { finalizarDetallesVenta } from "@/api/finalizar-detalles-venta";
+import { registrarPagos } from "@/api/registrar-pagos";
+import { CompletarVenta } from "@/api/completar-venta";
+
+// Helper to format date for DB
+const formatExpiryDateForDB = (expiryDate: string): string => {
+  if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
+    throw new Error("Formato de fecha de expiración inválido. Debe ser MM/YY.");
+  }
+  const [month, year] = expiryDate.split("/");
+  const fullYear = `20${year}`;
+  const date = new Date(Number(fullYear), Number(month), 0);
+  const lastDay = date.getDate();
+  return `${fullYear}-${month.padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+};
 
 export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { carrito } = useVentaStore();
+  const { carrito, setMetodosPago, cliente, setCliente, ventaId, metodosPago } = useVentaStore();
   const { isAuthenticated, usuario } = useUser();
   const [userPoints, setUserPoints] = useState(0);
   const [pointsToApply, setPointsToApply] = useState<number | "">("");
@@ -49,9 +68,10 @@ export default function CheckoutPage() {
 
   console.log("User object on checkout:", usuario);
 
-  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
-  const [selectedCard, setSelectedCard] = useState<SavedCard | null>(null);
-  const [showNewCardForm, setShowNewCardForm] = useState(false);
+  const [savedPaymentMethods, setSavedPaymentMethods] = useState<MetodoPagoCliente[]>([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<MetodoPagoCliente | null>(
+    null
+  );
 
   const paymentForm = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -79,55 +99,38 @@ export default function CheckoutPage() {
     return () => clearInterval(intervalId);
   }, [fetchTasas]);
 
-  const fetchPaymentMethods = useCallback(async () => {
-    if (usuario?.id) {
-      try {
-        const paymentMethods = await getMetodosDePago(usuario.id);
-        if (paymentMethods) {
-          const formattedCards: SavedCard[] = paymentMethods.map((pm: MetodoPagoCliente) => ({
-            id: pm.id.toString(), // Assuming pm.id can be used as a unique key
-            cardType: detectCardType(pm.numero_tarjeta.toString()),
-            lastFourDigits: pm.numero_tarjeta.toString().slice(-4),
-            expiryDate: pm.fecha_vencimiento,
-            isDefault: false, // You might need logic to determine the default card
-          }));
-          setSavedCards(formattedCards);
-          if (formattedCards.length > 0) {
-            setSelectedCard(formattedCards[0]); // Select the first card by default
-          }
-        }
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar tus métodos de pago.",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [usuario?.id]);
-
-  const fetchPoints = useCallback(async () => {
-    if (usuario?.id) {
-      try {
-        const points = await getPuntos(usuario.id);
-        setUserPoints(points ?? 0);
-      } catch (error) {
-        console.error("Failed to fetch points", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar tus puntos. Inténtalo de nuevo.",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [usuario?.id]);
-
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchPoints();
-      fetchPaymentMethods();
-    }
-  }, [isAuthenticated, fetchPoints, fetchPaymentMethods]);
+    const fetchInitialData = async () => {
+      if (isAuthenticated && usuario?.id) {
+        // Fetch client data first
+        const clienteData = await getClienteByUsuarioId(usuario.id);
+        if (clienteData) {
+          setCliente(clienteData);
+          // Now fetch data that depends on the client
+          getMetodosDePago(usuario.id).then((paymentMethods) => {
+            if (paymentMethods) {
+              setSavedPaymentMethods(paymentMethods);
+              if (paymentMethods.length > 0) {
+                setSelectedPaymentMethod(paymentMethods[0]);
+              }
+            }
+          });
+          getPuntos(usuario.id).then((points) => {
+            setUserPoints(points ?? 0);
+          });
+        }
+      }
+    };
+
+    fetchInitialData().catch((error) => {
+      console.error("Failed to fetch initial checkout data:", error);
+      toast({
+        title: "Error de Carga",
+        description: "No se pudieron cargar los datos necesarios para el checkout.",
+        variant: "destructive",
+      });
+    });
+  }, [isAuthenticated, usuario?.id, setCliente]);
 
   const orderItems = carrito.map((item) => ({
     id: item.presentacion_id,
@@ -178,44 +181,29 @@ export default function CheckoutPage() {
     });
   };
 
-  const logPaymentProcessing = () => {
-    const { cliente: ventaCliente } = useVentaStore.getState();
-    console.group("🛒 PAYMENT PROCESSING - Checkout");
+  const logCheckoutState = (action: string) => {
+    const state = useVentaStore.getState();
+    console.group(`🛒 CHECKOUT STORE - ${action}`);
     console.log(
       "👤 Cliente:",
-      ventaCliente?.nombre_completo || ventaCliente?.denominacion_comercial || "No disponible"
+      usuario?.nombre || state.cliente?.nombre_completo || "No disponible"
     );
-    console.log("🆔 ID Cliente:", usuario?.id || "N/A");
-    console.log("🛍️ Items en carrito:", carrito.length);
-    carrito.forEach((item, index) => {
+    console.log("🆔 ID Cliente:", state.cliente?.id_cliente || "N/A");
+    console.log("🆔 ID Usuario:", usuario?.id || "N/A");
+    console.log("Tipo de cliente:", state.cliente?.tipo_cliente || "N/A");
+    console.log("🛍️ Items en carrito:", state.carrito.length);
+    state.carrito.forEach((item, index) => {
       console.log(
         `   ${index + 1}. ${item.nombre_cerveza} x${item.quantity} - ${item.precio.toFixed(2)} Bs`
       );
     });
 
-    console.log("💰 Totales:");
-    console.log(`   - Subtotal: ${subtotalInBs.toFixed(2)} Bs`);
-    console.log(`   - IVA (16%): ${ivaInBs.toFixed(2)} Bs`);
-    console.log(`   - Envío: ${shippingInBs.toFixed(2)} Bs`);
-    console.log(`   - Total: ${totalOrderInBs.toFixed(2)} Bs`);
+    console.log("💳 Métodos de pago:", state.metodosPago.length);
+    state.metodosPago.forEach((pago, index) => {
+      console.log(`   ${index + 1}. ${pago.method}:`, pago.details);
+    });
 
-    console.log("💳 Métodos de pago a procesar:");
-    if (appliedPoints > 0) {
-      console.log(
-        `   - Puntos: ${appliedPoints} por un valor de ${puntosAplicadosEnBs.toFixed(2)} Bs`
-      );
-    }
-    if (remainingTotalInBs > 0) {
-      if (showNewCardForm) {
-        console.log(`   - Nueva Tarjeta: Monto de ${remainingTotalInBs.toFixed(2)} Bs`);
-      } else if (selectedCard) {
-        console.log(
-          `   - Tarjeta Guardada: terminada en ${
-            selectedCard.lastFourDigits
-          }, Monto de ${remainingTotalInBs.toFixed(2)} Bs`
-        );
-      }
-    }
+    console.log("🔢 Venta ID:", state.ventaId || "N/A (se genera al procesar)");
     console.groupEnd();
   };
 
@@ -227,97 +215,205 @@ export default function CheckoutPage() {
     });
   };
 
+  const handleCardSelect = (card: SavedCard) => {
+    const fullMethod = savedPaymentMethods.find((pm) => pm.id.toString() === card.id);
+    setSelectedPaymentMethod(fullMethod || null);
+  };
+
+  const handleNewCardSubmit = (data: PaymentFormData) => {
+    // This will trigger the main payment processing logic
+    handleProcessPayment(data);
+  };
+
   const handleProcessPayment = async (
     paymentData?: PaymentFormData | { cardId: string; lastFour: string }
   ) => {
+    if (!usuario) {
+      toast({
+        title: "Error",
+        description: "No se ha podido identificar al usuario para el pago.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     let mainPaymentMethod: any = null;
-    let pointsPaymentMethod: any = null;
+    let pointsPaymentMethod: { method: string; details: PuntosDetails } | null = null;
 
-    if (appliedPoints > 0) {
-      pointsPaymentMethod = {
-        method: "puntos",
-        details: { pointsUsed: appliedPoints, amount: puntosAplicadosEnBs },
-      };
-      console.log("Processing points payment:", pointsPaymentMethod);
-    }
-
-    if (remainingTotalInBs > 0) {
-      if (!paymentData) {
-        toast({
-          title: "Error de Pago",
-          description: "No se proporcionaron los detalles del pago.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      const paymentDetails =
-        "cardId" in paymentData
-          ? { cardId: paymentData.cardId, amount: remainingTotalInBs }
-          : {
-              nombreTitular: paymentData.nombreTitular,
-              numeroTarjeta: paymentData.numeroTarjeta.replace(/\s/g, ""),
-              fechaExpiracion: paymentData.fechaExpiracion,
-              amount: remainingTotalInBs,
-            };
-
-      mainPaymentMethod = {
-        method: "tarjetaCredito",
-        details: paymentDetails,
-      };
-
-      if ("cardId" in paymentData) {
-        console.log(
-          `Processing saved card payment for card ending in ${paymentData.lastFour}:`,
-          mainPaymentMethod
+    try {
+      if (appliedPoints > 0) {
+        if (!cliente) throw new Error("Cliente no seleccionado para el pago con puntos.");
+        const result = await crearMetodoPago(
+          { tipo: "punto", details: {} },
+          cliente.id_cliente,
+          cliente.tipo_cliente
         );
-      } else {
-        console.log("Processing new card payment:", mainPaymentMethod);
-        // Add the new card to saved cards
-        const newCard: SavedCard = {
-          id: crypto.randomUUID(),
-          cardType: detectCardType(paymentData.numeroTarjeta),
-          lastFourDigits: paymentData.numeroTarjeta.slice(-4),
-          expiryDate: paymentData.fechaExpiracion,
-          isDefault: savedCards.length === 0,
+        if (typeof result !== "number") {
+          throw new Error("No se pudo registrar el pago con puntos.");
+        }
+        pointsPaymentMethod = {
+          method: "puntos",
+          details: {
+            puntosUtilizados: appliedPoints,
+            amountPaid: puntosAplicadosEnBs,
+            equivalenciaBs: tasaPunto,
+            metodo_pago_id: result,
+          },
         };
-        setSavedCards((prev) => [...prev, newCard]);
-        setSelectedCard(newCard); // Select the newly added card
       }
+
+      if (remainingTotalInBs > 0) {
+        if (!paymentData) {
+          throw new Error("No se proporcionaron los detalles del pago con tarjeta.");
+        }
+
+        let details: TarjetaDetails;
+        let metodo_pago_id: number;
+
+        if ("cardId" in paymentData && selectedPaymentMethod) {
+          // Using a saved card
+          const p_id_cliente =
+            selectedPaymentMethod.fk_cliente_natural ?? selectedPaymentMethod.fk_cliente_juridico;
+          const p_tipo_cliente = selectedPaymentMethod.fk_cliente_natural ? "natural" : "juridico";
+
+          if (!p_id_cliente) {
+            throw new Error("No se pudo determinar el cliente para el método de pago guardado.");
+          }
+          metodo_pago_id = selectedPaymentMethod.fk_metodo_pago;
+          details = {
+            cardId: selectedPaymentMethod.id.toString(),
+            amountPaid: remainingTotalInBs,
+            numeroTarjeta: selectedPaymentMethod.numero_tarjeta.toString(),
+            fechaExpiracion: selectedPaymentMethod.fecha_vencimiento,
+            banco: selectedPaymentMethod.banco,
+            metodo_pago_id: metodo_pago_id,
+          };
+        } else {
+          if (!cliente) throw new Error("Cliente no seleccionado para el pago con tarjeta nueva.");
+          // Using a new card
+          const newCardData = paymentData as PaymentFormData;
+          const expiryDate = formatExpiryDateForDB(newCardData.fechaExpiracion);
+          const tipo_metodo_pago =
+            newCardData.tipoTarjeta === "credito" ? "tarjeta_credito" : "tarjeta_debito";
+
+          const metodoPagoParamsDetails: any = {
+            numero: parseInt(newCardData.numeroTarjeta.replace(/\s/g, "")),
+            banco: "N/A", // Not collected in this form
+            fecha_vencimiento: expiryDate,
+          };
+
+          if (tipo_metodo_pago === "tarjeta_credito") {
+            metodoPagoParamsDetails.tipo_tarjeta = getCardType(newCardData.numeroTarjeta || "");
+          }
+
+          const result = await crearMetodoPago(
+            {
+              tipo: tipo_metodo_pago,
+              details: metodoPagoParamsDetails,
+            },
+            cliente.id_cliente,
+            cliente.tipo_cliente
+          );
+
+          if (typeof result !== "number") {
+            throw new Error("No se pudo crear el método de pago para la nueva tarjeta.");
+          }
+          metodo_pago_id = result;
+          details = {
+            nombreTitular: newCardData.nombreTitular,
+            numeroTarjeta: newCardData.numeroTarjeta.replace(/\s/g, ""),
+            fechaExpiracion: newCardData.fechaExpiracion,
+            amountPaid: remainingTotalInBs,
+            banco: "N/A",
+            metodo_pago_id: metodo_pago_id,
+          };
+
+          // Visually add new card to the list (doesn't refetch from DB)
+          const newCardToDisplay: MetodoPagoCliente = {
+            id: metodo_pago_id,
+            fk_metodo_pago: metodo_pago_id,
+            fk_cliente_natural: cliente.tipo_cliente === "natural" ? cliente.id_cliente : null,
+            fk_cliente_juridico: cliente.tipo_cliente === "juridico" ? cliente.id_cliente : null,
+            tipo_cliente: cliente.tipo_cliente,
+            tipo_pago: tipo_metodo_pago,
+            numero_tarjeta: parseInt(newCardData.numeroTarjeta.replace(/\s/g, "")),
+            banco: "N/A",
+            fecha_vencimiento: expiryDate,
+          };
+          setSavedPaymentMethods((prev) => [...prev, newCardToDisplay]);
+          setSelectedPaymentMethod(newCardToDisplay);
+        }
+
+        mainPaymentMethod = {
+          method: "tarjetaCredito",
+          details: details,
+        };
+      }
+
+      const paymentMethodsToStore = [];
+      if (pointsPaymentMethod) paymentMethodsToStore.push(pointsPaymentMethod);
+      if (mainPaymentMethod) paymentMethodsToStore.push(mainPaymentMethod);
+
+      setMetodosPago(paymentMethodsToStore);
+      logCheckoutState("INICIANDO PROCESO DE PAGO");
+
+      // Finalize the sale
+      if (!ventaId) {
+        throw new Error("No se encontró un ID de venta para finalizar la compra.");
+      }
+
+      // This is a redundant call if details are already finalized in cart page,
+      // but can serve as a final confirmation of prices before payment.
+      const detallesFinalizados = await finalizarDetallesVenta(ventaId, carrito);
+      if (!detallesFinalizados) {
+        throw new Error("No se pudieron confirmar los detalles finales de la venta.");
+      }
+
+      const exitoPagos = await registrarPagos(paymentMethodsToStore, ventaId);
+      if (!exitoPagos) {
+        throw new Error("No se pudieron registrar los pagos.");
+      }
+
+      await CompletarVenta(ventaId);
+
+      toast({
+        title: "Venta Completada",
+        description: "Tu orden ha sido procesada y finalizada exitosamente.",
+        variant: "default",
+      });
+      // Optionally, you could reset the venta store and redirect the user
+      // resetStore();
+      // router.push('/orden-confirmada');
+    } catch (error: any) {
+      console.error("Error processing payment:", error);
+      toast({
+        title: "Error de Pago",
+        description: error.message || "No se pudo procesar el pago.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    logPaymentProcessing();
-
-    // Simulate API call for payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    toast({
-      title: "Pago Exitoso",
-      description: "Tu orden ha sido procesada correctamente.",
-      variant: "default",
-    });
-
-    setIsSubmitting(false);
-    setShowNewCardForm(false);
   };
 
   const handleFinalizeCheckout = () => {
     if (remainingTotalInBs > 0) {
-      if (showNewCardForm) {
-        paymentForm.handleSubmit(handleProcessPayment)();
-      } else if (selectedCard) {
+      if (selectedPaymentMethod) {
         handleProcessPayment({
-          cardId: selectedCard.id,
-          lastFour: selectedCard.lastFourDigits,
+          cardId: selectedPaymentMethod.id.toString(),
+          lastFour: selectedPaymentMethod.numero_tarjeta.toString().slice(-4),
         });
       } else {
+        // This case implies no saved cards, so we expect a new card.
+        // The form inside the dialog will call handleNewCardSubmit,
+        // which then calls handleProcessPayment.
+        // If the dialog isn't open, we could prompt the user.
         toast({
-          title: "Error de Pago",
-          description: "Por favor, seleccione un método de pago.",
-          variant: "destructive",
+          title: "Método de pago requerido",
+          description: "Por favor, agregue una nueva tarjeta para continuar.",
+          variant: "default",
         });
       }
     } else if (appliedPoints > 0) {
@@ -327,9 +423,7 @@ export default function CheckoutPage() {
   };
 
   const handleCancel = () => {
-    if (savedCards.length > 0) {
-      setShowNewCardForm(false);
-    }
+    // This function might no longer be needed if the form is in a dialog
   };
 
   if (!isAuthenticated) {
@@ -367,6 +461,14 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
+  const formattedCards: SavedCard[] = savedPaymentMethods.map((pm) => ({
+    id: pm.id.toString(),
+    cardType: detectCardType(pm.numero_tarjeta.toString()),
+    lastFourDigits: pm.numero_tarjeta.toString().slice(-4),
+    expiryDate: pm.fecha_vencimiento,
+    isDefault: false,
+  }));
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -505,18 +607,19 @@ export default function CheckoutPage() {
           {remainingTotalInBs > 0 && (
             <Card>
               <CardContent className="p-4">
-                {savedCards.length > 0 && !showNewCardForm ? (
+                {savedPaymentMethods.length > 0 ? (
                   <SavedPaymentMethod
-                    initialCards={savedCards}
-                    onAddNewCard={() => setShowNewCardForm(true)}
-                    onCardSelect={setSelectedCard}
+                    initialCards={formattedCards}
+                    onCardSelect={handleCardSelect}
                     isSubmitting={isSubmitting}
+                    paymentForm={paymentForm}
+                    onNewCardSubmit={handleNewCardSubmit}
                   />
                 ) : (
                   <PaymentForm
                     form={paymentForm}
                     maxWidth="max-w-4xl"
-                    onSubmit={handleProcessPayment}
+                    onSubmit={handleNewCardSubmit}
                     isSubmitting={isSubmitting}
                     context="page"
                     onCancel={handleCancel}

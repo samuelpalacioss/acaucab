@@ -5,7 +5,16 @@ import * as z from "zod";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
-import DialogAddInfoCard from "./dialog-add-info-card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { UseFormReturn } from "react-hook-form";
+import PaymentForm, { PaymentFormData } from "./payment-form";
 
 export type SavedCard = {
   id: string;
@@ -17,9 +26,10 @@ export type SavedCard = {
 
 interface SavedPaymentMethodProps {
   initialCards: SavedCard[];
-  onAddNewCard: () => void;
   onCardSelect: (card: SavedCard) => void;
   isSubmitting: boolean;
+  paymentForm: UseFormReturn<PaymentFormData>;
+  onNewCardSubmit: (data: PaymentFormData) => void;
 }
 
 // Esquema para validación del formulario de tarjeta
@@ -62,12 +72,12 @@ const saveCardToDatabase = async (cardData: any) => {
 
 export default function SavedPaymentMethod({
   initialCards,
-  onAddNewCard,
   onCardSelect,
   isSubmitting,
+  paymentForm,
+  onNewCardSubmit,
 }: SavedPaymentMethodProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [savedCards, setSavedCards] = useState(initialCards);
   const [selectedCardId, setSelectedCardId] = useState(
     initialCards.find((c) => c.isDefault)?.id ?? initialCards[0]?.id ?? ""
   );
@@ -97,7 +107,7 @@ export default function SavedPaymentMethod({
   };
 
   const handleCardSelectionChange = (cardId: string) => {
-    const newSelectedCard = savedCards.find((card) => card.id === cardId);
+    const newSelectedCard = initialCards.find((card) => card.id === cardId);
     if (newSelectedCard) {
       setSelectedCardId(cardId);
       setSelectedCard({
@@ -111,7 +121,7 @@ export default function SavedPaymentMethod({
   };
 
   const handleConfirm = () => {
-    const newSelectedCard = savedCards.find((card) => card.id === selectedCardId);
+    const newSelectedCard = initialCards.find((card) => card.id === selectedCardId);
     if (newSelectedCard) {
       setSelectedCard(newSelectedCard);
       onCardSelect(newSelectedCard);
@@ -119,37 +129,11 @@ export default function SavedPaymentMethod({
     setIsExpanded(false);
   };
 
-  const handleSaveNewCard = async (data: PaymentFormValues) => {
-    console.log("Nueva tarjeta guardada:", data);
-
-    const newCard = {
-      id: crypto.randomUUID(),
-      cardType: detectCardType(data.numeroTarjeta),
-      lastFourDigits: data.numeroTarjeta.slice(-4),
-      expiryDate: data.fechaExpiracion,
-      isDefault: false,
-    };
-
-    setSavedCards((prevCards) => [...prevCards, newCard]);
-    setSelectedCardId(newCard.id);
-
-    toast({
-      title: "Éxito",
-      description: "La nueva tarjeta ha sido guardada.",
-      variant: "default",
-    });
-    // Aquí podrías cerrar el modal si es necesario
-  };
-
   if (!selectedCard) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center p-6">
-        <p className="mb-4">No tienes métodos de pago guardados.</p>
-        <Button onClick={onAddNewCard}>
-          <Plus className="mr-2 h-4 w-4" /> Agregar Tarjeta
-        </Button>
-      </div>
-    );
+    // This case is for when there are no saved cards.
+    // It will render the PaymentForm directly instead of SavedPaymentMethod.
+    // This logic is handled in the parent component.
+    return null;
   }
 
   return (
@@ -183,7 +167,7 @@ export default function SavedPaymentMethod({
             className="space-y-1"
             disabled={isSubmitting}
           >
-            {savedCards.map((card) => (
+            {initialCards.map((card) => (
               <div key={card.id} className="flex items-center py-3 hover:bg-accent/50 rounded-lg">
                 <RadioGroupItem value={card.id} id={`card-${card.id}`} className="ml-4" />
                 <label
@@ -206,8 +190,29 @@ export default function SavedPaymentMethod({
           </RadioGroup>
 
           <div className="px-4 mt-4 space-y-4">
-            <DialogAddInfoCard onSubmit={handleSaveNewCard} />
-            <div className="flex justify-end space-x-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Plus className="mr-2 h-4 w-4" /> Agregar Nueva Tarjeta
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Agregar Nueva Tarjeta</DialogTitle>
+                  <DialogDescription>
+                    Ingrese los detalles de su nueva tarjeta de crédito o débito.
+                  </DialogDescription>
+                </DialogHeader>
+                <PaymentForm
+                  form={paymentForm}
+                  onSubmit={onNewCardSubmit}
+                  isSubmitting={isSubmitting}
+                  context="dialog"
+                />
+              </DialogContent>
+            </Dialog>
+
+            <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
                 size="sm"

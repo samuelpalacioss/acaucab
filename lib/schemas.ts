@@ -95,13 +95,14 @@ export type CarritoItemType = z.infer<typeof carritoItemSchema>;
 
 // Para tarjeta
 export interface TarjetaDetails {
-  nombreTitular: string;
+  nombreTitular?: string;
   numeroTarjeta: string;
   fechaExpiracion: string;
   banco: string;
   amountPaid: number;
   tipo?: string;
   metodo_pago_id?: number | null;
+  cardId?: string;
 }
 
 // Para efectivo
@@ -126,6 +127,16 @@ export interface PuntosDetails {
 
 export type PaymentDetails = TarjetaDetails | EfectivoDetails | PuntosDetails;
 
+// Type Guards for identifying payment details
+export function isTarjetaDetails(details: any): details is TarjetaDetails {
+  return "nombreTitular" in details || "numeroTarjeta" in details || "cardId" in details;
+}
+export function isEfectivoDetails(details: any): details is EfectivoDetails {
+  return "currency" in details;
+}
+export function isPuntosDetails(details: any): details is PuntosDetails {
+  return "puntosUtilizados" in details;
+}
 
 /**
  * Interface para los métodos de pago - tal como se usan en Autopago.tsx

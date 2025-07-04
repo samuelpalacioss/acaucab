@@ -1,8 +1,10 @@
-DROP FUNCTION IF EXISTS fn_registrar_venta_en_proceso(INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS fn_registrar_venta_en_proceso(INTEGER, INTEGER, INTEGER, INTEGER);
 
 CREATE OR REPLACE FUNCTION fn_registrar_venta_en_proceso(
+  p_usuario_id INTEGER,
   p_cliente_id INTEGER,
-  p_tienda_fisica_id INTEGER DEFAULT 1
+  p_tienda_fisica_id INTEGER,
+  p_tienda_web_id INTEGER
 )
 RETURNS TABLE(
   id_venta INTEGER
@@ -14,20 +16,38 @@ DECLARE
   v_status_id INTEGER;
 BEGIN
 
-  /** Verificar si el cliente es natural  (retorna booleano) */
-  SELECT EXISTS(SELECT id FROM cliente_natural cn WHERE cn.id = p_cliente_id LIMIT 1) INTO is_natural;
+  -- Handle Web Sale (requires usuario_id)
+  IF p_tienda_web_id IS NOT NULL THEN
+    IF p_usuario_id IS NULL THEN
+      RAISE EXCEPTION 'Id del usuario es (p_usuario_id) es requerido para ventas en tienda web.';
+    END IF;
 
-  IF is_natural THEN
-    /* Creatr venta nueva asociada a la tienda y al cliente*/
-    INSERT INTO venta(fk_tienda_fisica, fk_cliente_natural) 
-    VALUES (p_tienda_fisica_id, p_cliente_id)
+    INSERT INTO venta(fk_tienda_web, fk_usuario)
+    VALUES (p_tienda_web_id, p_usuario_id)
     RETURNING id INTO nueva_venta_id;
+
+  -- Handle Physical Store Sale (requires cliente_id)
+  ELSIF p_tienda_fisica_id IS NOT NULL THEN
+    IF p_cliente_id IS NULL THEN
+      RAISE EXCEPTION 'Id del cliente (p_cliente_id) es requerido para ventas en tienda física.';
+    END IF;
+
+    -- Check if client is natural or juridical
+    SELECT EXISTS(SELECT 1 FROM cliente_natural cn WHERE cn.id = p_cliente_id) INTO is_natural;
+    
+    IF is_natural THEN
+      INSERT INTO venta(fk_tienda_fisica, fk_cliente_natural) 
+      VALUES (p_tienda_fisica_id, p_cliente_id)
+      RETURNING id INTO nueva_venta_id;
+    ELSE
+      INSERT INTO venta(fk_tienda_fisica, fk_cliente_juridico) 
+      VALUES (p_tienda_fisica_id, p_cliente_id)
+      RETURNING id INTO nueva_venta_id;
+    END IF;
   ELSE
-      /* Creatr venta nueva asociada a la tienda y al cliente*/
-    INSERT INTO venta(fk_tienda_fisica, fk_cliente_juridico) 
-    VALUES (p_tienda_fisica_id, p_cliente_id)
-    RETURNING id INTO nueva_venta_id;
+    RAISE EXCEPTION 'A store ID (p_tienda_web_id or p_tienda_fisica_id) must be provided.';
   END IF;
+
   /* Asociar estado en progreso para la venta */
   SELECT id INTO v_status_id FROM status WHERE status.nombre = 'En Proceso';
 
