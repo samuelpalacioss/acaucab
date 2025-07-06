@@ -72,9 +72,9 @@ INSERT INTO orden_de_compra (
 INSERT INTO detalle_evento (
     cantidad,
     precio_unitario,
+    fk_stock_miembro_3,      /** naturaleza_rif (CHAR) - 3º en clave primaria stock_miembro */
     fk_stock_miembro_1,      /** evento (INTEGER) - 1º en clave primaria stock_miembro */
     fk_stock_miembro_2,      /** rif (INTEGER) - 2º en clave primaria stock_miembro */
-    fk_stock_miembro_3,      /** naturaleza_rif (CHAR) - 3º en clave primaria stock_miembro */
     fk_venta_evento,         /** id_venta (INTEGER) */
     fk_stock_miembro_4,      /** sku (VARCHAR) - 4º en clave primaria stock_miembro */
     fk_stock_miembro_5       /** id_cerveza (INTEGER) - 5º en clave primaria stock_miembro */

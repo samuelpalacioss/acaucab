@@ -27,11 +27,11 @@ CREATE TABLE detalle_evento (
     cantidad           INTEGER NOT NULL,                    /** Cantidad de productos vendidos */
     precio_unitario    DECIMAL(10,2),                      /** Precio por unidad del producto */
     fk_stock_miembro_1 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 1 */
-    fk_stock_miembro_2 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 2 */
-    fk_stock_miembro_3 CHAR(1) NOT NULL,                   /** Referencia al stock del miembro - campo 3 */
-    fk_venta_evento    INTEGER NOT NULL,                   /** Referencia a la venta del evento */
+    fk_stock_miembro_2 CHAR(1) NOT NULL,                   /** Referencia al stock del miembro - campo 2 */
+    fk_stock_miembro_3 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 3 */
     fk_stock_miembro_4 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 4 */
     fk_stock_miembro_5 INTEGER NOT NULL,               /** Referencia al stock del miembro - campo 5 */
+    fk_venta_evento    INTEGER NOT NULL,                   /** Referencia a la venta del evento */
     
     /** Constraint de clave primaria compuesta */
     CONSTRAINT detalle_evento_pk PRIMARY KEY (
@@ -51,9 +51,9 @@ CREATE TABLE detalle_evento (
         fk_stock_miembro_4,
         fk_stock_miembro_5
     ) REFERENCES stock_miembro (
-        fk_evento,
         fk_miembro_1,
         fk_miembro_2,
+        fk_evento,
         fk_presentacion_cerveza_1,
         fk_presentacion_cerveza_2
     ),

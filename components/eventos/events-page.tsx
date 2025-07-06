@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import type { DateRange } from "react-day-picker"
 import Link from "next/link"
 import {
@@ -28,8 +28,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DateRangePicker } from "@/components/date-range-picker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProtectedRoute from "@/components/auth/protected-route";
-import { usePermissions } from "@/store/user-store";
+import { usePermissions, useUser } from "@/store/user-store";
 import type { Evento, TipoEvento } from "@/models/evento"
+import { llamarFuncion } from "@/lib/server-actions";
 
 interface EventsPageProps {
   eventos: Evento[]
@@ -64,18 +65,43 @@ function filtrarPorStatus(eventos: Evento[], status: "Activo" | "Programado" | "
 }
 
 export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
-
   const { puedeCrearEventos, puedeVerEventos, puedeEditarEventos, puedeEliminarEventos } = usePermissions();
+  const { esMiembro, getMiembroInfo } = useUser();
   const [date, setDate] = useState<DateRange | undefined>(undefined)
   const [tab, setTab] = useState<"all" | "active" | "upcoming" | "past">("all");
   const [page, setPage] = useState(1);
-
   const [tipoSeleccionado, setTipoSeleccionado] = useState<string>("all");
   const [precioSeleccionado, setPrecioSeleccionado] = useState<string>("all");
- const [busqueda, setBusqueda] = useState<string>("");
+  const [busqueda, setBusqueda] = useState<string>("");
+  const [eventosValidados, setEventosValidados] = useState<Evento[]>([]);
+  const eventosConStatus = useMemo(() => calcularStatusEventos(eventos), [eventos]);
 
-  const eventosConStatus = calcularStatusEventos(eventos);
+  // Validación por función SQL para miembros (optimizada: un solo query)
+  useEffect(() => {
+    const filtrarEventosPorMiembro = async () => {
+      const miembro = getMiembroInfo();
+      if (!esMiembro() || !miembro) {
+        setEventosValidados(eventosConStatus);
+        return;
+      }
+      try {
+        const result = await llamarFuncion("fn_exists_miembro_evento", {
+          p_id_miembro_1: miembro.rif,
+          p_id_miembro_2: miembro.naturaleza_rif,
+        });
+        const ids = Array.isArray(result) ? result.map((r: any) => r.id_evento) : [];
+        setEventosValidados(eventosConStatus.filter(e => ids.includes(e.id)));
+      } catch (e) {
+        setEventosValidados([]);
+      }
+    };
+    filtrarEventosPorMiembro();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventosConStatus, esMiembro, getMiembroInfo]);
 
+  // Usar eventosValidados si es miembro, si no usar eventosConStatus
+  let eventosFiltrados = esMiembro() ? eventosValidados : eventosConStatus;
+  // Ya no es necesario el filtro adicional por proveedores aquí, porque la función SQL ya filtra correctamente
   // Determina el status según la pestaña
   const statusMap: Record<string, "Activo" | "Programado" | "Finalizado" | "all"> = {
     all: "all",
@@ -85,7 +111,7 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
   };
 
   // Filtra eventos según la pestaña seleccionada
-  let eventosFiltrados = filtrarPorStatus(eventosConStatus, statusMap[tab]);
+  eventosFiltrados = filtrarPorStatus(eventosFiltrados, statusMap[tab]);
 
   // FILTRO POR TIPO DE EVENTO
   if (tipoSeleccionado !== "all") {
@@ -119,6 +145,16 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
     setPage(1);
   };
 
+  // Para los cards de resumen y tabs, usar los eventos filtrados y el total
+  const totalEventos = eventosConStatus.length;
+  const totalFiltrados = eventosFiltrados.length;
+  const activosFiltrados = eventosFiltrados.filter((e) => e.status === "Activo").length;
+  const programadosFiltrados = eventosFiltrados.filter((e) => e.status === "Programado").length;
+  const finalizadosFiltrados = eventosFiltrados.filter((e) => e.status === "Finalizado").length;
+  const activosTotales = eventosConStatus.filter((e) => e.status === "Activo").length;
+  const programadosTotales = eventosConStatus.filter((e) => e.status === "Programado").length;
+  const finalizadosTotales = eventosConStatus.filter((e) => e.status === "Finalizado").length;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -147,7 +183,7 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{eventosConStatus.filter((e) => e.status === "Activo").length}</div>
+            <div className="text-2xl font-bold">{activosFiltrados} <span className="text-xs text-muted-foreground">/ {activosTotales}</span></div>
             <p className="text-xs text-muted-foreground">Eventos en curso actualmente</p>
           </CardContent>
         </Card>
@@ -158,7 +194,7 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
             <CalendarClock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{eventosConStatus.filter((e) => e.status === "Programado").length}</div>
+            <div className="text-2xl font-bold">{programadosFiltrados} <span className="text-xs text-muted-foreground">/ {programadosTotales}</span></div>
             <p className="text-xs text-muted-foreground">Eventos programados para los próximos 30 días</p>
           </CardContent>
         </Card>
@@ -190,15 +226,15 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
         <CardContent>
           <Tabs defaultValue="all" value={tab} onValueChange={handleTabChange}>
             <TabsList className="mb-4">
-              <TabsTrigger value="all">Todos ({eventosConStatus.length})</TabsTrigger>
+              <TabsTrigger value="all">Todos ({totalFiltrados} de {totalEventos})</TabsTrigger>
               <TabsTrigger value="active">
-                Activos ({eventosConStatus.filter((e) => e.status === "Activo").length})
+                Activos ({activosFiltrados} de {activosTotales})
               </TabsTrigger>
               <TabsTrigger value="upcoming">
-                Próximos ({eventosConStatus.filter((e) => e.status === "Programado").length})
+                Próximos ({programadosFiltrados} de {programadosTotales})
               </TabsTrigger>
               <TabsTrigger value="past">
-                Pasados ({eventosConStatus.filter((e) => e.status === "Finalizado").length})
+                Pasados ({finalizadosFiltrados} de {finalizadosTotales})
               </TabsTrigger>
             </TabsList>
 
@@ -332,45 +368,55 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
                               <div>{event.entradas_vendidas?.toLocaleString?.() ?? 0}</div>
                             </div>
                           </TableCell>
-                          {
-                            (puedeVerEventos()  || puedeEditarEventos() || puedeEliminarEventos()) &&
-                            (<TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                             {
-                                puedeVerEventos() && (
+                          {(esMiembro()
+                            ? (
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-1">
+                                  <Button variant="ghost" size="icon" asChild>
+                                    <Link href={`/dashboard/eventos/${event.id}`}>
+                                      <Eye className="h-4 w-4" />
+                                      <span className="sr-only">Ver</span>
+                                    </Link>
+                                  </Button>
+                                  <Button variant="ghost" size="icon" asChild>
+                                    <Link href={`/dashboard/eventos/${event.id}?tab=providers`}>
+                                      <Edit className="h-4 w-4" />
+                                      <span className="sr-only">Actualizar Stock</span>
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            )
+                            : ((puedeVerEventos()  || puedeEditarEventos() || puedeEliminarEventos()) && (
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-1">
+                                  {puedeVerEventos() && (
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/dashboard/eventos/${event.id}`}>
+                                      <Link href={`/dashboard/eventos/${event.id}`}>
                                         <Eye className="h-4 w-4" />
                                         <span className="sr-only">Ver</span>
-                                        </Link>
+                                      </Link>
                                     </Button>
-                                )
-                             }
-                              {
-                                puedeEditarEventos() && (
+                                  )}
+                                  {puedeEditarEventos() && (
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/dashboard/eventos/${event.id}/editar`}>
+                                      <Link href={`/dashboard/eventos/${event.id}/editar`}>
                                         <Edit className="h-4 w-4" />
                                         <span className="sr-only">Editar</span>
-                                        </Link>
+                                      </Link>
                                     </Button>
-                                )
-                              }
-                              {
-                                puedeEliminarEventos() && (
+                                  )}
+                                  {puedeEliminarEventos() && (
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/dashboard/eventos/${event.id}/editar`}>
+                                      <Link href={`/dashboard/eventos/${event.id}/editar`}>
                                         <Trash className="h-4 w-4" />
                                         <span className="sr-only">Eliminar</span>
-                                        </Link>
+                                      </Link>
                                     </Button>
-                                )
-                              }
-                              
-                            </div>
-                          </TableCell>)
-                          }
-                          
+                                  )}
+                                </div>
+                              </TableCell>
+                            )))}
                         </TableRow>
                       ))
                     )}
