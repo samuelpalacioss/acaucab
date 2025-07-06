@@ -16,6 +16,7 @@ import {
   Clock,
   CalendarCheck,
   CalendarClock,
+  Trash,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,7 +27,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DateRangePicker } from "@/components/date-range-picker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
+import ProtectedRoute from "@/components/auth/protected-route";
+import { usePermissions } from "@/store/user-store";
 import type { Evento, TipoEvento } from "@/models/evento"
 
 interface EventsPageProps {
@@ -37,8 +39,8 @@ interface EventsPageProps {
 function calcularStatusEventos(eventos: Evento[]): Evento[] {
   const hoy = new Date()
   return eventos.map((evento) => {
-    const fechaInicio = evento.fecha_inicio ? new Date(evento.fecha_inicio) : undefined
-    const fechaFin = evento.fecha_fin ? new Date(evento.fecha_fin) : undefined
+    const fechaInicio = evento.fecha_hora_inicio ? new Date(evento.fecha_hora_inicio) : undefined
+    const fechaFin = evento.fecha_hora_fin ? new Date(evento.fecha_hora_fin) : undefined
 
     let status: "Activo" | "Programado" | "Finalizado"
 
@@ -62,6 +64,8 @@ function filtrarPorStatus(eventos: Evento[], status: "Activo" | "Programado" | "
 }
 
 export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
+
+  const { puedeCrearEventos, puedeVerEventos, puedeEditarEventos, puedeEliminarEventos } = usePermissions();
   const [date, setDate] = useState<DateRange | undefined>(undefined)
   const [tab, setTab] = useState<"all" | "active" | "upcoming" | "past">("all");
   const [page, setPage] = useState(1);
@@ -124,12 +128,14 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
-          <Button asChild>
-            <Link href="/dashboard/eventos/nuevo">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Evento
-            </Link>
-          </Button>
+          {puedeCrearEventos() && (
+            <Button asChild>
+                <Link href="/dashboard/eventos/nuevo">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Evento
+                </Link>
+            </Button>
+        )}
         </div>
       </div>
 
@@ -249,7 +255,10 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
                       <TableHead>Fecha Fin</TableHead>
                       <TableHead>Locación</TableHead>
                       <TableHead>Tickets vendidos</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
+                      {
+                            (puedeVerEventos()  || puedeEditarEventos() || puedeEliminarEventos()) &&
+                            (<TableHead className="text-right">Acciones</TableHead>)
+                      }   
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -280,18 +289,38 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                <span>{event.fecha_inicio instanceof Date ? event.fecha_inicio.toLocaleDateString() : event.fecha_inicio}</span>
-                              </div>
+                                <span>
+                                    {event.fecha_hora_inicio
+                                    ? new Date(event.fecha_hora_inicio).toLocaleString("es-VE", {
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                        })
+                                    : ""}
+                                </span>
+                                </div>
                             </div>
-                          </TableCell>
-                          <TableCell>
+                            </TableCell>
+                            <TableCell>
                             <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{event.fecha_fin instanceof Date ? event.fecha_fin.toLocaleDateString() : event.fecha_fin}</span>
+                                <Calendar className="h-3 w-3" />
+                                <span>
+                                {event.fecha_hora_fin
+                                    ? new Date(event.fecha_hora_fin).toLocaleString("es-VE", {
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                    })
+                                    : ""}
+                                </span>
                             </div>
-                          </TableCell>
+                            </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
@@ -303,22 +332,45 @@ export default function EventsPage({ eventos, tiposEvento }: EventsPageProps) {
                               <div>{event.entradas_vendidas?.toLocaleString?.() ?? 0}</div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-right">
+                          {
+                            (puedeVerEventos()  || puedeEditarEventos() || puedeEliminarEventos()) &&
+                            (<TableCell className="text-right">
                             <div className="flex justify-end gap-1">
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/eventos/${event.id}`}>
-                                  <Eye className="h-4 w-4" />
-                                  <span className="sr-only">Ver</span>
-                                </Link>
-                              </Button>
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/eventos/${event.id}/editar`}>
-                                  <Edit className="h-4 w-4" />
-                                  <span className="sr-only">Editar</span>
-                                </Link>
-                              </Button>
+                             {
+                                puedeVerEventos() && (
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/dashboard/eventos/${event.id}`}>
+                                        <Eye className="h-4 w-4" />
+                                        <span className="sr-only">Ver</span>
+                                        </Link>
+                                    </Button>
+                                )
+                             }
+                              {
+                                puedeEditarEventos() && (
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/dashboard/eventos/${event.id}/editar`}>
+                                        <Edit className="h-4 w-4" />
+                                        <span className="sr-only">Editar</span>
+                                        </Link>
+                                    </Button>
+                                )
+                              }
+                              {
+                                puedeEliminarEventos() && (
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/dashboard/eventos/${event.id}/editar`}>
+                                        <Trash className="h-4 w-4" />
+                                        <span className="sr-only">Eliminar</span>
+                                        </Link>
+                                    </Button>
+                                )
+                              }
+                              
                             </div>
-                          </TableCell>
+                          </TableCell>)
+                          }
+                          
                         </TableRow>
                       ))
                     )}

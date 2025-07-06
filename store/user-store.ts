@@ -252,6 +252,26 @@ export const usePermissions = () => {
     // Ventas
     puedeIniciarVentas: () => tienePermiso('crear_venta'),
     puedeVerVentas: () => tienePermiso('leer_venta'),
+    //eventos
+    puedeVerEventos: () => tienePermiso('leer_evento'),
+    puedeCrearEventos: () => tienePermiso('crear_evento'),
+    puedeEditarEventos: () => tienePermiso('editar_evento'),
+    puedeEliminarEventos: () => tienePermiso('eliminar_evento'),
+    //Invitados
+    puedeVerInvitados: () => tienePermiso('leer_invitado'),
+    puedeCrearInvitados: () => tienePermiso('crear_invitado'),
+    //Invitado_evento
+    puedeVerInvitadoEvento: () => tienePermiso('leer_invitado_evento'),
+    puedeCrearInvitadoEvento: () => tienePermiso('crear_invitado_evento'),
+    //Miembros
+    puedeVerMiembros: () => tienePermiso('leer_miembro'),
+    //stock_miembro
+    puedeVerStockMiembro: () => tienePermiso('leer_stock_miembro'),
+    puedeEditarStockMiembro: () => tienePermiso('editar_stock_miembro'),
+    puedeEliminarStockMiembro: () => tienePermiso('eliminar_stock_miembro'),
+    puedeCrearStockMiembro: () => tienePermiso('crear_stock_miembro'),
+    // miembro_presentacion_cerveza
+    puedeVerMiembroPresentacionCerveza: () => tienePermiso('leer_miembro_presentacion_cerveza'),
   };
 };
 
