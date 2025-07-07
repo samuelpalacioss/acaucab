@@ -55,6 +55,33 @@ export async function llamarFuncionSingle<T = any>(
 }
 
 /**
+ * Llamar una función de PostgreSQL que retorna un valor escalar (número, string, etc.)
+ * 
+ * @param nombreFuncion - Nombre de la función en PostgreSQL
+ * @param parametros - Parámetros para la función
+ */
+export async function llamarFuncionEscalar<T = any>(
+  nombreFuncion: string,
+  parametros: Record<string, any> = {}
+): Promise<T> {
+  const supabase = crearClienteServerAction()
+
+  try {
+    const { data, error } = await supabase.rpc(nombreFuncion, parametros)
+
+    if (error) {
+      console.error(`Error en función ${nombreFuncion}:`, error)
+      throw new Error(`Error: ${error.message}`)
+    }
+
+    return data as T
+  } catch (error: any) {
+    console.error(`Error al llamar ${nombreFuncion}:`, error)
+    throw error
+  }
+}
+
+/**
  * ACCIONES DE AUTENTICACIÓN
  */
 
@@ -411,20 +438,13 @@ export async function obtenerRotacionInventario(
   fechaFin: string
 ): Promise<number> {
   try {
-    // Llamar directamente a Supabase RPC para manejar correctamente el valor escalar
-    const supabase = crearClienteServerAction()
-    const { data, error } = await supabase.rpc('fn_rotacion_inventario', {
+    const resultado = await llamarFuncionEscalar<number>('fn_rotacion_inventario', {
       p_fecha_inicio: fechaInicio,
       p_fecha_fin: fechaFin
     })
-
-    if (error) {
-      console.error(`Error en función fn_rotacion_inventario:`, error)
-      throw new Error(`Error: ${error.message}`)
-    }
     
     // La función devuelve directamente el valor numérico
-    return (data as number) || 0
+    return resultado || 0
   } catch (error: any) {
     console.error('Error al obtener rotación de inventario:', error)
     throw new Error('Error al cargar estadísticas de rotación de inventario')
@@ -458,20 +478,13 @@ export async function obtenerRetencionClientes(
   fechaFin: string
 ): Promise<number> {
   try {
-    // Llamar directamente a Supabase RPC para manejar correctamente el valor escalar
-    const supabase = crearClienteServerAction()
-    const { data, error } = await supabase.rpc('fn_retencion_clientes', {
+    const resultado = await llamarFuncionEscalar<number>('fn_retencion_clientes', {
       p_fecha_inicio: fechaInicio,
       p_fecha_fin: fechaFin
     })
-
-    if (error) {
-      console.error(`Error en función fn_retencion_clientes:`, error)
-      throw new Error(`Error: ${error.message}`)
-    }
     
     // La función devuelve directamente el valor numérico del porcentaje
-    return (data as number) || 0
+    return resultado || 0
   } catch (error: any) {
     console.error('Error al obtener retención de clientes:', error)
     throw new Error('Error al cargar estadísticas de retención de clientes')
