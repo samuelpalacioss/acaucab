@@ -174,28 +174,3 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql;
-
-/**
- * Función para obtener la tasa de ruptura de stock por tienda
- * @returns TABLE con las tasas de ruptura por tienda ordenadas por mayor problemática
- */
-CREATE OR REPLACE FUNCTION fn_tasa_ruptura_por_tienda()
-RETURNS TABLE(
-    tipo_calculo VARCHAR(20),
-    tienda_id INTEGER,
-    total_ordenes INTEGER,
-    total_productos_monitoreados INTEGER,
-    dias_total INTEGER,
-    oportunidades_stock BIGINT,
-    tasa_ruptura_global_porcentaje DECIMAL(8,4),
-    fecha_primera_orden DATE,
-    fecha_ultima_orden DATE
-) AS $$
-BEGIN
-    /** Calcular tasa de ruptura por tienda */
-    RETURN QUERY SELECT * FROM fn_calcular_tasa_ruptura_stock(
-        NULL,
-        'tienda'
-    );
-END;
-$$ LANGUAGE plpgsql;

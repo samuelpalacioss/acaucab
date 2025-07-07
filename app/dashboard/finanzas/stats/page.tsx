@@ -1,5 +1,6 @@
-import { obtenerEstadisticasVentasPorEmpleado } from "@/lib/server-actions";
+import { obtenerEstadisticasVentasPorEmpleado, obtenerTasaRupturaGlobal } from "@/lib/server-actions";
 import { EmpleadoStatsDashboard } from "@/components/empleado-stats-dashboard";
+import { StockRuptureStats } from "@/components/stock-rupture-stats";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +13,18 @@ import { EmpleadoStat } from "@/models/empleado-stats";
  */
 export default async function EstadisticasFinancierasPage() {
   let stats: EmpleadoStat[] = [];
+  let stockRuptureData: any[] = [];
   let error: string | null = null;
 
   try {
     // Obtener estadísticas directamente en el servidor
-    stats = await obtenerEstadisticasVentasPorEmpleado();
+    const [empleadoStats, stockStats] = await Promise.all([
+      obtenerEstadisticasVentasPorEmpleado(),
+      obtenerTasaRupturaGlobal()
+    ]);
+    
+    stats = empleadoStats;
+    stockRuptureData = stockStats;
   } catch (err: any) {
     console.error("Error al cargar estadísticas:", err);
     error = err.message || "Error al cargar las estadísticas";
@@ -70,28 +78,21 @@ export default async function EstadisticasFinancierasPage() {
           <EmpleadoStatsDashboard stats={stats} isLoading={false} />
         </TabsContent>
 
-        {/** Sección de estadísticas de productos (placeholder) */}
+        {/** Sección de estadísticas de productos - Tasa de Ruptura de Stock */}
         <TabsContent value="productos" className="space-y-6">
-          <Card className="border-dashed border-2 border-gray-200">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-600">
-                <Package className="w-5 h-5" />
-                <span>Estadísticas de Productos</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Package className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Sección en Desarrollo</h3>
-                <p className="text-gray-500 max-w-md mx-auto">
-                  Las estadísticas de productos estarán disponibles próximamente. Aquí podrás ver métricas de
-                  rendimiento por producto, categorías más vendidas y análisis de inventario.
-                </p>
+          <div className="mb-6">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="p-2 bg-orange-500 rounded-lg">
+                <Package className="w-6 h-6 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Análisis de Ruptura de Stock</h2>
+                <p className="text-gray-600">Monitoreo de frecuencia de rupturas de stock y oportunidades perdidas</p>
+              </div>
+            </div>
+          </div>
+          
+          <StockRuptureStats data={stockRuptureData} isLoading={false} />
         </TabsContent>
       </Tabs>
     </div>
