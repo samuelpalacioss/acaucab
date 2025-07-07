@@ -398,4 +398,98 @@ export async function obtenerTasaRupturaGlobal(
     throw new Error('Error al cargar estadísticas de tasa de ruptura global')
   }
 }
+
+/**
+ * Obtener rotación de inventario usando la función fn_rotacion_inventario
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Valor numérico de la rotación de inventario
+ */
+export async function obtenerRotacionInventario(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    // Llamar directamente a Supabase RPC para manejar correctamente el valor escalar
+    const supabase = crearClienteServerAction()
+    const { data, error } = await supabase.rpc('fn_rotacion_inventario', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+
+    if (error) {
+      console.error(`Error en función fn_rotacion_inventario:`, error)
+      throw new Error(`Error: ${error.message}`)
+    }
+    
+    // La función devuelve directamente el valor numérico
+    return (data as number) || 0
+  } catch (error: any) {
+    console.error('Error al obtener rotación de inventario:', error)
+    throw new Error('Error al cargar estadísticas de rotación de inventario')
+  }
+}
+
+/**
+ * Acción del servidor para obtener rotación de inventario (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Valor numérico de la rotación de inventario
+ */
+export async function obtenerRotacionInventarioAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server'
+  return await obtenerRotacionInventario(fechaInicio, fechaFin);
+}
+ 
+/**
+ * Obtener tasa de retención de clientes usando la función fn_retencion_clientes
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Porcentaje de retención de clientes
+ */
+export async function obtenerRetencionClientes(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    // Llamar directamente a Supabase RPC para manejar correctamente el valor escalar
+    const supabase = crearClienteServerAction()
+    const { data, error } = await supabase.rpc('fn_retencion_clientes', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+
+    if (error) {
+      console.error(`Error en función fn_retencion_clientes:`, error)
+      throw new Error(`Error: ${error.message}`)
+    }
+    
+    // La función devuelve directamente el valor numérico del porcentaje
+    return (data as number) || 0
+  } catch (error: any) {
+    console.error('Error al obtener retención de clientes:', error)
+    throw new Error('Error al cargar estadísticas de retención de clientes')
+  }
+}
+
+/**
+ * Acción del servidor para obtener retención de clientes (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Porcentaje de retención de clientes
+ */
+export async function obtenerRetencionClientesAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server'
+  return await obtenerRetencionClientes(fechaInicio, fechaFin);
+}
  
