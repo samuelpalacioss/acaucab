@@ -56,7 +56,7 @@
 			<rightPen lineWidth="0.5" lineColor="#000000"/>
 		</box>
 	</style>
-	<dataset name="GrafVentas" uuid="2950c535-987a-414f-b7aa-63a4046982e3">
+	<dataset name="Tendencia-Ventas" uuid="2950c535-987a-414f-b7aa-63a4046982e3">
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ACAUCAB"/>
 		<parameter name="fechaInicio" class="java.sql.Date" nestedType="java.sql.Date"/>

@@ -62,6 +62,7 @@ export function MainSidebar() {
       icon: DollarSign,
       submenu: [
         { title: "Ventas", path: "/dashboard/finanzas/ventas" },
+        { title: "Estadísticas", path: "/dashboard/finanzas/stats" },
       ],
     },
     {

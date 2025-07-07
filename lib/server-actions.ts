@@ -355,4 +355,47 @@ export async function obtenerInformacionEmpleadoPorId(empleadoId: number): Promi
     throw new Error('Error al cargar información del empleado')
   }
 }
+
+/**
+ * Obtener tasa de ruptura de stock usando la función fn_calcular_tasa_ruptura_stock
+ * 
+ * @param tiendaId - ID de la tienda (opcional, null para todas las tiendas)
+ * @param tipoCalculo - 'global' o 'tienda'
+ * @returns Array con las estadísticas de tasa de ruptura
+ */
+export async function obtenerTasaRupturaStock(
+  tiendaId: number | null = null,
+  tipoCalculo: 'global' | 'tienda' = 'global'
+): Promise<any[]> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_calcular_tasa_ruptura_stock', {
+      p_tienda_id: tiendaId,
+      p_tipo_calculo: tipoCalculo
+    })
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener tasa de ruptura de stock:', error)
+    throw new Error('Error al cargar estadísticas de tasa de ruptura de stock')
+  }
+}
+
+/**
+ * Obtener tasa de ruptura global usando la función fn_tasa_ruptura_global
+ * 
+ * @param tiendaId - ID de la tienda (opcional, null para todas las tiendas)
+ * @returns Array con las estadísticas de tasa de ruptura global
+ */
+export async function obtenerTasaRupturaGlobal(
+  tiendaId: number | null = null
+): Promise<any[]> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_tasa_ruptura_global', {
+      p_tienda_id: tiendaId
+    })
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener tasa de ruptura global:', error)
+    throw new Error('Error al cargar estadísticas de tasa de ruptura global')
+  }
+}
  
