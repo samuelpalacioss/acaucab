@@ -10,10 +10,6 @@ RETURNS TRIGGER AS $$
 DECLARE
     v_venta_id INTEGER;
     v_subtotal DECIMAL;
-    v_shipping_cost_usd CONSTANT DECIMAL := 5.00; -- Shipping cost in USD
-    v_shipping_cost_bs DECIMAL := 0;
-    v_tasa_usd DECIMAL;
-    v_fk_tienda_web INTEGER;
 BEGIN
     /*
      Determina el ID de la venta a actualizar.
@@ -31,28 +27,11 @@ BEGIN
     WHERE fk_venta = v_venta_id;
     
     /*
-      Verifica si la venta es de una tienda web para agregar el costo de envío.
-    */
-    SELECT fk_tienda_web INTO v_fk_tienda_web FROM venta WHERE id = v_venta_id;
-
-    IF v_fk_tienda_web IS NOT NULL THEN
-        -- Obtener la última tasa de USD
-        SELECT monto_equivalencia INTO v_tasa_usd
-        FROM tasa
-        WHERE moneda = 'USD'
-        ORDER BY fecha_inicio DESC
-        LIMIT 1;
-
-        -- Calcular el costo de envío en Bolívares
-        v_shipping_cost_bs := v_shipping_cost_usd * v_tasa_usd;
-    END IF;
-
-    /*
       Actualizar la venta con el nuevo monto total,
-      incluyendo costo de envío (si aplica) y el 16% de IVA sobre el subtotal.
+      incluyendo el 16% de IVA sobre el subtotal.
     */
     UPDATE venta
-    SET monto_total = (v_subtotal * 1.16) + v_shipping_cost_bs
+    SET monto_total = (v_subtotal * 1.16)
     WHERE id = v_venta_id;
 
     RETURN NULL;
