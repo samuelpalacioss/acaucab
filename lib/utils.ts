@@ -54,3 +54,12 @@ export const convertir = (monto: number, monedaDestino: string): number | null =
   const montoConvertido = monto / tasa.monto_equivalencia;
   return montoConvertido;
 };
+
+export function formatDate(dateStr: string | Date): string {
+  const date = new Date(dateStr);
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}

@@ -43,6 +43,7 @@ import { registrarPagos } from "@/api/registrar-pagos";
 import { CompletarVenta } from "@/api/completar-venta";
 import { DespacharVenta } from "@/api/despachar-venta";
 import { getBancoNombre } from "@/components/ui/banco-selector";
+import { useRouter } from "next/navigation";
 
 // Helper to format date for DB
 const formatExpiryDateForDB = (expiryDate: string): string => {
@@ -57,9 +58,11 @@ const formatExpiryDateForDB = (expiryDate: string): string => {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingCard, setIsSavingCard] = useState(false);
-  const { carrito, setMetodosPago, cliente, setCliente, ventaId, metodosPago } = useVentaStore();
+  const { carrito, setMetodosPago, cliente, setCliente, ventaId, metodosPago, resetStore } =
+    useVentaStore();
   const { isAuthenticated, usuario } = useUser();
   const [userPoints, setUserPoints] = useState(0);
   const [pointsToApply, setPointsToApply] = useState<number | "">("");
@@ -460,13 +463,13 @@ export default function CheckoutPage() {
       await DespacharVenta(ventaId);
 
       toast({
-        title: "Venta Completada y DespaDespachadachando",
+        title: "Venta Completada, despachando pedido",
         description: "Tu orden ha sido procesada y finalizada exitosamente.",
         variant: "default",
       });
-      // Optionally, you could reset the venta store and redirect the user
-      // resetStore();
-      // router.push('/orden-confirmada');
+
+      resetStore();
+      router.push(`/checkout/success?ventaId=${ventaId}`);
     } catch (error: any) {
       console.error("Error processing payment:", error);
       toast({
