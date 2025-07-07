@@ -61,8 +61,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingCard, setIsSavingCard] = useState(false);
-  const { carrito, setMetodosPago, cliente, setCliente, ventaId, metodosPago, resetStore } =
-    useVentaStore();
+  const { carrito, setMetodosPago, cliente, setCliente, ventaId, metodosPago } = useVentaStore();
   const { isAuthenticated, usuario } = useUser();
   const [userPoints, setUserPoints] = useState(0);
   const [pointsToApply, setPointsToApply] = useState<number | "">("");
@@ -468,7 +467,6 @@ export default function CheckoutPage() {
         variant: "default",
       });
 
-      resetStore();
       router.push(`/checkout/success?ventaId=${ventaId}`);
     } catch (error: any) {
       console.error("Error processing payment:", error);

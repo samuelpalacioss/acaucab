@@ -8,12 +8,20 @@ import { CheckCircle, Package, Truck, Calendar, Beer } from "lucide-react";
 import Link from "next/link";
 import { VentaDetalleExpansida } from "@/models/venta";
 import { formatDate } from "@/lib/utils";
+import { useVentaStore } from "@/store/venta-store";
+import { useEffect } from "react";
 
 interface CheckoutSuccessProps {
   venta: VentaDetalleExpansida;
 }
 
 export default function CheckoutSuccess({ venta }: CheckoutSuccessProps) {
+  const resetStore = useVentaStore((state) => state.resetStore);
+
+  useEffect(() => {
+    resetStore();
+  }, [resetStore]);
+
   const estimatedDeliveryDate = new Date(venta.fecha_venta || Date.now());
   estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + 5); // Add 5 days for estimation
 
@@ -25,7 +33,7 @@ export default function CheckoutSuccess({ venta }: CheckoutSuccessProps) {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-full mb-4">
             <CheckCircle className="w-10 h-10 text-amber-600" />
           </div>
-          <h1 className="text-4xl font-bold text-amber-900 mb-2">¡Salud! ¡Orden Confirmada! 🍺</h1>
+          <h1 className="text-4xl font-bold text-amber-900 mb-2">¡Salud! ¡Orden Confirmada!</h1>
           <p className="text-lg text-amber-700">
             ¡Tu selección de cervezas artesanales ya está en camino!
           </p>
