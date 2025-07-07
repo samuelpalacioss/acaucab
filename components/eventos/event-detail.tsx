@@ -46,7 +46,7 @@ interface EventDetail {
   tieneTickets: boolean
 }
 
-interface EventProvider {
+export interface EventProvider {
   id1: number
   id2: string
   nombre: string
@@ -54,7 +54,7 @@ interface EventProvider {
   productos: EventProduct[]
 }
 
-interface EventProduct {
+export interface EventProduct {
   id1: number
   id2: string
   sku: string
@@ -266,12 +266,12 @@ export default function EventDetailPage() {
 
   const handleSellTickets = () => {
     // Placeholder para funcionalidad de venta de tickets
-    alert("Funcionalidad de venta de tickets - Por implementar")
+    window.location.href = `/dashboard/eventos/${eventId}/venta-tickets`
   }
 
   const handleSellAtEvent = () => {
     // Placeholder para funcionalidad de venta en evento
-    alert("Funcionalidad de venta en evento - Por implementar")
+    window.location.href = `/dashboard/eventos/${eventId}/venta`
   }
 
   if (isLoading) {
