@@ -55,6 +55,33 @@ export async function llamarFuncionSingle<T = any>(
 }
 
 /**
+ * Llamar una función de PostgreSQL que retorna un valor escalar (número, string, etc.)
+ * 
+ * @param nombreFuncion - Nombre de la función en PostgreSQL
+ * @param parametros - Parámetros para la función
+ */
+export async function llamarFuncionEscalar<T = any>(
+  nombreFuncion: string,
+  parametros: Record<string, any> = {}
+): Promise<T> {
+  const supabase = crearClienteServerAction()
+
+  try {
+    const { data, error } = await supabase.rpc(nombreFuncion, parametros)
+
+    if (error) {
+      console.error(`Error en función ${nombreFuncion}:`, error)
+      throw new Error(`Error: ${error.message}`)
+    }
+
+    return data as T
+  } catch (error: any) {
+    console.error(`Error al llamar ${nombreFuncion}:`, error)
+    throw error
+  }
+}
+
+/**
  * ACCIONES DE AUTENTICACIÓN
  */
 
@@ -397,5 +424,85 @@ export async function obtenerTasaRupturaGlobal(
     console.error('Error al obtener tasa de ruptura global:', error)
     throw new Error('Error al cargar estadísticas de tasa de ruptura global')
   }
+}
+
+/**
+ * Obtener rotación de inventario usando la función fn_rotacion_inventario
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Valor numérico de la rotación de inventario
+ */
+export async function obtenerRotacionInventario(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    const resultado = await llamarFuncionEscalar<number>('fn_rotacion_inventario', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+    
+    // La función devuelve directamente el valor numérico
+    return resultado || 0
+  } catch (error: any) {
+    console.error('Error al obtener rotación de inventario:', error)
+    throw new Error('Error al cargar estadísticas de rotación de inventario')
+  }
+}
+
+/**
+ * Acción del servidor para obtener rotación de inventario (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Valor numérico de la rotación de inventario
+ */
+export async function obtenerRotacionInventarioAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server'
+  return await obtenerRotacionInventario(fechaInicio, fechaFin);
+}
+ 
+/**
+ * Obtener tasa de retención de clientes usando la función fn_retencion_clientes
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Porcentaje de retención de clientes
+ */
+export async function obtenerRetencionClientes(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    const resultado = await llamarFuncionEscalar<number>('fn_retencion_clientes', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+    
+    // La función devuelve directamente el valor numérico del porcentaje
+    return resultado || 0
+  } catch (error: any) {
+    console.error('Error al obtener retención de clientes:', error)
+    throw new Error('Error al cargar estadísticas de retención de clientes')
+  }
+}
+
+/**
+ * Acción del servidor para obtener retención de clientes (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Porcentaje de retención de clientes
+ */
+export async function obtenerRetencionClientesAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server'
+  return await obtenerRetencionClientes(fechaInicio, fechaFin);
 }
  

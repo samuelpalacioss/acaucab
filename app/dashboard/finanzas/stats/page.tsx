@@ -1,30 +1,23 @@
-import { obtenerEstadisticasVentasPorEmpleado, obtenerTasaRupturaGlobal } from "@/lib/server-actions";
+import { obtenerEstadisticasVentasPorEmpleado } from "@/lib/server-actions";
 import { EmpleadoStatsDashboard } from "@/components/empleado-stats-dashboard";
-import { StockRuptureStats } from "@/components/stock-rupture-stats";
+import { CustomerRetentionStats } from "@/components/customer-retention-stats";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, BarChart3, Users, Package } from "lucide-react";
+import { AlertCircle, BarChart3, Users, TrendingUp } from "lucide-react";
 import { EmpleadoStat } from "@/models/empleado-stats";
 
 /**
  * Página de estadísticas financieras (Server Component)
- * Muestra estadísticas divididas por secciones: empleados y productos
+ * Muestra estadísticas de ventas por empleado y retención de clientes
  */
 export default async function EstadisticasFinancierasPage() {
   let stats: EmpleadoStat[] = [];
-  let stockRuptureData: any[] = [];
   let error: string | null = null;
 
   try {
-    // Obtener estadísticas directamente en el servidor
-    const [empleadoStats, stockStats] = await Promise.all([
-      obtenerEstadisticasVentasPorEmpleado(),
-      obtenerTasaRupturaGlobal()
-    ]);
-    
-    stats = empleadoStats;
-    stockRuptureData = stockStats;
+    // Obtener estadísticas de empleados directamente en el servidor
+    stats = await obtenerEstadisticasVentasPorEmpleado();
   } catch (err: any) {
     console.error("Error al cargar estadísticas:", err);
     error = err.message || "Error al cargar las estadísticas";
@@ -52,7 +45,7 @@ export default async function EstadisticasFinancierasPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Estadísticas Financieras</h1>
-            <p className="text-gray-600">Análisis de rendimiento y ventas por empleado y productos</p>
+            <p className="text-gray-600">Análisis de rendimiento de empleados y métricas de clientes</p>
           </div>
         </div>
 
@@ -65,34 +58,46 @@ export default async function EstadisticasFinancierasPage() {
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="empleados" className="flex items-center space-x-2">
             <Users className="w-4 h-4" />
-            <span>Empleados</span>
+            <span>Rendimiento Empleados</span>
           </TabsTrigger>
-          <TabsTrigger value="productos" className="flex items-center space-x-2">
-            <Package className="w-4 h-4" />
-            <span>Productos</span>
+          <TabsTrigger value="clientes" className="flex items-center space-x-2">
+            <TrendingUp className="w-4 h-4" />
+            <span>Métricas de Clientes</span>
           </TabsTrigger>
         </TabsList>
 
         {/** Sección de estadísticas de empleados */}
         <TabsContent value="empleados" className="space-y-6">
-          <EmpleadoStatsDashboard stats={stats} isLoading={false} />
-        </TabsContent>
-
-        {/** Sección de estadísticas de productos - Tasa de Ruptura de Stock */}
-        <TabsContent value="productos" className="space-y-6">
           <div className="mb-6">
             <div className="flex items-center space-x-3 mb-2">
-              <div className="p-2 bg-orange-500 rounded-lg">
-                <Package className="w-6 h-6 text-white" />
+              <div className="p-2 bg-green-500 rounded-lg">
+                <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">Análisis de Ruptura de Stock</h2>
-                <p className="text-gray-600">Monitoreo de frecuencia de rupturas de stock y oportunidades perdidas</p>
+                <h2 className="text-2xl font-bold text-gray-800">Rendimiento por Empleado</h2>
+                <p className="text-gray-600">Análisis de ventas y productividad del equipo</p>
               </div>
             </div>
           </div>
           
-          <StockRuptureStats data={stockRuptureData} isLoading={false} />
+          <EmpleadoStatsDashboard stats={stats} isLoading={false} />
+        </TabsContent>
+
+        {/** Sección de retención de clientes */}
+        <TabsContent value="clientes" className="space-y-6">
+          <div className="mb-6">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="p-2 bg-purple-500 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Métricas de Clientes</h2>
+                <p className="text-gray-600">Análisis de retención y comportamiento de clientes</p>
+              </div>
+            </div>
+          </div>
+          
+          <CustomerRetentionStats />
         </TabsContent>
       </Tabs>
     </div>

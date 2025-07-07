@@ -55,6 +55,7 @@ export function MainSidebar() {
       submenu: [
         { title: "Detalle de Inventario", path: "/dashboard/inventario/detalle" },
         { title: "Orden de Compra", path: "/dashboard/inventario/ordenes" },
+        { title: "Estadísticas", path: "/dashboard/inventario/stats" },
       ],
     },
     {
