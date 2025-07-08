@@ -501,3 +501,55 @@ CREATE TRIGGER trigger_actualizar_monto_venta
 AFTER INSERT OR UPDATE ON detalle_presentacion
 FOR EACH ROW
 EXECUTE FUNCTION fn_actualizar_monto_total_venta(); 
+
+BEGIN
+    /*
+     Determina el ID de la venta a actualizar.
+    */
+    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+        v_venta_id := NEW.fk_venta_evento;
+    END IF;
+
+    /*
+      Calcula el subtotal de todos los items en la venta.
+    */
+    SELECT COALESCE(SUM(cantidad * precio_unitario), 0)
+    INTO v_subtotal
+    FROM detalle_evento
+    WHERE fk_venta_evento = v_venta_id;
+    
+    /*
+      Actualizar la venta con el nuevo monto total,
+      incluyendo el 16% de IVA sobre el subtotal.
+    */
+    UPDATE venta_evento
+    SET monto_total = (v_subtotal * 1.16)
+    WHERE id = v_venta_id;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger cuando se inserta o actualiza un detalle de presentación.
+CREATE TRIGGER trigger_actualizar_monto_venta_evento
+AFTER INSERT OR UPDATE ON detalle_evento
+FOR EACH ROW
+EXECUTE FUNCTION fn_actualizar_monto_total_venta_evento(); 
+
+create or replace function update_stock_evento()
+returns trigger
+as $$
+DECLARE
+    v_cantidad_restante INT := new.cantidad;
+BEGIN
+    update stock_miembro set cantidad = cantidad - v_cantidad_restante 
+    where fk_miembro_1=new.fk_stock_miembro_1 and fk_miembro_2=new.fk_stock_miembro_2 and fk_evento=new.fk_stock_miembro_3 and fk_presentacion_cerveza_1=new.fk_stock_miembro_4 and fk_presentacion_cerveza_2=new.fk_stock_miembro_5;
+    RETURN new;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE or replace TRIGGER stock_en_evento
+AFTER UPDATE ON detalle_evento
+FOR EACH ROW
+WHEN (OLD.precio_unitario is null AND NEW.precio_unitario is not null)
+EXECUTE FUNCTION update_stock_evento();

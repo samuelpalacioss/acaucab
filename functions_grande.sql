@@ -3811,3 +3811,594 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql; 
+DROP FUNCTION IF EXISTS fn_get_all_eventos();
+CREATE OR REPLACE FUNCTION fn_get_all_eventos()
+RETURNS TABLE(
+  id int4,
+  nombre varchar,
+  direccion varchar,
+  tipo varchar,
+  fecha_hora_inicio timestamp,
+  fecha_hora_fin timestamp,
+  precio_entrada float4,
+  asistencia bigint,
+  entradas_vendidas bigint
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT e.id id, e.nombre nombre, e.dirección direccion, t.nombre tipo, e.fecha_hora_inicio , e.fecha_hora_fin, e.precio_entrada precio_entrada,
+    (SELECT count(*) FROM evento_cliente WHERE fk_evento=e.id) asistencia,
+    (SELECT count(*) FROM venta_evento ve WHERE ve.fk_evento_cliente_2=e.id AND NOT EXISTS (
+      SELECT * FROM detalle_evento WHERE fk_venta_evento=ve.id
+    )) entradas_vendidas
+  FROM evento e, tipo_evento t
+  WHERE t.id = e.fk_tipo_evento
+  ORDER BY fecha_hora_fin DESC;
+END;
+$$;
+DROP FUNCTION IF EXISTS fn_get_tipos_eventos();
+create or replace function fn_get_tipos_eventos()
+returns table(
+  nombre varchar
+)
+language plpgsql
+as $$
+begin
+  return query
+  select t.nombre nombre
+  from tipo_evento t;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_create_evento(
+    p_nombre varchar,
+    p_descripcion varchar,
+    p_nombre_tipo_evento varchar,
+    p_direccion varchar,
+    p_id_parroquia int,
+    p_fecha_hora_inicio timestamp,
+    p_fecha_hora_fin timestamp,
+    p_precio numeric
+)
+RETURNS INT AS $$
+DECLARE
+    v_evento_id INT;
+    v_tipo_evento_id int;
+BEGIN
+    select te.id into v_tipo_evento_id 
+    from tipo_evento te
+    where te.nombre=p_nombre_tipo_evento
+    limit 1;
+    
+    INSERT INTO evento (nombre, descripción, dirección, fecha_hora_inicio, fecha_hora_fin, precio_entrada, fk_tipo_evento, fk_lugar) VALUES
+    (p_nombre,p_descripcion,p_direccion,p_fecha_hora_inicio,p_fecha_hora_fin,p_precio,v_tipo_evento_id,p_id_parroquia)
+    returning id into v_evento_id;
+    
+    RETURN v_evento_id;
+
+EXCEPTION
+    WHEN foreign_key_violation THEN
+        RAISE EXCEPTION 'El tipo de evento especificado o el lugar no existe.';
+    WHEN OTHERS THEN
+        -- En caso de cualquier error, se levanta una excepción para asegurar que la transacción se revierta.
+        RAISE EXCEPTION 'Error al crear el evento: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_create_invitado(
+    p_nombre varchar,
+    p_apellido varchar,
+    p_ci int,
+    p_nacionalidad varchar,
+    p_nombre_tipo_invitado varchar
+
+)
+RETURNS INT AS $$
+DECLARE
+    v_invitado_id INT;
+    v_tipo_invitado_id int;
+BEGIN
+    select ti.id into v_tipo_invitado_id 
+    from tipo_invitado ti
+    where ti.nombre=p_nombre_tipo_invitado
+    limit 1;
+    
+    INSERT INTO invitado (ci,nacionalidad,primer_nombre,primer_apellido,fk_tipo_invitado) VALUES
+    (p_ci,p_nacionalidad,p_nombre,p_apellido,v_tipo_invitado_id)
+    returning id into v_invitado_id;
+    
+    RETURN v_invitado_id;
+
+EXCEPTION
+    WHEN foreign_key_violation THEN
+        RAISE EXCEPTION 'El tipo de invitado especificado no existe.';
+    WHEN OTHERS THEN
+        -- En caso de cualquier error, se levanta una excepción para asegurar que la transacción se revierta.
+        RAISE EXCEPTION 'Error al crear el invitadoo: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_create_invitado_evento(
+    p_id_invitado int,
+    p_id_evento int,
+    p_fecha_hora_entrada timestamp,
+    p_fecha_hora_salida timestamp
+)
+RETURNS boolean AS $$
+DECLARE
+BEGIN
+    
+    INSERT INTO invitado_evento (fk_evento,fk_invitado,fecha_hora_entrada,fecha_hora_salida) VALUES
+    (p_id_evento,p_id_invitado,p_fecha_hora_entrada,p_fecha_hora_salida);
+    
+    RETURN true;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        /** La DB maneja constraints y FK automáticamente */
+        RAISE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_create_stock_miembro(
+    p_id_miembro_1 int,
+    p_id_miembro_2 bpchar,
+    p_id_evento int,
+    p_id_producto_1 int,
+    p_id_producto_2 int,
+    p_cantidad int
+)
+RETURNS boolean AS $$
+DECLARE
+BEGIN
+    
+    INSERT INTO stock_miembro (fk_miembro_1,fk_miembro_2,fk_evento,fk_presentacion_cerveza_1,fk_presentacion_cerveza_2,cantidad) VALUES
+    (p_id_miembro_1 ,
+    p_id_miembro_2 ,
+    p_id_evento ,
+    p_id_producto_1 ,
+    p_id_producto_2 ,
+    p_cantidad);
+    
+    RETURN true;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        /** La DB maneja constraints y FK automáticamente */
+        RAISE;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS fn_get_invitados();
+CREATE OR REPLACE FUNCTION fn_get_invitados()
+RETURNS TABLE(
+  id int,
+  "primerNombre" varchar,
+  "primerApellido" varchar,
+  cedula int,
+  nacionalidad varchar,
+  "tipoInvitado" varchar
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  select i.id id, i.primer_nombre "primerNombre", i.primer_apellido "primerApellido",i.ci cedula,i.nacionalidad nacionalidad, ti.nombre "tipoInvitado"
+from invitado i, tipo_invitado ti
+where i.fk_tipo_invitado =ti.id;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_lugares();
+CREATE OR REPLACE FUNCTION fn_get_lugares()
+RETURNS TABLE(
+  id int,
+  nombre varchar,
+  tipo varchar,
+  fk_lugar int
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  select * from lugar;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_miembros_creando_evento();
+CREATE OR REPLACE FUNCTION fn_get_miembros_creando_evento()
+RETURNS TABLE(
+  id1 int4,
+  id2 bpchar,
+  nombre varchar,
+  correo varchar
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  select m.rif id1,m.naturaleza_rif id2, m.razón_social nombre, (select c.dirección_correo from correo c where c.fk_miembro_1=m.rif and c.fk_miembro_2=m.naturaleza_rif order by c.id limit 1) correo
+  from miembro m;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_productos_creando_evento();
+CREATE OR REPLACE FUNCTION fn_get_productos_creando_evento()
+RETURNS TABLE(
+  id1 int,
+  id2 int,
+  sku varchar,
+  nombre text,
+  precio numeric,
+  id_miembro1 int4,
+  id_miembro2 bpchar
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  select mpc.fk_presentacion_cerveza_1 id1, mpc.fk_presentacion_cerveza_2 id2,pc.sku sku,p.nombre||' '||c.nombre nombre,pc.precio precio ,mpc.fk_miembro_1 id_miembro1,mpc.fk_miembro_2 id_miembro2
+from miembro_presentacion_cerveza mpc, presentacion_cerveza pc, presentacion p, cerveza c
+where pc.fk_presentacion =mpc.fk_presentacion_cerveza_1 and pc.fk_cerveza =mpc.fk_presentacion_cerveza_2 and pc.fk_cerveza= c.id and
+       pc.fk_presentacion=p.id;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_tipos_eventos();
+CREATE OR REPLACE FUNCTION fn_get_tipos_eventos()
+RETURNS TABLE(
+  nombre varchar
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  select te.nombre from tipo_evento te;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_tipos_invitados();
+CREATE OR REPLACE FUNCTION fn_get_tipos_invitados()
+RETURNS TABLE(
+  nombre varchar
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  select tp.nombre from tipo_invitado tp;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_delete_stock_miembro(p_id_miembro_1 int,
+            p_id_miembro_2 bpchar,
+            p_evento_id int,
+            p_id_producto_1 int,
+            p_id_producto_2 int)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    delete from detalle_evento where fk_stock_miembro_1 = p_id_miembro_1 and fk_stock_miembro_2 = p_id_miembro_2 and fk_stock_miembro_3 = p_evento_id and fk_stock_miembro_4 = p_id_producto_1 and fk_stock_miembro_5 = p_id_producto_2;
+
+    delete from stock_miembro where fk_miembro_1 = p_id_miembro_1 and fk_miembro_2 = p_id_miembro_2 and fk_evento = p_evento_id and fk_presentacion_cerveza_1 = p_id_producto_1 and fk_presentacion_cerveza_2 = p_id_producto_2;
+    EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error al eliminar el stock : %', SQLERRM;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_exists_miembro_evento(p_id_miembro_1 int,
+        p_id_miembro_2 bpchar)
+RETURNS table(
+  id_evento int
+)
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    return query
+    select distinct sm.fk_evento as id_evento from stock_miembro sm where sm.fk_miembro_1 =p_id_miembro_1 and sm.fk_miembro_2 =p_id_miembro_2;
+END;
+$$;
+
+      v_nombre_estado := v_nombre_lugar;
+    ELSIF v_tipo_lugar = 'Municipio' THEN
+      v_nombre_municipio := v_nombre_lugar;
+    ELSE
+      v_nombre_parroquia := v_nombre_lugar;
+    END IF;
+  END LOOP;
+
+    RETURN QUERY
+    SELECT
+        e.id id,
+        e.nombre nombre,
+        e.descripción descripcion,
+        te.nombre "tipoEvento",
+        e.fecha_hora_inicio "fechaHoraInicio" ,
+        e.fecha_hora_fin "fechaHoraFin" ,
+        e.dirección direccion,
+        v_nombre_estado estado,
+        v_nombre_municipio municipio,
+        v_nombre_parroquia parroquia,
+        e.precio_entrada precio,
+        case
+        when e.precio_entrada is null then false
+        when e.precio_entrada =0 then false
+        when e.precio_entrada >0 then true
+        else false
+        end as "tieneTickets"
+    FROM
+        evento e, tipo_evento te
+    
+    WHERE e.id = p_evento_id and e.fk_tipo_evento=te.id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_get_evento_invitados(p_evento_id int)
+RETURNS TABLE (
+  id int,
+  "primerNombre" varchar,
+  "primerApellido" varchar,
+  cedula int,
+  nacionalidad varchar,
+  "tipoInvitado" varchar,
+  "fechaHoraEntrada" timestamp,
+  "fechaHoraSalida" timestamp
+)
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    RETURN QUERY
+    select i.id id, i.primer_nombre "primerNombre", i.primer_apellido "primerApellido",i.ci cedula,i.nacionalidad nacionalidad, ti.nombre "tipoInvitado",  ie.fecha_hora_entrada "fechaHoraEntrada",ie.fecha_hora_salida "fechaHoraSalida"
+    from invitado i, tipo_invitado ti,invitado_evento ie
+    where i.fk_tipo_invitado =ti.id and ie.fk_invitado = i.id and ie.fk_evento=p_evento_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_get_evento_proveedores(p_evento_id int)
+RETURNS TABLE (
+  id1 int,
+  id2 bpchar,
+  nombre varchar,
+  correo varchar,
+  productos jsonb[]
+)
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    RETURN QUERY
+  select distinct m.rif id1,m.naturaleza_rif id2, m.razón_social nombre, (select c.dirección_correo from correo c where c.fk_miembro_1=m.rif and c.fk_miembro_2=m.naturaleza_rif order by c.id limit 1) correo, p.productos productos
+  from miembro m, (select 
+                   ARRAY_AGG(
+                      jsonb_build_object(
+                        'id1', sm.fk_presentacion_cerveza_1,
+                        'id2', sm.fk_presentacion_cerveza_2,
+                        'sku',pc.sku,
+                        'nombre', p.nombre||' '||c.nombre,
+                        'precio', pc.precio,
+                        'cantidad', sm.cantidad
+                      )
+                    ) productos,
+                    sm.fk_miembro_1 fk_miembro_1,
+                    sm.fk_miembro_2 fk_miembro_2,
+                    sm.fk_evento fk_evento
+                    from stock_miembro sm, presentacion_cerveza pc, presentacion p, cerveza c
+                    where pc.fk_presentacion =sm.fk_presentacion_cerveza_1 and pc.fk_cerveza =sm.fk_presentacion_cerveza_2 and pc.fk_cerveza= c.id and
+                          pc.fk_presentacion=p.id
+                    GROUP BY sm.fk_miembro_1, sm.fk_miembro_2, sm.fk_evento
+                    ) p
+  where p_evento_id=p.fk_evento and m.rif=p.fk_miembro_1 and m.naturaleza_rif=p.fk_miembro_2;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_get_miembro_productos(p_id_miembro_1 int,
+        p_id_miembro_2 bpchar)
+RETURNS TABLE (
+  id1 int,
+  id2 int,
+  sku varchar,
+  nombre text,
+  precio numeric,
+  id_miembro1 int4,
+  id_miembro2 bpchar
+)
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    RETURN QUERY
+    select mpc.fk_presentacion_cerveza_1 id1, mpc.fk_presentacion_cerveza_2 id2,pc.sku sku,p.nombre||' '||c.nombre nombre,pc.precio precio ,mpc.fk_miembro_1 id_miembro1,mpc.fk_miembro_2 id_miembro2
+    from miembro_presentacion_cerveza mpc, presentacion_cerveza pc, presentacion p, cerveza c
+    where pc.fk_presentacion =mpc.fk_presentacion_cerveza_1 and pc.fk_cerveza =mpc.fk_presentacion_cerveza_2 and pc.fk_cerveza= c.id and
+    pc.fk_presentacion=p.id and mpc.fk_miembro_1 = p_id_miembro_1 and mpc.fk_miembro_2=p_id_miembro_2;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_update_stock_miembro(p_id_miembro_1 int,
+            p_id_miembro_2 bpchar,
+            p_evento_id int,
+            p_id_producto_1 int,
+            p_id_producto_2 int,
+            p_cantidad int)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    update stock_miembro set cantidad=p_cantidad where fk_miembro_1 = p_id_miembro_1 and fk_miembro_2 = p_id_miembro_2 and fk_evento = p_evento_id and fk_presentacion_cerveza_1 = p_id_producto_1 and fk_presentacion_cerveza_2 = p_id_producto_2;
+    EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error al actualizar el stock : %', SQLERRM;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_actualizar_precio_detalle_venta_evento(
+        p_fk_venta_evento integer,
+        p_fk_presentacion integer,
+        p_fk_cerveza integer,
+        p_precio_unitario numeric,
+        p_proveedor_id1 integer,
+        p_proveedor_id2 bpchar,
+        p_evento_id integer
+)
+RETURNS VOID AS $$
+BEGIN
+    /**
+     * Actualiza el precio unitario de un registro específico en 'detalle_presentacion'.
+     * Esta función se llama cuando se finaliza una venta para establecer los precios finales,
+     * lo que a su vez, activará el trigger para recalcular el monto total de la venta.
+     */
+    UPDATE detalle_evento
+    SET precio_unitario = p_precio_unitario
+    WHERE fk_venta_evento = p_fk_venta_evento AND fk_stock_miembro_1=p_proveedor_id1 and fk_stock_miembro_2=p_proveedor_id2 and fk_stock_miembro_3=p_evento_id and fk_stock_miembro_4= p_fk_presentacion and fk_stock_miembro_5=p_fk_cerveza;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_limpiar_detalles_venta_evento(p_venta_id INTEGER)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM detalle_evento WHERE fk_venta_evento = p_venta_id;
+END;
+$$ LANGUAGE plpgsql; 
+
+CREATE OR REPLACE FUNCTION fn_registrar_detalle_presentacion_evento_en_proceso(
+  p_presentacion_id INTEGER,
+  p_cerveza_id INTEGER,
+  p_venta_id INTEGER,
+  p_cantidad INTEGER,
+  p_evento_id integer,
+  p_proveedorId1 integer,
+  p_proveedorId2 bpchar
+)
+RETURNS BOOLEAN AS $$ 
+DECLARE 
+  existe_venta BOOLEAN;
+BEGIN  
+  SELECT EXISTS (SELECT FROM venta_evento v WHERE v.id = p_venta_id LIMIT 1) INTO existe_venta;
+
+  IF existe_venta THEN
+    INSERT INTO detalle_evento(fk_stock_miembro_1, fk_stock_miembro_2, fk_stock_miembro_3,fk_stock_miembro_4,fk_stock_miembro_5,fk_venta_evento, cantidad)
+    VALUES (p_proveedorId1,p_proveedorId2,p_evento_id, p_presentacion_id, p_cerveza_id,p_venta_id, p_cantidad);
+    
+    RETURN TRUE;
+  ELSE 
+    RAISE EXCEPTION 'No existe venta con el id: %', p_venta_id;
+  END IF;
+END  
+$$ language plpgsql;
+
+**
+ * Crea un nuevo pago en el sistema para un cliente
+ * @param p_monto DECIMAL - Monto del pago
+ * @param p_fecha_pago TIMESTAMP - Fecha y hora del pago
+ * @param p_fk_tasa INTEGER - ID de la tasa de cambio aplicada
+ * @param p_fk_venta INTEGER - ID de la venta asociada
+ * @param p_fk_cliente_metodo_pago_1 INTEGER - ID del método de pago del cliente
+ */
+CREATE OR REPLACE FUNCTION fn_registrar_pago_venta_evento(
+    p_monto DECIMAL,
+    p_fecha_pago TIMESTAMP,
+    p_fk_tasa INTEGER,
+    p_fk_venta INTEGER,
+    p_fk_cliente_metodo_pago_1 INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    /**
+     * Inserta un nuevo registro de pago de cliente en la tabla 'pago'.
+     * Los valores se toman directamente de los parámetros de la función.
+     * Los campos no relevantes para un pago de cliente (ej. mensualidad) se omiten.
+     */
+    INSERT INTO pago (
+        monto,
+        fecha_pago,
+        fk_tasa,
+        fk_venta_evento,
+        fk_cliente_metodo_pago_1
+    )
+    VALUES (
+        p_monto,
+        p_fecha_pago,
+        p_fk_tasa,
+        p_fk_venta,
+        p_fk_cliente_metodo_pago_1
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_registrar_venta_evento_en_proceso(
+  p_evento_id INTEGER,
+  p_cliente_id INTEGER,
+  p_tipo_cliente Varchar
+)
+RETURNS TABLE(
+  id_venta INTEGER
+) 
+AS $$
+DECLARE
+  nueva_venta_id INTEGER;
+  v_id_relacion integer;
+  v_status_id INTEGER;
+BEGIN
+  if lower(p_tipo_cliente) = 'natural' then
+   if not exists (select * from evento_cliente where fk_evento= p_evento_id and fk_cliente_natural=p_cliente_id) then
+      insert into evento_cliente (fk_evento,fk_cliente_natural,fk_cliente_juridico) values (p_evento_id,p_cliente_id,null ) returning id into v_id_relacion;
+    else
+      select id into v_id_relacion from evento_cliente where fk_evento=p_evento_id and fk_cliente_natural=p_cliente_id;
+    end if;
+  elsif lower(p_tipo_cliente) = 'juridico' then
+    if not exists (select * from evento_cliente where fk_evento= p_evento_id and fk_cliente_juridico=p_cliente_id) then
+      insert into evento_cliente (fk_evento,fk_cliente_natural,fk_cliente_juridico) values (p_evento_id,null ,p_cliente_id) returning id into v_id_relacion;
+    else
+      select id into v_id_relacion from evento_cliente where fk_evento=p_evento_id and fk_cliente_juridico=p_cliente_id;
+    end if;
+  else
+    RAISE EXCEPTION 'Id del cliente (p_cliente_id) es requerido para ventas en evento.';
+  end if;
+  INSERT INTO venta_evento(monto_total,fk_evento_cliente_1, fk_evento_cliente_2) 
+  VALUES (0,v_id_relacion ,p_evento_id )
+  RETURNING id INTO nueva_venta_id;
+  SELECT id INTO v_status_id FROM status WHERE status.nombre = 'En Proceso';
+
+  INSERT INTO status_venta(fk_venta_evento, fk_status, fecha_actualización)
+  VALUES(nueva_venta_id, v_status_id, NOW());
+  
+  RETURN QUERY SELECT nueva_venta_id;
+END;
+$$ language plpgsql
+
+CREATE OR REPLACE FUNCTION fn_update_status_venta_evento_a_completado(
+  p_venta_id INTEGER
+)
+RETURNS VOID AS $$
+DECLARE
+  v_status_completado_id INTEGER;
+  v_fecha_actual TIMESTAMP := NOW();
+BEGIN
+  -- Primero, obtener el ID para el status 'Completado' desde la tabla 'status'
+  SELECT id INTO v_status_completado_id FROM status WHERE nombre = 'Completado';
+
+  -- Si no se encuentra el status, lanzar una excepción
+  IF v_status_completado_id IS NULL THEN
+    RAISE EXCEPTION 'El status ''Completado'' no se encontró en la tabla status.';
+  END IF;
+
+  -- Actualizar el estado anterior de la venta, estableciendo la fecha de finalización
+  UPDATE status_venta
+  SET fecha_fin = v_fecha_actual
+  WHERE fk_venta_evento = p_venta_id AND fecha_fin IS NULL;
+
+  -- Insertar el nuevo estado 'Completado' para la venta
+  INSERT INTO status_venta (fecha_actualización, fecha_fin, fk_status, fk_venta_evento)
+  VALUES (v_fecha_actual, NULL, v_status_completado_id, p_venta_id);
+
+END;
+$$ LANGUAGE plpgsql;
+

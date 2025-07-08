@@ -902,8 +902,8 @@ CREATE TABLE evento (
     nombre            VARCHAR(100) NOT NULL,
     descripción       VARCHAR(500) NOT NULL,
     dirección         VARCHAR(255) NOT NULL,
-    fecha_hora_inicio DATE NOT NULL,
-    fecha_hora_fin    DATE NOT NULL,
+    fecha_hora_inicio TIMESTAMP NOT NULL,
+    fecha_hora_fin    TIMESTAMP NOT NULL,
     precio_entrada    FLOAT(2),
     fk_tipo_evento    INTEGER NOT NULL,
     fk_lugar          INTEGER NOT NULL,
@@ -926,8 +926,8 @@ CREATE TABLE evento (
  * @param fk_invitado - Referencia al invitado
  */
 CREATE TABLE invitado_evento (
-    fecha_hora_entrada DATE,
-    fecha_hora_salida  DATE,
+    fecha_hora_entrada TIMESTAMP,
+    fecha_hora_salida  TIMESTAMP,
     fk_evento          INTEGER NOT NULL,
     fk_invitado        INTEGER NOT NULL,
     CONSTRAINT invitado_evento_pk PRIMARY KEY (fk_evento, fk_invitado),
@@ -942,10 +942,11 @@ CREATE TABLE invitado_evento (
  * @param fk_cliente_natural - Referencia al cliente natural (debe ser NULL si hay cliente jurídico)
  */
 CREATE TABLE evento_cliente (
+    id SERIAL,
     fk_evento           INTEGER NOT NULL,
     fk_cliente_juridico INTEGER,
     fk_cliente_natural  INTEGER,
-    CONSTRAINT evento_cliente_pk PRIMARY KEY (fk_evento),
+    CONSTRAINT evento_cliente_pk PRIMARY KEY (id,fk_evento),
     CONSTRAINT evento_cliente_fk_evento FOREIGN KEY (fk_evento) REFERENCES evento(id),
     CONSTRAINT evento_cliente_fk_cliente_juridico FOREIGN KEY (fk_cliente_juridico) REFERENCES cliente_juridico(id),
     CONSTRAINT evento_cliente_fk_cliente_natural FOREIGN KEY (fk_cliente_natural) REFERENCES cliente_natural(id),
@@ -1122,25 +1123,14 @@ CREATE TABLE miembro_presentacion_cerveza (
 CREATE TABLE venta_evento (
     id                  SERIAL,                           /** Identificador único de la venta */
     monto_total         DECIMAL(10,2) NOT NULL,           /** Monto total de la venta */
-    fk_cliente_juridico INTEGER,                          /** Referencia a cliente jurídico (opcional) */
-    fk_cliente_natural  INTEGER,                          /** Referencia a cliente natural (opcional) */
+    fk_evento_cliente_1 INTEGER,                          
+    fk_evento_cliente_2  INTEGER,
     
     /** Constraint de clave primaria */
     CONSTRAINT venta_evento_pk PRIMARY KEY (id),
     
-    /** Constraint de verificación - solo uno de los dos tipos de cliente puede estar presente */
-    CONSTRAINT venta_evento_check_cliente CHECK (
-        (fk_cliente_juridico IS NOT NULL AND fk_cliente_natural IS NULL) OR
-        (fk_cliente_natural IS NOT NULL AND fk_cliente_juridico IS NULL)
-    ),
-    
-    /** Constraint de clave foránea hacia cliente jurídico */
-    CONSTRAINT venta_evento_fk_cliente_juridico FOREIGN KEY (fk_cliente_juridico)
-        REFERENCES cliente_juridico (id),
-    
-    /** Constraint de clave foránea hacia cliente natural */
-    CONSTRAINT venta_evento_fk_cliente_natural FOREIGN KEY (fk_cliente_natural)
-        REFERENCES cliente_natural (id)
+    CONSTRAINT venta_evento_fk_evento_cliente FOREIGN KEY (fk_evento_cliente_1,fk_evento_cliente_2)
+        REFERENCES evento_cliente (id,fk_evento),
 );
 
 
@@ -1154,11 +1144,11 @@ CREATE TABLE detalle_evento (
     cantidad           INTEGER NOT NULL,                    /** Cantidad de productos vendidos */
     precio_unitario    DECIMAL(10,2),                      /** Precio por unidad del producto */
     fk_stock_miembro_1 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 1 */
-    fk_stock_miembro_2 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 2 */
-    fk_stock_miembro_3 CHAR(1) NOT NULL,                   /** Referencia al stock del miembro - campo 3 */
-    fk_venta_evento    INTEGER NOT NULL,                   /** Referencia a la venta del evento */
+    fk_stock_miembro_2 CHAR(1) NOT NULL,                   /** Referencia al stock del miembro - campo 2 */
+    fk_stock_miembro_3 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 3 */
     fk_stock_miembro_4 INTEGER NOT NULL,                   /** Referencia al stock del miembro - campo 4 */
     fk_stock_miembro_5 INTEGER NOT NULL,               /** Referencia al stock del miembro - campo 5 */
+    fk_venta_evento    INTEGER NOT NULL,                   /** Referencia a la venta del evento */
     
     /** Constraint de clave primaria compuesta */
     CONSTRAINT detalle_evento_pk PRIMARY KEY (
@@ -1178,9 +1168,9 @@ CREATE TABLE detalle_evento (
         fk_stock_miembro_4,
         fk_stock_miembro_5
     ) REFERENCES stock_miembro (
-        fk_evento,
         fk_miembro_1,
         fk_miembro_2,
+        fk_evento,
         fk_presentacion_cerveza_1,
         fk_presentacion_cerveza_2
     ),
