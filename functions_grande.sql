@@ -4104,7 +4104,42 @@ BEGIN
     select distinct sm.fk_evento as id_evento from stock_miembro sm where sm.fk_miembro_1 =p_id_miembro_1 and sm.fk_miembro_2 =p_id_miembro_2;
 END;
 $$;
+CREATE OR REPLACE FUNCTION fn_get_evento_by_id(p_evento_id int)
+RETURNS TABLE (
+  id int,
+  nombre varchar,
+  descripcion varchar,
+  "tipoEvento" varchar,
+  "fechaHoraInicio" timestamp,
+  "fechaHoraFin" timestamp,
+  direccion varchar,
+  estado varchar,
+  municipio varchar,
+  parroquia varchar,
+  precio float4,
+  "tieneTickets" boolean
+)
+LANGUAGE plpgsql
+AS $$
+declare
+  v_nombre_estado varchar;
+  v_nombre_municipio varchar;
+  v_nombre_parroquia varchar;
+  v_tipo_lugar varchar;
+  v_nombre_lugar varchar;
+  v_id_pertenencia int;
+BEGIN
+    select e.fk_lugar into v_id_pertenencia
+    from evento e
+    where e.id= p_evento_id;
+    
+    WHILE v_id_pertenencia IS NOT NULL LOOP
+    SELECT l.tipo, l.nombre, l.fk_lugar
+    INTO v_tipo_lugar, v_nombre_lugar, v_id_pertenencia
+    FROM lugar l
+    WHERE l.id = v_id_pertenencia;
 
+    IF v_tipo_lugar = 'Estado' THEN
       v_nombre_estado := v_nombre_lugar;
     ELSIF v_tipo_lugar = 'Municipio' THEN
       v_nombre_municipio := v_nombre_lugar;
@@ -4294,7 +4329,7 @@ BEGIN
 END  
 $$ language plpgsql;
 
-**
+/**
  * Crea un nuevo pago en el sistema para un cliente
  * @param p_monto DECIMAL - Monto del pago
  * @param p_fecha_pago TIMESTAMP - Fecha y hora del pago
@@ -4372,7 +4407,7 @@ BEGIN
   
   RETURN QUERY SELECT nueva_venta_id;
 END;
-$$ language plpgsql
+$$ language plpgsql;
 
 CREATE OR REPLACE FUNCTION fn_update_status_venta_evento_a_completado(
   p_venta_id INTEGER

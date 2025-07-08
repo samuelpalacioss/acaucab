@@ -72,10 +72,6 @@ ALTER SEQUENCE persona_contacto_id_seq RESTART WITH 1;
 -- Reiniciar secuencia de permiso
 ALTER SEQUENCE permiso_id_seq RESTART WITH 1; 
 
-
--- /** Reinicio de secuencia para tabla color */ 
-ALTER SEQUENCE color_id_seq RESTART WITH 1;
-
 /** Reinicio de secuencia para tabla tipo_cerveza */
 ALTER SEQUENCE tipo_cerveza_id_seq RESTART WITH 1;
 

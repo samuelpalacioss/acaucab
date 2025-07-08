@@ -1130,7 +1130,7 @@ CREATE TABLE venta_evento (
     CONSTRAINT venta_evento_pk PRIMARY KEY (id),
     
     CONSTRAINT venta_evento_fk_evento_cliente FOREIGN KEY (fk_evento_cliente_1,fk_evento_cliente_2)
-        REFERENCES evento_cliente (id,fk_evento),
+        REFERENCES evento_cliente (id,fk_evento)
 );
 
 

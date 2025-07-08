@@ -502,6 +502,18 @@ AFTER INSERT OR UPDATE ON detalle_presentacion
 FOR EACH ROW
 EXECUTE FUNCTION fn_actualizar_monto_total_venta(); 
 
+-- Primero, eliminamos el trigger existente para poder modificar la función.
+DROP TRIGGER IF EXISTS trigger_actualizar_monto_venta_evento ON detalle_evento;
+
+-- Luego, eliminamos la función que utiliza el trigger.
+DROP FUNCTION IF EXISTS fn_actualizar_monto_total_venta_evento();
+
+-- Ahora, creamos la función actualizada.
+CREATE OR REPLACE FUNCTION fn_actualizar_monto_total_venta_evento()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_venta_id INTEGER;
+    v_subtotal DECIMAL;
 BEGIN
     /*
      Determina el ID de la venta a actualizar.
