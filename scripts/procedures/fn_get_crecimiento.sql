@@ -43,8 +43,13 @@ BEGIN
         SELECT sv.fk_venta
         FROM status_venta sv
         JOIN status s ON sv.fk_status = s.id
-        WHERE s.nombre = 'Completado'
-          AND sv.fk_venta IS NOT NULL
+        JOIN venta v_check ON sv.fk_venta = v_check.id
+        WHERE sv.fk_venta IS NOT NULL
+          AND (
+                (v_check.fk_tienda_web IS NOT NULL AND s.nombre = 'Despachando')
+                OR
+                (v_check.fk_tienda_fisica IS NOT NULL AND s.nombre = 'Completado')
+          )
           AND sv.fecha_actualización::DATE BETWEEN fecha_inicio_actual AND fecha_fin_actual
     );
 
@@ -56,8 +61,13 @@ BEGIN
         SELECT sv.fk_venta
         FROM status_venta sv
         JOIN status s ON sv.fk_status = s.id
-        WHERE s.nombre = 'Completado'
-          AND sv.fk_venta IS NOT NULL
+        JOIN venta v_check ON sv.fk_venta = v_check.id
+        WHERE sv.fk_venta IS NOT NULL
+          AND (
+                (v_check.fk_tienda_web IS NOT NULL AND s.nombre = 'Despachando')
+                OR
+                (v_check.fk_tienda_fisica IS NOT NULL AND s.nombre = 'Completado')
+          )
           AND sv.fecha_actualización::DATE BETWEEN fecha_inicio_anterior AND fecha_fin_anterior
     );
 
