@@ -3471,7 +3471,7 @@ INSERT INTO inventario (cantidad_almacen, fk_presentacion_cerveza_1, fk_presenta
 (120, 5, 15, 1),   /** Leffe Blonde - Caja 24 unidades 330ml **/
 (80, 6, 16, 1),       /** Hoegaarden - Barril 20L **/
 (40, 7, 17, 1),       /** Pilsner Urquell - Barril 30L **/
-(25, 8, 18, 1);       /** Samuel Adams - Barril 50L **/
+(25, 8, 18, 1),       /** Samuel Adams - Barril 50L **/
 /** Almacenes de tienda web **/
 (750, 1, 1, 2),     /** Destilo - Botella 330ml en Almacén 2 **/
 (320, 2, 2, 3),     /** Dos Leones - Botella 500ml en Almacén 3 **/
