@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CartItem } from "./cart-item";
 import { CarritoItemType } from "@/lib/schemas";
 
@@ -19,9 +20,9 @@ export function CartList({
       {isCheckout && (
         <p className="mb-6">
           ¿Quieres comprar algo más?{" "}
-          <a href="#" className="underline hover:text-gray-600">
+          <Link href="/productos" className="underline hover:text-gray-600">
             Continuar Comprando
-          </a>
+          </Link>
         </p>
       )}
 

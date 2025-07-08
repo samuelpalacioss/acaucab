@@ -1,13 +1,18 @@
+"use client";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useTasaStore } from "@/store/tasa-store";
+
 interface OrderSummaryProps {
   subtotal: number;
   totalItems: number;
   onCheckout: () => void;
   isCheckout?: boolean;
+  isCartEmpty: boolean;
+  isProcessing: boolean;
 }
 
 export function OrderSummary({
@@ -15,11 +20,24 @@ export function OrderSummary({
   totalItems,
   onCheckout,
   isCheckout = false,
+  isCartEmpty,
+  isProcessing,
 }: OrderSummaryProps) {
+  const { getTasa } = useTasaStore();
+
+  const convertirADolar = (monto: number) => {
+    const tasa = getTasa("USD");
+    if (!tasa?.monto_equivalencia) return null;
+    return monto / tasa.monto_equivalencia;
+  };
   // Calcular el IVA (16% del subtotal)
   const iva = subtotal * 0.16;
   // Calcular el total incluyendo IVA
   const total = subtotal + iva;
+
+  const subtotalEnDolares = convertirADolar(subtotal);
+  const ivaEnDolares = convertirADolar(iva);
+  const totalEnDolares = convertirADolar(total);
 
   return (
     <div>
@@ -33,31 +51,28 @@ export function OrderSummary({
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span>Puntos disponibles:</span>
-            <span className="text-gray-500">100 pts</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Input type="number" placeholder="Usar puntos" className="w-32" min={0} max={1250} />
-            <span className="text-sm text-gray-500">(1 punto = 1Bs)</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span>Descuento</span>
-            <span>-$0.00</span>
-          </div>
-        </div>
-
         <div className="flex justify-between">
           <span>IVA (16%)</span>
-          <span>${iva.toFixed(2)}</span>
+          <span>
+            {iva.toFixed(2)} Bs
+            {ivaEnDolares !== null && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (${ivaEnDolares.toFixed(2)})
+              </span>
+            )}
+          </span>
         </div>
 
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>
+            {subtotal.toFixed(2)} Bs
+            {subtotalEnDolares !== null && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (${subtotalEnDolares.toFixed(2)})
+              </span>
+            )}
+          </span>
         </div>
 
         <Separator />
@@ -69,20 +84,19 @@ export function OrderSummary({
               ({totalItems} {totalItems === 1 ? "item" : "items"})
             </span>
           </p>
-          <span>${total.toFixed(2)}</span>
+          <span>
+            {total.toFixed(2)} Bs
+            {totalEnDolares !== null && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (${totalEnDolares.toFixed(2)})
+              </span>
+            )}
+          </span>
         </div>
 
-        <Link
-          href="/checkout"
-          className={cn(
-            buttonVariants({
-              variant: "default",
-              className: "w-full",
-            })
-          )}
-        >
-          Continuar al pago
-        </Link>
+        <Button onClick={onCheckout} disabled={isCartEmpty || isProcessing} className="w-full">
+          {isProcessing ? "Procesando..." : "Continuar al pago"}
+        </Button>
       </div>
     </div>
   );

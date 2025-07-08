@@ -55,6 +55,7 @@ export function MainSidebar() {
       submenu: [
         { title: "Detalle de Inventario", path: "/dashboard/inventario/detalle" },
         { title: "Orden de Compra", path: "/dashboard/inventario/ordenes" },
+        { title: "Estadísticas", path: "/dashboard/inventario/stats" },
       ],
     },
     {
@@ -62,6 +63,7 @@ export function MainSidebar() {
       icon: DollarSign,
       submenu: [
         { title: "Ventas", path: "/dashboard/finanzas/ventas" },
+        { title: "Estadísticas", path: "/dashboard/finanzas/stats" },
       ],
     },
     {
@@ -71,6 +73,14 @@ export function MainSidebar() {
         { title: "Todos los usuarios", path: "/dashboard/usuarios" },
         { title: "Nuevo usuario", path: "/dashboard/usuarios/nuevo" },
         { title: "Roles y Permisos", path: "/dashboard/usuarios/roles" },
+      ],
+    },
+    {
+      title: "Eventos",
+      icon: Calendar,
+      submenu: [
+        { title: "Todos los eventos", path: "/dashboard/eventos/gestion" },
+        { title: "Añadir un nuevo evento", path: "/dashboard/eventos/nuevo" },
       ],
     },
   ];

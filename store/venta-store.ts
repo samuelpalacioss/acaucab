@@ -131,22 +131,25 @@ export const useVentaStore = create<VentaStore>()(
   },
 
   actualizarCantidad: (sku, cantidad) => {
-    const { carrito } = get();
-    
-    if (cantidad <= 0) {
-      set({ carrito: carrito.filter(item => item.sku !== sku) });
-    } else {
-      set({
-        carrito: carrito.map(item =>
+    set((state) => {
+      const updatedCarrito = state.carrito
+        .map((item) =>
           item.sku === sku ? { ...item, quantity: cantidad } : item
         )
-      });
-    }
+        .filter((item) => item.quantity > 0); // Remove item if quantity is 0 or less
+
+      console.log("[STORE] Cart state after update:", updatedCarrito);
+
+      return { carrito: updatedCarrito };
+    });
   },
 
   eliminarDelCarrito: (sku) => {
-    const { carrito } = get();
-    set({ carrito: carrito.filter(item => item.sku !== sku) });
+    set((state) => {
+      const updatedCarrito = state.carrito.filter((item) => item.sku !== sku);
+      console.log(`[STORE] Item with SKU: ${sku} removed. New cart state:`, updatedCarrito);
+      return { carrito: updatedCarrito };
+    });
   },
 
   limpiarCarrito: () => set({ carrito: [] }),

@@ -3472,6 +3472,17 @@ INSERT INTO inventario (cantidad_almacen, fk_presentacion_cerveza_1, fk_presenta
 (80, 6, 16, 1),       /** Hoegaarden - Barril 20L **/
 (40, 7, 17, 1),       /** Pilsner Urquell - Barril 30L **/
 (25, 8, 18, 1);       /** Samuel Adams - Barril 50L **/
+/** Almacenes de tienda web **/
+(750, 1, 1, 2),     /** Destilo - Botella 330ml en Almacén 2 **/
+(320, 2, 2, 3),     /** Dos Leones - Botella 500ml en Almacén 3 **/
+(150, 5, 5, 4),     /** Ángel o Demonio - Caja 24u 330ml en Almacén 4 **/
+(280, 6, 6, 5),     /** Barricas Saison Belga - Barril 20L en Almacén 5 **/
+(600, 7, 7, 6),     /** Aldarra Mantuana - Barril 30L en Almacén 6 **/
+(430, 8, 8, 7),     /** Tröegs HopBack Amber - Barril 50L en Almacén 7 **/
+(290, 9, 9, 8),     /** Full Sail Amber - Growler 1L en Almacén 8 **/
+(180, 10, 10, 9),   /** Deschutes Cinder Cone - Caja 12u 500ml en Almacén 9 **/
+(520, 1, 11, 2),    /** Rogue American Amber - Botella 330ml en Almacén 2 **/
+(340, 2, 12, 3);    /** La Chouffe - Botella 500ml en Almacén 3 **/
 
 /**
  * Inserción de datos para el inventario de lugares de tienda
@@ -4580,101 +4591,101 @@ INSERT INTO stock_miembro (
  * Contiene inserts para: detalle_presentacion, miembro_presentacion_cerveza y venta
  * Cada tabla tendrá 10 registros de ejemplo
  */
-INSERT INTO venta (monto_total, dirección_entrega, observación, fk_usuario, fk_lugar, fk_cliente_juridico, fk_cliente_natural, fk_tienda_fisica, fk_tienda_web) VALUES
-(10.00, NULL, 'Entrega urgente solicitada', NULL, NULL, 1, NULL, 1, NULL),  /** Venta en tienda física con cliente jurídico */
-(18.00, NULL, 'Cliente frecuente', NULL, NULL, NULL, 1, 1, NULL),        /** Venta en tienda física con cliente natural */
-(29.00, 'Av. Libertador #42, San Francisco', 'Pedido especial para evento', 3, 458, NULL, NULL, NULL, 1), /** Venta en tienda web con usuario */
-(39.00, NULL, 'Pago en efectivo', NULL, NULL, 2, NULL, 1, NULL),              /** Venta en tienda física con cliente jurídico */
-(10.00, NULL, 'Descuento aplicado', NULL, NULL, NULL, 2, 1, NULL),      /** Venta en tienda física con cliente natural */
-(32.00, 'Av. Rio Rio #41, El Morro', 'Entrega coordinada', 32, 442, NULL, NULL, NULL, 1),             /** Venta en tienda web con usuario */
-(49.00, NULL, 'Cliente nuevo', NULL, NULL, 3, NULL, 1, NULL),                      /** Venta en tienda física con cliente jurídico */
-(29.00, NULL, 'Pedido corporativo', NULL, NULL, NULL, 3, 1, NULL),       /** Venta en tienda física con cliente natural */
-(18.00, 'Calle Miranda #123', 'Entrega express', 33, 369, NULL, NULL, NULL, 1),                     /** Venta en tienda web con usuario */
-(59.00, NULL, 'Venta promocional', NULL, NULL, 4, NULL, 1, NULL),       /** Venta en tienda física con cliente jurídico */
+INSERT INTO venta (monto_total, dirección_entrega, observación, fk_usuario, fk_lugar, fk_cliente_juridico, fk_cliente_natural, fk_empleado, fk_tienda_fisica, fk_tienda_web) VALUES
+(10.00, NULL, 'Entrega urgente solicitada', NULL, NULL, 1, NULL, 3, 1, NULL),  /** Venta en tienda física con cliente jurídico */
+(18.00, NULL, 'Cliente frecuente', NULL, NULL, NULL, 1, 7, 1, NULL),        /** Venta en tienda física con cliente natural */
+(29.00, 'Av. Libertador #42, San Francisco', 'Pedido especial para evento', 3, 458, NULL, NULL, NULL, NULL, 1), /** Venta en tienda web con usuario */
+(39.00, NULL, 'Pago en efectivo', NULL, NULL, 2, NULL, 1, 1, NULL),              /** Venta en tienda física con cliente jurídico */
+(10.00, NULL, 'Descuento aplicado', NULL, NULL, NULL, 2, 5, 1, NULL),      /** Venta en tienda física con cliente natural */
+(32.00, 'Av. Rio Rio #41, El Morro', 'Entrega coordinada', 32, 442, NULL, NULL, NULL, NULL, 1),             /** Venta en tienda web con usuario */
+(49.00, NULL, 'Cliente nuevo', NULL, NULL, 3, NULL, 6, 1, NULL),                      /** Venta en tienda física con cliente jurídico */
+(29.00, NULL, 'Pedido corporativo', NULL, NULL, NULL, 3, 2, 1, NULL),       /** Venta en tienda física con cliente natural */
+(18.00, 'Calle Miranda #123', 'Entrega express', 33, 369, NULL, NULL, NULL, NULL, 1),                     /** Venta en tienda web con usuario */
+(59.00, NULL, 'Venta promocional', NULL, NULL, 4, NULL, 9, 1, NULL),       /** Venta en tienda física con cliente jurídico */
 
 /** Ventas adicionales para clientes naturales - 2 ventas por cada cliente natural  (40 ventas) */
-(39.00, NULL, 'Primera compra del cliente', NULL, NULL, NULL, 1, 1, NULL),            /** Venta 11: Cliente natural 1 - primera venta */
-(14.00, NULL, 'Segunda compra del mes', NULL, NULL, NULL, 1, 1, NULL),               /** Venta 12: Cliente natural 1 - segunda venta */
-(49.00, NULL, 'Pedido regular', NULL, NULL, NULL, 2, 1, NULL),                     /** Venta 13: Cliente natural 2 - primera venta */
-(29.00, NULL, 'Compra especial', NULL, NULL, NULL, 2, 1, NULL),                  /** Venta 14: Cliente natural 2 - segunda venta */
-(14.00, 'Calle Orinoco, Edif. Plaza Mayor, Ucata', 'Venta matutina', 34, 388, NULL, NULL, NULL, 1),                          /** Venta 15: Cliente natural 3 - primera venta - WEB */
-(59.00, NULL, 'Venta vespertina', NULL, NULL, NULL, 3, 1, NULL),                       /** Venta 16: Cliente natural 3 - segunda venta */  
-(27.00, NULL, 'Compra fin de semana', NULL, NULL, NULL, 4, 1, NULL),                 /** Venta 17: Cliente natural 4 - primera venta */
-(10.00, 'Universidad Catolica Andres Bello, Caracas', 'Pedido express', 35, 362, NULL, NULL, NULL, 1),                        /** Venta 18: Cliente natural 4 - segunda venta - WEB */
-(39.00, NULL, 'Venta corporativa', NULL, NULL, NULL, 5, 1, NULL),                        /** Venta 19: Cliente natural 5 - primera venta */
-(29.00, NULL, 'Pedido especial evento', NULL, NULL, NULL, 5, 1, NULL),                  /** Venta 20: Cliente natural 5 - segunda venta */
-(18.00, 'Av. Venezuela, El Rosal, Torre Financiera', 'Compra mensual', 3, 421, NULL, NULL, NULL, 1),                      /** Venta 21: Cliente natural 6 - primera venta - WEB */
-(19.00, NULL, 'Venta promocional', NULL, NULL, NULL, 6, 1, NULL),                 /** Venta 22: Cliente natural 6 - segunda venta */
-(53.00, NULL, 'Pedido urgente', NULL, NULL, NULL, 7, 1, NULL),                        /** Venta 23: Cliente natural 7 - primera venta */
-(10.00, 'Calle Londres, Coche', 'Compra regular', 36, 365, NULL, NULL, NULL, 1),                         /** Venta 24: Cliente natural 7 - segunda venta - WEB */
-(37.00, NULL, 'Venta especial', NULL, NULL, NULL, 8, 1, NULL),                       /** Venta 25: Cliente natural 8 - primera venta */
-(59.00, NULL, 'Segunda compra', NULL, NULL, NULL, 8, 1, NULL),                        /** Venta 26: Cliente natural 8 - segunda venta */
-(14.00, 'Av. Río de Janeiro, casa 3', 'Compra mayorista', 37, 427, NULL, NULL, NULL, 1),                   /** Venta 27: Cliente natural 9 - primera venta - WEB */
-(19.00, NULL, 'Pedido regular', NULL, NULL, NULL, 9, 1, NULL),                     /** Venta 28: Cliente natural 9 - segunda venta */
-(43.00, NULL, 'Venta matinal', NULL, NULL, NULL, 10, 1, NULL),                     /** Venta 29: Cliente natural 10 - primera venta */
-(29.00, 'Av. Principal de La Castellana, Torre Sky', 'Compra nocturna', 38, 430, NULL, NULL, NULL, 1),                 /** Venta 30: Cliente natural 10 - segunda venta - WEB */
-(49.00, NULL, 'Pedido estándar', NULL, NULL, NULL, 11, 1, NULL),                     /** Venta 31: Cliente natural 11 - primera venta */
-(14.00, NULL, 'Venta especial', NULL, NULL, NULL, 11, 1, NULL),                     /** Venta 32: Cliente natural 11 - segunda venta */
-(19.00, 'Calle Madrid, Coromoto, Piso 8', 'Compra quincenal', 39, 400, NULL, NULL, NULL, 1),                  /** Venta 33: Cliente natural 12 - primera venta - WEB */
-(67.00, NULL, 'Pedido express', NULL, NULL, NULL, 12, 1, NULL),                     /** Venta 34: Cliente natural 12 - segunda venta */
-(29.00, NULL, 'Primera compra', NULL, NULL, NULL, 13, 1, NULL),                    /** Venta 35: Cliente natural 13 - primera venta */
-(10.00, 'Av. Eugenio Mendoza, Anaco, Torre 1', 'Segunda compra', 40, 415, NULL, NULL, NULL, 1),                     /** Venta 36: Cliente natural 13 - segunda venta - WEB */
-(57.00, NULL, 'Venta corporativa', NULL, NULL, NULL, 14, 1, NULL),                /** Venta 37: Cliente natural 14 - primera venta */
-(19.00, NULL, 'Pedido regular', NULL, NULL, NULL, 14, 1, NULL),                   /** Venta 38: Cliente natural 14 - segunda venta */
-(43.00, 'Calle Los Laboratorios, Los Cortijos, Edif. Médico', 'Compra semanal', 41, 439, NULL, NULL, NULL, 1),                        /** Venta 39: Cliente natural 15 - primera venta - WEB */
-(29.00, NULL, 'Venta promocional', NULL, NULL, NULL, 15, 1, NULL),                    /** Venta 40: Cliente natural 15 - segunda venta */
-(18.00, NULL, 'Pedido especial', NULL, NULL, NULL, 16, 1, NULL),                    /** Venta 41: Cliente natural 16 - primera venta */
-(10.00, 'Av. Blandin, Guanta, Centro Profesional', 'Compra regular', 42, 432, NULL, NULL, NULL, 1),                      /** Venta 42: Cliente natural 16 - segunda venta - WEB */
-(43.00, NULL, 'Venta matutina', NULL, NULL, NULL, 17, 1, NULL),                       /** Venta 43: Cliente natural 17 - primera venta */
-(29.00, NULL, 'Pedido vespertino', NULL, NULL, NULL, 17, 1, NULL),                     /** Venta 44: Cliente natural 17 - segunda venta */
-(57.00, NULL, 'Compra fin de mes', NULL, NULL, NULL, 18, 1, NULL),                     /** Venta 45: Cliente natural 18 - primera venta */
-(19.00, NULL, 'Venta especial', NULL, NULL, NULL, 18, 1, NULL),                         /** Venta 46: Cliente natural 18 - segunda venta */
-(59.00, NULL, 'Pedido mayorista', NULL, NULL, NULL, 19, 1, NULL),                  /** Venta 47: Cliente natural 19 - primera venta */
-(18.00, NULL, 'Compra regular', NULL, NULL, NULL, 19, 1, NULL),                    /** Venta 48: Cliente natural 19 - segunda venta */
-(29.00, NULL, 'Venta promocional', NULL, NULL, NULL, 20, 1, NULL),                 /** Venta 49: Cliente natural 20 - primera venta */
-(10.00, NULL, 'Pedido especial', NULL, NULL, NULL, 20, 1, NULL),                     /** Venta 50: Cliente natural 20 - segunda venta */
+(39.00, NULL, 'Primera compra del cliente', NULL, NULL, NULL, 1, 4, 1, NULL),            /** Venta 11: Cliente natural 1 - primera venta */
+(14.00, NULL, 'Segunda compra del mes', NULL, NULL, NULL, 1, 8, 1, NULL),               /** Venta 12: Cliente natural 1 - segunda venta */
+(49.00, NULL, 'Pedido regular', NULL, NULL, NULL, 2, 10, 1, NULL),                     /** Venta 13: Cliente natural 2 - primera venta */
+(29.00, NULL, 'Compra especial', NULL, NULL, NULL, 2, 3, 1, NULL),                  /** Venta 14: Cliente natural 2 - segunda venta */
+(14.00, 'Calle Orinoco, Edif. Plaza Mayor, Ucata', 'Venta matutina', 34, 388, NULL, NULL, NULL, NULL, 1),                          /** Venta 15: Cliente natural 3 - primera venta - WEB */
+(59.00, NULL, 'Venta vespertina', NULL, NULL, NULL, 3, 7, 1, NULL),                       /** Venta 16: Cliente natural 3 - segunda venta */  
+(27.00, NULL, 'Compra fin de semana', NULL, NULL, NULL, 4, 1, 1, NULL),                 /** Venta 17: Cliente natural 4 - primera venta */
+(10.00, 'Universidad Catolica Andres Bello, Caracas', 'Pedido express', 35, 362, NULL, NULL, NULL, NULL, 1),                        /** Venta 18: Cliente natural 4 - segunda venta - WEB */
+(39.00, NULL, 'Venta corporativa', NULL, NULL, NULL, 5, 6, 1, NULL),                        /** Venta 19: Cliente natural 5 - primera venta */
+(29.00, NULL, 'Pedido especial evento', NULL, NULL, NULL, 5, 9, 1, NULL),                  /** Venta 20: Cliente natural 5 - segunda venta */
+(18.00, 'Av. Venezuela, El Rosal, Torre Financiera', 'Compra mensual', 3, 421, NULL, NULL, NULL, NULL, 1),                      /** Venta 21: Cliente natural 6 - primera venta - WEB */
+(19.00, NULL, 'Venta promocional', NULL, NULL, NULL, 6, 2, 1, NULL),                 /** Venta 22: Cliente natural 6 - segunda venta */
+(53.00, NULL, 'Pedido urgente', NULL, NULL, NULL, 7, 5, 1, NULL),                        /** Venta 23: Cliente natural 7 - primera venta */
+(10.00, 'Calle Londres, Coche', 'Compra regular', 36, 365, NULL, NULL, NULL, NULL, 1),                         /** Venta 24: Cliente natural 7 - segunda venta - WEB */
+(37.00, NULL, 'Venta especial', NULL, NULL, NULL, 8, 3, 1, NULL),                       /** Venta 25: Cliente natural 8 - primera venta */
+(59.00, NULL, 'Segunda compra', NULL, NULL, NULL, 8, 7, 1, NULL),                        /** Venta 26: Cliente natural 8 - segunda venta */
+(14.00, 'Av. Río de Janeiro, casa 3', 'Compra mayorista', 37, 427, NULL, NULL, NULL, NULL, 1),                   /** Venta 27: Cliente natural 9 - primera venta - WEB */
+(19.00, NULL, 'Pedido regular', NULL, NULL, NULL, 9, 4, 1, NULL),                     /** Venta 28: Cliente natural 9 - segunda venta */
+(43.00, NULL, 'Venta matinal', NULL, NULL, NULL, 10, 10, 1, NULL),                     /** Venta 29: Cliente natural 10 - primera venta */
+(29.00, 'Av. Principal de La Castellana, Torre Sky', 'Compra nocturna', 38, 430, NULL, NULL, NULL, NULL, 1),                 /** Venta 30: Cliente natural 10 - segunda venta - WEB */
+(49.00, NULL, 'Pedido estándar', NULL, NULL, NULL, 11, 6, 1, NULL),                     /** Venta 31: Cliente natural 11 - primera venta */
+(14.00, NULL, 'Venta especial', NULL, NULL, NULL, 11, 1, 1, NULL),                     /** Venta 32: Cliente natural 11 - segunda venta */
+(19.00, 'Calle Madrid, Coromoto, Piso 8', 'Compra quincenal', 39, 400, NULL, NULL, NULL, NULL, 1),                  /** Venta 33: Cliente natural 12 - primera venta - WEB */
+(67.00, NULL, 'Pedido express', NULL, NULL, NULL, 12, 9, 1, NULL),                     /** Venta 34: Cliente natural 12 - segunda venta */
+(29.00, NULL, 'Primera compra', NULL, NULL, NULL, 13, 7, 1, NULL),                    /** Venta 35: Cliente natural 13 - primera venta */
+(10.00, 'Av. Eugenio Mendoza, Anaco, Torre 1', 'Segunda compra', 40, 415, NULL, NULL, NULL, NULL, 1),                     /** Venta 36: Cliente natural 13 - segunda venta - WEB */
+(57.00, NULL, 'Venta corporativa', NULL, NULL, NULL, 14, 3, 1, NULL),                /** Venta 37: Cliente natural 14 - primera venta */
+(19.00, NULL, 'Pedido regular', NULL, NULL, NULL, 14, 5, 1, NULL),                   /** Venta 38: Cliente natural 14 - segunda venta */
+(43.00, 'Calle Los Laboratorios, Los Cortijos, Edif. Médico', 'Compra semanal', 41, 439, NULL, NULL, NULL, NULL, 1),                        /** Venta 39: Cliente natural 15 - primera venta - WEB */
+(29.00, NULL, 'Venta promocional', NULL, NULL, NULL, 15, 8, 1, NULL),                    /** Venta 40: Cliente natural 15 - segunda venta */
+(18.00, NULL, 'Pedido especial', NULL, NULL, NULL, 16, 2, 1, NULL),                    /** Venta 41: Cliente natural 16 - primera venta */
+(10.00, 'Av. Blandin, Guanta, Centro Profesional', 'Compra regular', 42, 432, NULL, NULL, NULL, NULL, 1),                      /** Venta 42: Cliente natural 16 - segunda venta - WEB */
+(43.00, NULL, 'Venta matutina', NULL, NULL, NULL, 17, 6, 1, NULL),                       /** Venta 43: Cliente natural 17 - primera venta */
+(29.00, NULL, 'Pedido vespertino', NULL, NULL, NULL, 17, 10, 1, NULL),                     /** Venta 44: Cliente natural 17 - segunda venta */
+(57.00, NULL, 'Compra fin de mes', NULL, NULL, NULL, 18, 4, 1, NULL),                     /** Venta 45: Cliente natural 18 - primera venta */
+(19.00, NULL, 'Venta especial', NULL, NULL, NULL, 18, 9, 1, NULL),                         /** Venta 46: Cliente natural 18 - segunda venta */
+(59.00, NULL, 'Pedido mayorista', NULL, NULL, NULL, 19, 7, 1, NULL),                  /** Venta 47: Cliente natural 19 - primera venta */
+(18.00, NULL, 'Compra regular', NULL, NULL, NULL, 19, 1, 1, NULL),                    /** Venta 48: Cliente natural 19 - segunda venta */
+(29.00, NULL, 'Venta promocional', NULL, NULL, NULL, 20, 3, 1, NULL),                 /** Venta 49: Cliente natural 20 - primera venta */
+(10.00, NULL, 'Pedido especial', NULL, NULL, NULL, 20, 6, 1, NULL),                     /** Venta 50: Cliente natural 20 - segunda venta */
 
 /** Ventas adicionales para clientes jurídicos - 2 ventas por cada cliente jurídico (40 ventas) */
-(47.00, NULL, 'Pedido corporativo mensual', NULL, NULL, 1, NULL, 1, NULL),         /** Venta 51: Cliente jurídico 1 - primera venta */
-(19.00, NULL, 'Compra para eventos', NULL, NULL, 1, NULL, 1, NULL),               /** Venta 52: Cliente jurídico 1 - segunda venta */
-(53.00, NULL, 'Pedido regular empresa', NULL, NULL, 2, NULL, 1, NULL),                /** Venta 53: Cliente jurídico 2 - primera venta */
-(29.00, NULL, 'Venta corporativa especial', NULL, NULL, 2, NULL, 1, NULL),           /** Venta 54: Cliente jurídico 2 - segunda venta */
-(59.00, NULL, 'Compra construcción', NULL, NULL, 3, NULL, 1, NULL),                  /** Venta 55: Cliente jurídico 3 - primera venta */
-(14.00, NULL, 'Pedido obra nueva', NULL, NULL, 3, NULL, 1, NULL),                    /** Venta 56: Cliente jurídico 3 - segunda venta */
-(23.00, NULL, 'Venta distribución', NULL, NULL, 4, NULL, 1, NULL),                 /** Venta 57: Cliente jurídico 4 - primera venta */
-(39.00, NULL, 'Pedido mayorista', NULL, NULL, 4, NULL, 1, NULL),                  /** Venta 58: Cliente jurídico 4 - segunda venta */
-(33.00, NULL, 'Compra importación', NULL, NULL, 5, NULL, 1, NULL),                     /** Venta 59: Cliente jurídico 5 - primera venta */
-(49.00, NULL, 'Venta comercial', NULL, NULL, 5, NULL, 1, NULL),                        /** Venta 60: Cliente jurídico 5 - segunda venta */
-(10.00, NULL, 'Pedido almacén', NULL, NULL, 6, NULL, 1, NULL),                       /** Venta 61: Cliente jurídico 6 - primera venta */
-(27.00, NULL, 'Compra bodega', NULL, NULL, 6, NULL, 1, NULL),                        /** Venta 62: Cliente jurídico 6 - segunda venta */
-(59.00, NULL, 'Venta comercializadora', NULL, NULL, 7, NULL, 1, NULL),                   /** Venta 63: Cliente jurídico 7 - primera venta */
-(33.00, NULL, 'Pedido especial empresa', NULL, NULL, 7, NULL, 1, NULL),                 /** Venta 64: Cliente jurídico 7 - segunda venta */
-(39.00, NULL, 'Compra distribuidora', NULL, NULL, 8, NULL, 1, NULL),               /** Venta 65: Cliente jurídico 8 - primera venta */
-(19.00, NULL, 'Venta corporativa', NULL, NULL, 8, NULL, 1, NULL),                  /** Venta 66: Cliente jurídico 8 - segunda venta */
-(57.00, NULL, 'Pedido importadora', NULL, NULL, 9, NULL, 1, NULL),                    /** Venta 67: Cliente jurídico 9 - primera venta */
-(29.00, NULL, 'Compra comercial', NULL, NULL, 9, NULL, 1, NULL),                     /** Venta 68: Cliente jurídico 9 - segunda venta */
-(43.00, NULL, 'Venta almacén lambda', NULL, NULL, 10, NULL, 1, NULL),                /** Venta 69: Cliente jurídico 10 - primera venta */
-(59.00, NULL, 'Pedido mensual', NULL, NULL, 10, NULL, 1, NULL),                     /** Venta 70: Cliente jurídico 10 - segunda venta */
-(19.00, NULL, 'Compra comercializadora zeta', NULL, NULL, 11, NULL, 1, NULL),      /** Venta 71: Cliente jurídico 11 - primera venta */
-(18.00, NULL, 'Venta corporativa', NULL, NULL, 11, NULL, 1, NULL),                /** Venta 72: Cliente jurídico 11 - segunda venta */
-(68.00, NULL, 'Pedido omega plus', NULL, NULL, 12, NULL, 1, NULL),                /** Venta 73: Cliente jurídico 12 - primera venta */
-(14.00, NULL, 'Compra especial', NULL, NULL, 12, NULL, 1, NULL),                 /** Venta 74: Cliente jurídico 12 - segunda venta */
-(59.00, NULL, 'Venta corporación alpha', NULL, NULL, 13, NULL, 1, NULL),           /** Venta 75: Cliente jurídico 13 - primera venta */
-(19.00, NULL, 'Pedido empresarial', NULL, NULL, 13, NULL, 1, NULL),               /** Venta 76: Cliente jurídico 13 - segunda venta */
-(47.00, NULL, 'Compra servicios bravo', NULL, NULL, 14, NULL, 1, NULL),            /** Venta 77: Cliente jurídico 14 - primera venta */
-(29.00, NULL, 'Venta regular', NULL, NULL, 14, NULL, 1, NULL),                     /** Venta 78: Cliente jurídico 14 - segunda venta */
-(49.00, NULL, 'Pedido constructora charlie', NULL, NULL, 15, NULL, 1, NULL),      /** Venta 79: Cliente jurídico 15 - primera venta */
-(27.00, NULL, 'Compra obra grande', NULL, NULL, 15, NULL, 1, NULL),              /** Venta 80: Cliente jurídico 15 - segunda venta */
-(59.00, NULL, 'Venta logística delta', NULL, NULL, 16, NULL, 1, NULL),             /** Venta 81: Cliente jurídico 16 - primera venta */
-(29.00, NULL, 'Pedido transporte', NULL, NULL, 16, NULL, 1, NULL),                /** Venta 82: Cliente jurídico 16 - segunda venta */
-(43.00, NULL, 'Compra importadora echo', NULL, NULL, 17, NULL, 1, NULL),           /** Venta 83: Cliente jurídico 17 - primera venta */
-(19.00, NULL, 'Venta comercial', NULL, NULL, 17, NULL, 1, NULL),                   /** Venta 84: Cliente jurídico 17 - segunda venta */
-(57.00, NULL, 'Pedido comercial foxtrot', NULL, NULL, 18, NULL, 1, NULL),          /** Venta 85: Cliente jurídico 18 - primera venta */
-(10.00, NULL, 'Compra regular', NULL, NULL, 18, NULL, 1, NULL),                    /** Venta 86: Cliente jurídico 18 - segunda venta */
-(33.00, NULL, 'Venta distribuidora golf', NULL, NULL, 19, NULL, 1, NULL),         /** Venta 87: Cliente jurídico 19 - primera venta */
-(59.00, NULL, 'Pedido mayorista', NULL, NULL, 19, NULL, 1, NULL),                /** Venta 88: Cliente jurídico 19 - segunda venta */
-(23.00, NULL, 'Compra exportadora hotel', NULL, NULL, 20, NULL, 1, NULL),        /** Venta 89: Cliente jurídico 20 - primera venta */
-(39.00, NULL, 'Venta internacional', NULL, NULL, 20, NULL, 1, NULL);            /** Venta 90: Cliente jurídico 20 - segunda venta */
+(47.00, NULL, 'Pedido corporativo mensual', NULL, NULL, 1, NULL, 7, 1, NULL),         /** Venta 51: Cliente jurídico 1 - primera venta */
+(19.00, NULL, 'Compra para eventos', NULL, NULL, 1, NULL, 5, 1, NULL),               /** Venta 52: Cliente jurídico 1 - segunda venta */
+(53.00, NULL, 'Pedido regular empresa', NULL, NULL, 2, NULL, 10, 1, NULL),                /** Venta 53: Cliente jurídico 2 - primera venta */
+(29.00, NULL, 'Venta corporativa especial', NULL, NULL, 2, NULL, 8, 1, NULL),           /** Venta 54: Cliente jurídico 2 - segunda venta */
+(59.00, NULL, 'Compra construcción', NULL, NULL, 3, NULL, 1, 1, NULL),                  /** Venta 55: Cliente jurídico 3 - primera venta */
+(14.00, NULL, 'Pedido obra nueva', NULL, NULL, 3, NULL, 4, 1, NULL),                    /** Venta 56: Cliente jurídico 3 - segunda venta */
+(23.00, NULL, 'Venta distribución', NULL, NULL, 4, NULL, 9, 1, NULL),                 /** Venta 57: Cliente jurídico 4 - primera venta */
+(39.00, NULL, 'Pedido mayorista', NULL, NULL, 4, NULL, 2, 1, NULL),                  /** Venta 58: Cliente jurídico 4 - segunda venta */
+(33.00, NULL, 'Compra importación', NULL, NULL, 5, NULL, 6, 1, NULL),                     /** Venta 59: Cliente jurídico 5 - primera venta */
+(49.00, NULL, 'Venta comercial', NULL, NULL, 5, NULL, 3, 1, NULL),                        /** Venta 60: Cliente jurídico 5 - segunda venta */
+(10.00, NULL, 'Pedido almacén', NULL, NULL, 6, NULL, 7, 1, NULL),                       /** Venta 61: Cliente jurídico 6 - primera venta */
+(27.00, NULL, 'Compra bodega', NULL, NULL, 6, NULL, 10, 1, NULL),                        /** Venta 62: Cliente jurídico 6 - segunda venta */
+(59.00, NULL, 'Venta comercializadora', NULL, NULL, 7, NULL, 1, 1, NULL),                   /** Venta 63: Cliente jurídico 7 - primera venta */
+(33.00, NULL, 'Pedido especial empresa', NULL, NULL, 7, NULL, 5, 1, NULL),                 /** Venta 64: Cliente jurídico 7 - segunda venta */
+(39.00, NULL, 'Compra distribuidora', NULL, NULL, 8, NULL, 9, 1, NULL),               /** Venta 65: Cliente jurídico 8 - primera venta */
+(19.00, NULL, 'Venta corporativa', NULL, NULL, 8, NULL, 4, 1, NULL),                  /** Venta 66: Cliente jurídico 8 - segunda venta */
+(57.00, NULL, 'Pedido importadora', NULL, NULL, 9, NULL, 8, 1, NULL),                    /** Venta 67: Cliente jurídico 9 - primera venta */
+(29.00, NULL, 'Compra comercial', NULL, NULL, 9, NULL, 6, 1, NULL),                     /** Venta 68: Cliente jurídico 9 - segunda venta */
+(43.00, NULL, 'Venta almacén lambda', NULL, NULL, 10, NULL, 3, 1, NULL),                /** Venta 69: Cliente jurídico 10 - primera venta */
+(59.00, NULL, 'Pedido mensual', NULL, NULL, 10, NULL, 7, 1, NULL),                     /** Venta 70: Cliente jurídico 10 - segunda venta */
+(19.00, NULL, 'Compra comercializadora zeta', NULL, NULL, 11, NULL, 2, 1, NULL),      /** Venta 71: Cliente jurídico 11 - primera venta */
+(18.00, NULL, 'Venta corporativa', NULL, NULL, 11, NULL, 1, 1, NULL),                /** Venta 72: Cliente jurídico 11 - segunda venta */
+(68.00, NULL, 'Pedido omega plus', NULL, NULL, 12, NULL, 10, 1, NULL),                /** Venta 73: Cliente jurídico 12 - primera venta */
+(14.00, NULL, 'Compra especial', NULL, NULL, 12, NULL, 9, 1, NULL),                 /** Venta 74: Cliente jurídico 12 - segunda venta */
+(59.00, NULL, 'Venta corporación alpha', NULL, NULL, 13, NULL, 4, 1, NULL),           /** Venta 75: Cliente jurídico 13 - primera venta */
+(19.00, NULL, 'Pedido empresarial', NULL, NULL, 13, NULL, 7, 1, NULL),               /** Venta 76: Cliente jurídico 13 - segunda venta */
+(47.00, NULL, 'Compra servicios bravo', NULL, NULL, 14, NULL, 3, 1, NULL),            /** Venta 77: Cliente jurídico 14 - primera venta */
+(29.00, NULL, 'Venta regular', NULL, NULL, 14, NULL, 6, 1, NULL),                     /** Venta 78: Cliente jurídico 14 - segunda venta */
+(49.00, NULL, 'Pedido constructora charlie', NULL, NULL, 15, NULL, 5, 1, NULL),      /** Venta 79: Cliente jurídico 15 - primera venta */
+(27.00, NULL, 'Compra obra grande', NULL, NULL, 15, NULL, 10, 1, NULL),              /** Venta 80: Cliente jurídico 15 - segunda venta */
+(59.00, NULL, 'Venta logística delta', NULL, NULL, 16, NULL, 8, 1, NULL),             /** Venta 81: Cliente jurídico 16 - primera venta */
+(29.00, NULL, 'Pedido transporte', NULL, NULL, 16, NULL, 1, 1, NULL),                /** Venta 82: Cliente jurídico 16 - segunda venta */
+(43.00, NULL, 'Compra importadora echo', NULL, NULL, 17, NULL, 9, 1, NULL),           /** Venta 83: Cliente jurídico 17 - primera venta */
+(19.00, NULL, 'Venta comercial', NULL, NULL, 17, NULL, 3, 1, NULL),                   /** Venta 84: Cliente jurídico 17 - segunda venta */
+(57.00, NULL, 'Pedido comercial foxtrot', NULL, NULL, 18, NULL, 7, 1, NULL),          /** Venta 85: Cliente jurídico 18 - primera venta */
+(10.00, NULL, 'Compra regular', NULL, NULL, 18, NULL, 6, 1, NULL),                    /** Venta 86: Cliente jurídico 18 - segunda venta */
+(33.00, NULL, 'Venta distribuidora golf', NULL, NULL, 19, NULL, 2, 1, NULL),         /** Venta 87: Cliente jurídico 19 - primera venta */
+(59.00, NULL, 'Pedido mayorista', NULL, NULL, 19, NULL, 4, 1, NULL),                /** Venta 88: Cliente jurídico 19 - segunda venta */
+(23.00, NULL, 'Compra exportadora hotel', NULL, NULL, 20, NULL, 10, 1, NULL),        /** Venta 89: Cliente jurídico 20 - primera venta */
+(39.00, NULL, 'Venta internacional', NULL, NULL, 20, NULL, 7, 1, NULL);               /** Venta 90: Cliente jurídico 20 - segunda venta */
 
 /**
  * Inserción de datos para la tabla detalle_presentacion  

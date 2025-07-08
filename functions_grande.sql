@@ -2429,9 +2429,9 @@ $$;
 DROP FUNCTION IF EXISTS fn_registrar_detalle_presentacion_en_proceso(INTEGER, INTEGER, INTEGER, INTEGER);
 
 CREATE OR REPLACE FUNCTION fn_registrar_detalle_presentacion_en_proceso(
-  p_venta_id INTEGER,
   p_presentacion_id INTEGER,
   p_cerveza_id INTEGER,
+  p_venta_id INTEGER,
   p_cantidad INTEGER
 )
 RETURNS BOOLEAN AS $$ 
@@ -2441,24 +2441,14 @@ BEGIN
   SELECT EXISTS (SELECT FROM venta v WHERE v.id = p_venta_id LIMIT 1) INTO existe_venta;
 
   IF existe_venta THEN
-    INSERT INTO detalle_presentacion(
-      fk_venta, 
-      fk_presentacion, 
-      fk_cerveza, 
-      cantidad
-    )
-    VALUES (
-      p_venta_id, 
-      p_presentacion_id, 
-      p_cerveza_id, 
-      p_cantidad
-    );
+    INSERT INTO detalle_presentacion(fk_venta, fk_presentacion, fk_cerveza, cantidad)
+    VALUES (p_venta_id, p_presentacion_id, p_cerveza_id, p_cantidad);
     
     RETURN TRUE;
   ELSE 
     RAISE EXCEPTION 'No existe venta con el id: %', p_venta_id;
   END IF;
-END
+END  
 $$ language plpgsql;
     
 DROP FUNCTION IF EXISTS fn_registrar_venta_en_proceso(INTEGER, INTEGER);
@@ -2881,90 +2871,611 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS fn_get_puntos(INTEGER);
-
-/**
- * ===============================================================================
- * FN_GET_PUNTOS
- * ===============================================================================
- *
- * Descripción:
- * Esta función recupera el número de puntos de un usuario específico.
- * Los puntos son aplicables solo a clientes (naturales o jurídicos).
- * La lógica de cálculo de puntos se basa en la función fn_get_users.
- *
- * Parámetros:
- * @param p_id_usuario INTEGER - El ID del usuario para el cual se quieren obtener los puntos.
- *
- * Retorna:
- * INTEGER - El número de puntos del usuario. Retorna 0 si el usuario no es un
- * cliente o no tiene puntos.
- *
- * ===============================================================================
- */
-CREATE OR REPLACE FUNCTION fn_get_puntos(p_id_usuario INTEGER)
-RETURNS INTEGER
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE FUNCTION fn_retencion_clientes(p_fecha_inicio DATE, p_fecha_fin DATE)
+RETURNS NUMERIC AS $$
 DECLARE
-    v_puntos INTEGER;
-    v_cliente_natural_id INTEGER;
-    v_cliente_juridico_id INTEGER;
+    v_clientes_recurrentes INTEGER;
+    v_total_clientes       INTEGER;
+    v_tasa_retencion       NUMERIC;
 BEGIN
     /**
-     * ---------------------------------------------------------------------------
-     * Paso 1: Identificar el tipo de cliente
-     * ---------------------------------------------------------------------------
+     * Tarea: Tasa de Retención de Clientes
+     * Mide el porcentaje de clientes que realizan más de una compra en un período determinado.
      *
-     * Buscamos en la tabla `cliente_usuario` para encontrar los IDs de cliente
-     * (natural o jurídico) asociados al `p_id_usuario` proporcionado.
-     * Estos IDs nos permitirán luego buscar los puntos correspondientes.
+     * Fórmula utilizada:
+     * Tasa de Retención = (Clientes que compraron más de una vez / Total de clientes únicos) * 100
      */
-    SELECT cu.fk_cliente_natural, cu.fk_cliente_juridico
-    INTO v_cliente_natural_id, v_cliente_juridico_id
-    FROM cliente_usuario cu
-    WHERE cu.fk_usuario = p_id_usuario;
 
     /**
-     * ---------------------------------------------------------------------------
-     * Paso 2: Verificar si el usuario es un cliente
-     * ---------------------------------------------------------------------------
-     *
-     * Si no se encontró un `fk_cliente_natural` o `fk_cliente_juridico`,
-     * significa que el usuario no es un cliente, y por lo tanto, no tiene puntos.
-     * En este caso, la función retorna 0.
+     * Pasos 1 y 2: Se realizan en una única consulta para mayor eficiencia.
+     * Se identifican compras, se unifican clientes, se cuentan las compras por cliente,
+     * y se calcula el total de clientes y clientes recurrentes.
      */
-    IF v_cliente_natural_id IS NULL AND v_cliente_juridico_id IS NULL THEN
-        RETURN 0;
+    WITH ventas_con_cliente AS (
+        SELECT DISTINCT
+            v.id AS venta_id,
+            -- Se crea un ID de cliente unificado para rastrear compras de forma consistente
+            COALESCE(
+                'natural_' || v.fk_cliente_natural::TEXT,
+                'juridico_' || v.fk_cliente_juridico::TEXT,
+                'natural_' || cu.fk_cliente_natural::TEXT,
+                'juridico_' || cu.fk_cliente_juridico::TEXT
+            ) AS cliente_id_unificado
+        FROM venta v
+        JOIN status_venta sv ON v.id = sv.fk_venta
+        -- Se une con cliente_usuario para resolver los clientes de ventas web
+        LEFT JOIN cliente_usuario cu ON v.fk_usuario = cu.fk_usuario
+        WHERE sv.fecha_actualización::date BETWEEN p_fecha_inicio AND p_fecha_fin
+    ),
+    compras_por_cliente AS (
+        SELECT
+            cliente_id_unificado,
+            COUNT(venta_id) AS numero_de_compras
+        FROM ventas_con_cliente
+        WHERE cliente_id_unificado IS NOT NULL
+        GROUP BY cliente_id_unificado
+    )
+    SELECT
+        COUNT(*),
+        COUNT(*) FILTER (WHERE numero_de_compras > 1)
+    INTO
+        v_total_clientes,
+        v_clientes_recurrentes
+    FROM compras_por_cliente;
+
+    /**
+     * Paso 3: Calcular la tasa de retención.
+     * Si no hay clientes en el período, la tasa es 0 para evitar la división por cero.
+     */
+    IF v_total_clientes > 0 THEN
+        v_tasa_retencion := (v_clientes_recurrentes::NUMERIC / v_total_clientes::NUMERIC) * 100;
+    ELSE
+        v_tasa_retencion := 0;
     END IF;
 
     /**
-     * ---------------------------------------------------------------------------
-     * Paso 3: Calcular los puntos del cliente
-     * ---------------------------------------------------------------------------
-     *
-     * Calculamos los puntos contando las entradas en `cliente_metodo_pago`
-     * que están asociadas a un `metodo_pago` de tipo 'punto' y que aún no han
-     * sido canjeados (`fecha_canjeo` es NULL).
-     * La condición OR en el WHERE maneja tanto a clientes naturales como jurídicos.
+     * Paso 4: Retornar el valor calculado.
      */
-    SELECT COUNT(*)::INTEGER
-    INTO v_puntos
-    FROM cliente_metodo_pago cmp
-    JOIN metodo_pago mp ON cmp.fk_metodo_pago = mp.id
-    WHERE mp.tipo = 'punto'
-      AND mp.fecha_canjeo IS NULL
-      AND (cmp.fk_cliente_natural = v_cliente_natural_id OR cmp.fk_cliente_juridico = v_cliente_juridico_id);
+    RETURN v_tasa_retencion;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION fn_rotacion_inventario(p_fecha_inicio DATE, p_fecha_fin DATE)
+RETURNS NUMERIC AS $$
+DECLARE
+    v_valor_promedio_inventario NUMERIC;
+    v_costo_productos_vendidos  NUMERIC;
+    v_rotacion_inventario       NUMERIC;
+BEGIN
+    /**
+     * Tarea: Rotación de Inventario
+     * Mide la rapidez con la que se vende y reemplaza el inventario.
+     *
+     * Fórmula utilizada (según solicitud):
+     * Rotación de inventario = Valor promedio del inventario / Costo de los productos vendidos
+     *
+     * Nota sobre el cálculo del "Valor promedio del inventario":
+     * El esquema de la base de datos actual no almacena un historial de niveles de inventario,
+     * lo cual es necesario para calcular un promedio de inventario verdadero (ej. (valor_inicial + valor_final) / 2).
+     * Como una aproximación práctica, esta función utiliza el VALOR ACTUAL TOTAL del inventario como
+     * el "valor promedio". Este valor se calcula sumando el valor de todo el stock existente en
+     * todos los almacenes.
+     */
 
     /**
-     * ---------------------------------------------------------------------------
-     * Paso 4: Retornar el total de puntos
-     * ---------------------------------------------------------------------------
-     *
-     * Retornamos el total de puntos calculados. Si el cliente no tiene puntos,
-     * COUNT(*) habrá devuelto 0, lo cual es el valor correcto.
-     * Usamos COALESCE para asegurarnos de devolver 0 si `v_puntos` es NULL por alguna razón.
+     * Paso 1: Calcular el "Valor promedio del inventario".
+     * Se utiliza el valor actual total del inventario.
+     * Se multiplica la cantidad de cada producto en el inventario de los almacenes (`inventario.cantidad_almacen`)
+     * por su precio de venta (`presentacion_cerveza.precio`).
      */
-    RETURN COALESCE(v_puntos, 0);
+    SELECT COALESCE(SUM(i.cantidad_almacen * pc.precio), 0)
+    INTO v_valor_promedio_inventario
+    FROM inventario i
+    JOIN presentacion_cerveza pc 
+      ON i.fk_presentacion_cerveza_1 = pc.fk_presentacion 
+     AND i.fk_presentacion_cerveza_2 = pc.fk_cerveza;
+
+    /**
+     * Paso 2: Calcular el "Costo de los productos vendidos" (COGS) en el período especificado.
+     * Se suma el valor de todos los productos vendidos en el rango de fechas.
+     * Se utiliza `detalle_presentacion` para obtener la cantidad y el precio de cada item vendido,
+     * y se une con la tabla `pago` a través de `venta` para filtrar por la fecha de pago (`pago.fecha_pago`).
+     */
+    SELECT COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0)
+    INTO v_costo_productos_vendidos
+    FROM detalle_presentacion dp
+    JOIN venta v ON dp.fk_venta = v.id
+    JOIN pago p ON p.fk_venta = v.id
+    WHERE p.fecha_pago::date BETWEEN p_fecha_inicio AND p_fecha_fin;
+
+    /**
+     * Paso 3: Calcular la rotación de inventario.
+     * Se divide el valor del inventario entre el costo de los productos vendidos.
+     * Si el costo de los productos vendidos es cero, la rotación es cero para evitar división por cero.
+     */
+    IF v_costo_productos_vendidos > 0 THEN
+        v_rotacion_inventario := v_valor_promedio_inventario / v_costo_productos_vendidos;
+    ELSE
+        v_rotacion_inventario := 0;
+    END IF;
+
+    /**
+     * Paso 4: Retornar el valor calculado.
+     */
+    RETURN v_rotacion_inventario;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS fn_calcular_tasa_ruptura_stock;
+DROP FUNCTION IF EXISTS fn_tasa_ruptura_global;
+DROP FUNCTION IF EXISTS fn_tasa_ruptura_por_tienda;
+
+CREATE OR REPLACE FUNCTION fn_calcular_tasa_ruptura_stock(
+    p_tienda_id INTEGER DEFAULT NULL,
+    p_tipo_calculo VARCHAR(20) DEFAULT 'global'
+) RETURNS TABLE(
+    tipo_calculo VARCHAR(20),
+    tienda_id INTEGER,
+    total_ordenes INTEGER,
+    total_productos_monitoreados INTEGER,
+    dias_total INTEGER,
+    oportunidades_stock BIGINT,
+    tasa_ruptura_global_porcentaje DECIMAL(8,4),
+    fecha_primera_orden DATE,
+    fecha_ultima_orden DATE
+) AS $$
+DECLARE
+    v_total_ordenes INTEGER;
+    v_total_productos_monitoreados INTEGER;
+    v_tasa_ruptura_global DECIMAL(8,4);
+    v_dias_periodo INTEGER;
+    v_fecha_inicio DATE;
+    v_fecha_fin DATE;
+    v_oportunidades_stock BIGINT;
+BEGIN
+    /** Calcular período histórico completo */
+    SELECT MIN(odr.fecha_orden), MAX(odr.fecha_orden)
+    INTO v_fecha_inicio, v_fecha_fin
+    FROM orden_de_reposicion odr
+    WHERE (p_tienda_id IS NULL OR odr.fk_lugar_tienda_2 = p_tienda_id);
+    
+    /** Si no hay datos, establecer valores por defecto */
+    IF v_fecha_inicio IS NULL THEN
+        v_fecha_inicio := CURRENT_DATE - INTERVAL '1 day';
+        v_fecha_fin := CURRENT_DATE;
+    END IF;
+    
+    v_dias_periodo := v_fecha_fin - v_fecha_inicio + 1;
+    
+    /** Calcular según el tipo de cálculo solicitado */
+    IF p_tipo_calculo = 'global' THEN
+        /** Tasa de ruptura global usando la fórmula: (∑Si / N × D) × 100% */
+        
+        -- Contar órdenes de reposición históricas (∑Si)
+        SELECT COUNT(*)
+        INTO v_total_ordenes
+        FROM orden_de_reposicion odr
+        WHERE (p_tienda_id IS NULL OR odr.fk_lugar_tienda_2 = p_tienda_id);
+        
+        -- Contar productos únicos monitoreados en tiendas (N)
+        SELECT COUNT(DISTINCT (lti.fk_inventario_1, lti.fk_inventario_2))
+        INTO v_total_productos_monitoreados
+        FROM lugar_tienda_inventario lti
+        WHERE (p_tienda_id IS NULL OR lti.fk_lugar_tienda_2 = p_tienda_id);
+        
+        -- Calcular oportunidades de stock (N × D)
+        v_oportunidades_stock := v_total_productos_monitoreados::BIGINT * v_dias_periodo;
+        
+        -- Calcular tasa de ruptura global usando la fórmula
+        IF v_oportunidades_stock > 0 THEN
+            v_tasa_ruptura_global := (v_total_ordenes::DECIMAL / v_oportunidades_stock) * 100;
+        ELSE
+            v_tasa_ruptura_global := 0;
+        END IF;
+        
+        -- Retornar fila con resultado global
+        RETURN QUERY SELECT 
+            'global'::VARCHAR(20) as tipo_calculo,
+            p_tienda_id as tienda_id,
+            v_total_ordenes as total_ordenes,
+            v_total_productos_monitoreados as total_productos_monitoreados,
+            v_dias_periodo as dias_total,
+            v_oportunidades_stock as oportunidades_stock,
+            v_tasa_ruptura_global as tasa_ruptura_global_porcentaje,
+            v_fecha_inicio as fecha_primera_orden,
+            v_fecha_fin as fecha_ultima_orden;
+        
+    ELSIF p_tipo_calculo = 'tienda' THEN
+        /** Tasa de ruptura por tienda usando la fórmula global */
+        
+        -- Retornar filas con resultado por tienda
+        RETURN QUERY 
+        SELECT 
+            'tienda'::VARCHAR(20) as tipo_calculo,
+            subq.tienda_id as tienda_id,
+            subq.total_ordenes as total_ordenes,
+            subq.productos_monitoreados as total_productos_monitoreados,
+            v_dias_periodo as dias_total,
+            subq.oportunidades_stock as oportunidades_stock,
+            subq.tasa_ruptura_global as tasa_ruptura_global_porcentaje,
+            subq.fecha_primera_orden as fecha_primera_orden,
+            subq.fecha_ultima_orden as fecha_ultima_orden
+        FROM (
+            SELECT 
+                odr.fk_lugar_tienda_2 as tienda_id,
+                COUNT(*) as total_ordenes,
+                (SELECT COUNT(DISTINCT (lti.fk_inventario_1, lti.fk_inventario_2))
+                 FROM lugar_tienda_inventario lti
+                 WHERE lti.fk_lugar_tienda_2 = odr.fk_lugar_tienda_2) as productos_monitoreados,
+                ((SELECT COUNT(DISTINCT (lti.fk_inventario_1, lti.fk_inventario_2))
+                  FROM lugar_tienda_inventario lti
+                  WHERE lti.fk_lugar_tienda_2 = odr.fk_lugar_tienda_2)::BIGINT * v_dias_periodo) as oportunidades_stock,
+                CASE 
+                    WHEN ((SELECT COUNT(DISTINCT (lti.fk_inventario_1, lti.fk_inventario_2))
+                          FROM lugar_tienda_inventario lti
+                          WHERE lti.fk_lugar_tienda_2 = odr.fk_lugar_tienda_2) * v_dias_periodo) > 0 THEN
+                        (COUNT(*)::DECIMAL / 
+                         ((SELECT COUNT(DISTINCT (lti.fk_inventario_1, lti.fk_inventario_2))
+                           FROM lugar_tienda_inventario lti
+                           WHERE lti.fk_lugar_tienda_2 = odr.fk_lugar_tienda_2) * v_dias_periodo)) * 100
+                    ELSE 0
+                END as tasa_ruptura_global,
+                MIN(odr.fecha_orden) as fecha_primera_orden,
+                MAX(odr.fecha_orden) as fecha_ultima_orden
+            FROM orden_de_reposicion odr
+            WHERE (p_tienda_id IS NULL OR odr.fk_lugar_tienda_2 = p_tienda_id)
+            GROUP BY odr.fk_lugar_tienda_2
+            ORDER BY COUNT(*) DESC
+        ) subq;
+        
+    ELSE
+        /** Tipo de cálculo no válido - retornar fila con error */
+        RETURN QUERY SELECT 
+            'error'::VARCHAR(20) as tipo_calculo,
+            NULL::INTEGER as tienda_id,
+            NULL::INTEGER as total_ordenes,
+            NULL::INTEGER as total_productos_monitoreados,
+            NULL::INTEGER as dias_total,
+            NULL::BIGINT as oportunidades_stock,
+            NULL::DECIMAL(8,4) as tasa_ruptura_global_porcentaje,
+            NULL::DATE as fecha_primera_orden,
+            NULL::DATE as fecha_ultima_orden;
+    END IF;
+    
+    RETURN;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        /** Manejo de errores - retornar fila con error */
+        RETURN QUERY SELECT 
+            'error'::VARCHAR(20) as tipo_calculo,
+            NULL::INTEGER as tienda_id,
+            NULL::INTEGER as total_ordenes,
+            NULL::INTEGER as total_productos_monitoreados,
+            NULL::INTEGER as dias_total,
+            NULL::BIGINT as oportunidades_stock,
+            NULL::DECIMAL(8,4) as tasa_ruptura_global_porcentaje,
+            NULL::DATE as fecha_primera_orden,
+            NULL::DATE as fecha_ultima_orden;
+        RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_tasa_ruptura_global(
+    p_tienda_id INTEGER DEFAULT NULL
+) RETURNS TABLE(
+    tipo_calculo VARCHAR(20),
+    tienda_id INTEGER,
+    total_ordenes INTEGER,
+    total_productos_monitoreados INTEGER,
+    dias_total INTEGER,
+    oportunidades_stock BIGINT,
+    tasa_ruptura_global_porcentaje DECIMAL(8,4),
+    fecha_primera_orden DATE,
+    fecha_ultima_orden DATE
+) AS $$
+BEGIN
+    /** Calcular tasa de ruptura global */
+    RETURN QUERY SELECT * FROM fn_calcular_tasa_ruptura_stock(
+        p_tienda_id,
+        'global'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+/**
+ * fn_get_stats_tienda_empleado
+ * Obtiene estadísticas de ventas por empleado
+ * 
+ * @returns TABLE con estadísticas de ventas por empleado
+ */
+CREATE OR REPLACE FUNCTION fn_get_stats_tienda_empleado()
+RETURNS TABLE (
+    fk_empleado INTEGER,
+    total_ventas BIGINT,
+    nombre_empleado VARCHAR,
+    identificacion VARCHAR,
+    cargo VARCHAR,
+    departamento VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Manejo de errores básico
+    BEGIN
+        RETURN QUERY
+        SELECT 
+            v.fk_empleado,
+            COUNT(*)::BIGINT AS total_ventas,
+            (e.primer_nombre || ' ' || e.primer_apellido)::VARCHAR AS nombre_empleado,
+            (e.nacionalidad || '-' || e.ci)::VARCHAR AS identificacion,
+            COALESCE(c.nombre, 'Sin cargo')::VARCHAR AS cargo,
+            COALESCE(d.nombre, 'Sin departamento')::VARCHAR AS departamento
+        FROM venta v
+        LEFT JOIN empleado e ON v.fk_empleado = e.id
+        LEFT JOIN (
+            -- Subconsulta para obtener la nómina más reciente de cada empleado
+            SELECT DISTINCT ON (nom.fk_empleado) 
+                nom.fk_empleado AS id_empleado_nomina,
+                nom.fk_cargo, 
+                nom.fk_departamento
+            FROM nomina nom
+            ORDER BY nom.fk_empleado, nom.fecha_inicio DESC
+        ) AS n ON e.id = n.id_empleado_nomina
+        LEFT JOIN cargo c ON n.fk_cargo = c.id
+        LEFT JOIN departamento d ON n.fk_departamento = d.id
+        WHERE v.fk_empleado IS NOT NULL
+        GROUP BY 
+            v.fk_empleado,
+            e.primer_nombre, 
+            e.primer_apellido, 
+            e.nacionalidad, 
+            e.ci, 
+            c.nombre, 
+            d.nombre
+        ORDER BY total_ventas DESC;
+        
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error al obtener estadísticas de ventas por empleado: %', SQLERRM;
+    END;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION fn_estilos_stats()
+RETURNS TABLE(
+    estilo_cerveza VARCHAR,
+    total_vendido BIGINT
+) AS $$
+BEGIN
+    /**
+     * Analiza qué estilos de cerveza (IPA, Lager, Stout, etc.) son los más vendidos.
+     */
+    RETURN QUERY
+    SELECT
+        tc.nombre AS estilo_cerveza,
+        SUM(dp.cantidad)::BIGINT AS total_vendido
+    FROM detalle_presentacion dp
+    JOIN presentacion_cerveza pc
+      ON dp.fk_presentacion = pc.fk_presentacion AND dp.fk_cerveza = pc.fk_cerveza
+    JOIN cerveza c ON pc.fk_cerveza = c.id
+    JOIN tipo_cerveza tc ON c.fk_tipo_cerveza = tc.id
+    GROUP BY
+        tc.nombre
+    ORDER BY
+        total_vendido DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_nuevos_clientes_stats(p_fecha_inicio DATE, p_fecha_fin DATE)
+RETURNS TABLE(nuevos BIGINT, recurrentes BIGINT) AS $$
+BEGIN
+    /**
+     * - "Nuevos": Clientes cuya primera compra fue dentro del período especificado.
+     * - "Recurrentes": Clientes que compraron en el período pero su primera compra fue antes.
+     */
+    RETURN QUERY
+    WITH ventas_con_cliente AS (
+
+        SELECT
+            sv.fecha_actualización::date AS fecha_venta,
+            COALESCE(
+                'natural_' || v.fk_cliente_natural::TEXT,
+                'juridico_' || v.fk_cliente_juridico::TEXT,
+                'natural_' || cu.fk_cliente_natural::TEXT,
+                'juridico_' || cu.fk_cliente_juridico::TEXT
+            ) AS cliente_id_unificado
+        FROM venta v
+        JOIN status_venta sv ON v.id = sv.fk_venta
+        LEFT JOIN cliente_usuario cu ON v.fk_usuario = cu.fk_usuario
+        WHERE sv.fecha_actualización IS NOT NULL
+          AND COALESCE(
+                'natural_' || v.fk_cliente_natural::TEXT,
+                'juridico_' || v.fk_cliente_juridico::TEXT,
+                'natural_' || cu.fk_cliente_natural::TEXT,
+                'juridico_' || cu.fk_cliente_juridico::TEXT
+            ) IS NOT NULL
+    ),
+    primeras_compras AS (
+        -- Paso 2: Encontrar la fecha de la primera compra para cada cliente
+        SELECT
+            cliente_id_unificado,
+            MIN(fecha_venta) AS primera_fecha_compra
+        FROM ventas_con_cliente
+        GROUP BY cliente_id_unificado
+    ),
+    clientes_en_periodo AS (
+        -- Paso 3: Identificar clientes que hicieron una compra en el período actual
+        SELECT DISTINCT cliente_id_unificado
+        FROM ventas_con_cliente
+        WHERE fecha_venta BETWEEN p_fecha_inicio AND p_fecha_fin
+    )
+    -- Paso 4: Contar clientes nuevos y recurrentes que compraron en el período
+    SELECT
+        COUNT(CASE WHEN pc.primera_fecha_compra BETWEEN p_fecha_inicio AND p_fecha_fin THEN 1 END)::BIGINT AS nuevos,
+        COUNT(CASE WHEN pc.primera_fecha_compra < p_fecha_inicio THEN 1 END)::BIGINT AS recurrentes
+    FROM clientes_en_periodo cep
+    JOIN primeras_compras pc ON cep.cliente_id_unificado = pc.cliente_id_unificado;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION fn_get_total_generado_tienda()
+RETURNS TABLE (
+    tienda_nombre VARCHAR,
+    tipo_tienda VARCHAR,
+    total_generado DECIMAL
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    -- Ventas en tiendas físicas
+    SELECT
+        l.nombre AS tienda_nombre,
+        'Física' AS tipo_tienda,
+        SUM(v.monto_total) AS total_generado
+    FROM venta v
+    JOIN tienda_fisica tf ON v.fk_tienda_fisica = tf.id
+    JOIN lugar l ON tf.fk_lugar = l.id
+    GROUP BY l.nombre
+
+    UNION ALL
+
+    -- Ventas en tienda web
+    SELECT
+        tw.dominio_web AS tienda_nombre,
+        'Web' AS tipo_tienda,
+        SUM(v.monto_total) AS total_generado
+    FROM venta v
+    JOIN tienda_web tw ON v.fk_tienda_web = tw.id
+    GROUP BY tw.dominio_web;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_crecimiento_ventas(DATE, VARCHAR);
+
+CREATE OR REPLACE FUNCTION fn_get_crecimiento_ventas(
+    fecha_referencia DATE,
+    tipo_comparacion VARCHAR
+)
+RETURNS TABLE (
+    periodo TEXT,
+    ventas_totales DECIMAL,
+    crecimiento_abs DECIMAL,
+    crecimiento_pct DECIMAL
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    ventas_actual DECIMAL;
+    ventas_anterior DECIMAL;
+    fecha_inicio_actual DATE;
+    fecha_fin_actual DATE;
+    fecha_inicio_anterior DATE;
+    fecha_fin_anterior DATE;
+BEGIN
+    -- Determinar los rangos de fecha según el tipo de comparación
+    IF tipo_comparacion = 'mensual' THEN
+        fecha_inicio_actual   := DATE_TRUNC('month', fecha_referencia)::DATE;
+        fecha_fin_actual     := (DATE_TRUNC('month', fecha_referencia) + INTERVAL '1 month' - INTERVAL '1 day')::DATE;
+        fecha_inicio_anterior := (DATE_TRUNC('month', fecha_referencia) - INTERVAL '1 month')::DATE;
+        fecha_fin_anterior   := (DATE_TRUNC('month', fecha_referencia) - INTERVAL '1 day')::DATE;
+    ELSIF tipo_comparacion = 'anual' THEN
+        fecha_inicio_actual   := DATE_TRUNC('year', fecha_referencia)::DATE;
+        fecha_fin_actual     := (DATE_TRUNC('year', fecha_referencia) + INTERVAL '1 year' - INTERVAL '1 day')::DATE;
+        fecha_inicio_anterior := (DATE_TRUNC('year', fecha_referencia) - INTERVAL '1 year')::DATE;
+        fecha_fin_anterior   := (DATE_TRUNC('year', fecha_referencia) - INTERVAL '1 day')::DATE;
+    ELSE
+        RAISE EXCEPTION 'El tipo de comparación debe ser ''mensual'' o ''anual''.';
+    END IF;
+
+    -- Calcular ventas para el período actual
+    SELECT COALESCE(SUM(v.monto_total), 0)
+    INTO ventas_actual
+    FROM venta v
+    WHERE v.id IN (
+        SELECT sv.fk_venta
+        FROM status_venta sv
+        JOIN status s ON sv.fk_status = s.id
+        JOIN venta v_check ON sv.fk_venta = v_check.id
+        WHERE sv.fk_venta IS NOT NULL
+          AND (
+                (v_check.fk_tienda_web IS NOT NULL AND s.nombre = 'Despachando')
+                OR
+                (v_check.fk_tienda_fisica IS NOT NULL AND s.nombre = 'Completado')
+          )
+          AND sv.fecha_actualización::DATE BETWEEN fecha_inicio_actual AND fecha_fin_actual
+    );
+
+    -- Calcular ventas para el período anterior
+    SELECT COALESCE(SUM(v.monto_total), 0)
+    INTO ventas_anterior
+    FROM venta v
+    WHERE v.id IN (
+        SELECT sv.fk_venta
+        FROM status_venta sv
+        JOIN status s ON sv.fk_status = s.id
+        JOIN venta v_check ON sv.fk_venta = v_check.id
+        WHERE sv.fk_venta IS NOT NULL
+          AND (
+                (v_check.fk_tienda_web IS NOT NULL AND s.nombre = 'Despachando')
+                OR
+                (v_check.fk_tienda_fisica IS NOT NULL AND s.nombre = 'Completado')
+          )
+          AND sv.fecha_actualización::DATE BETWEEN fecha_inicio_anterior AND fecha_fin_anterior
+    );
+
+    -- Devolver los resultados
+    RETURN QUERY
+    SELECT
+        'Periodo Actual' AS periodo,
+        ventas_actual AS ventas_totales,
+        ventas_actual - ventas_anterior AS crecimiento_abs,
+        CASE
+            WHEN ventas_anterior = 0 THEN NULL
+            ELSE ((ventas_actual - ventas_anterior) / ventas_anterior) * 100
+        END AS crecimiento_pct
+    UNION ALL
+    SELECT
+        'Periodo Anterior' AS periodo,
+        ventas_anterior AS ventas_totales,
+        NULL AS crecimiento_abs,
+        NULL AS crecimiento_pct;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_ticket_promedio();
+
+CREATE OR REPLACE FUNCTION fn_get_ticket_promedio()
+RETURNS DECIMAL
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    ticket_promedio_total DECIMAL;
+BEGIN
+    -- Calcular el valor promedio de todas las ventas completadas
+    SELECT COALESCE(AVG(v.monto_total), 0)
+    INTO ticket_promedio_total
+    FROM venta v
+    WHERE v.id IN (
+        SELECT sv.fk_venta
+        FROM status_venta sv
+        JOIN status s ON sv.fk_status = s.id
+        JOIN venta v_check ON sv.fk_venta = v_check.id
+        WHERE sv.fk_venta IS NOT NULL
+          AND (
+                (v_check.fk_tienda_web IS NOT NULL AND s.nombre = 'Despachando')
+                OR
+                (v_check.fk_tienda_fisica IS NOT NULL AND s.nombre = 'Completado')
+          )
+    );
+
+    RETURN ticket_promedio_total;
+END;
+$$; 

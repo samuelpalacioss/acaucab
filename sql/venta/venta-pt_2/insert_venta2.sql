@@ -14,19 +14,19 @@
  */
 INSERT INTO venta_evento (
     monto_total,
-    fk_cliente_juridico,
-    fk_cliente_natural
+    fk_evento_cliente_1
+    fk_evento_cliente_2
 ) VALUES
-    (450.00, 1, NULL),        /** Venta a cliente jurídico */
-    (280.50, NULL, 1),        /** Venta a cliente natural */
-    (650.75, 2, NULL),        /** Venta a cliente jurídico */
-    (320.25, 2, NULL),        /** Venta a cliente natural */
-    (890.00, 3, NULL),        /** Venta a cliente jurídico */
-    (150.00, 3, NULL),        /** Venta a cliente natural */
-    (750.50, 4, NULL),        /** Venta a cliente jurídico */
-    (420.75, 4, NULL),        /** Venta a cliente natural */
-    (580.25, 5, NULL),        /** Venta a cliente jurídico */
-    (290.00, 5, NULL);        /** Venta a cliente natural */
+    (450.00, 1, 1),        /** Venta a cliente jurídico */
+    (280.50, 2, 2),        /** Venta a cliente natural */
+    (650.75, 3, 3),        /** Venta a cliente jurídico */
+    (320.25, 4, 4),        /** Venta a cliente natural */
+    (890.00, 5, 5),        /** Venta a cliente jurídico */
+    (150.00, 6, 6),        /** Venta a cliente natural */
+    (750.50, 7, 7),        /** Venta a cliente jurídico */
+    (420.75, 8, 8),        /** Venta a cliente natural */
+    (580.25, 9, 9),        /** Venta a cliente jurídico */
+    (290.00, 10, 10);        /** Venta a cliente natural */
 
 /**
  * Inserción de órdenes de compra
@@ -72,9 +72,9 @@ INSERT INTO orden_de_compra (
 INSERT INTO detalle_evento (
     cantidad,
     precio_unitario,
+    fk_stock_miembro_3,      /** naturaleza_rif (CHAR) - 3º en clave primaria stock_miembro */
     fk_stock_miembro_1,      /** evento (INTEGER) - 1º en clave primaria stock_miembro */
     fk_stock_miembro_2,      /** rif (INTEGER) - 2º en clave primaria stock_miembro */
-    fk_stock_miembro_3,      /** naturaleza_rif (CHAR) - 3º en clave primaria stock_miembro */
     fk_venta_evento,         /** id_venta (INTEGER) */
     fk_stock_miembro_4,      /** sku (VARCHAR) - 4º en clave primaria stock_miembro */
     fk_stock_miembro_5       /** id_cerveza (INTEGER) - 5º en clave primaria stock_miembro */

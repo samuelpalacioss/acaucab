@@ -54,4 +54,34 @@ public class ReporteController {
             }
         }
     }
+
+    @GetMapping("/reporte/nivel-stock")
+    public void generarReporteNivelStock(HttpServletResponse response) {
+        Connection conn = null;
+        try {
+            InputStream jasperStream = getClass().getResourceAsStream("/nivel-stock.jasper");
+            if (jasperStream == null) {
+                throw new RuntimeException("No se encontró el archivo nivel-stock.jasper");
+            }
+            Map<String, Object> parametros = new HashMap<>();
+
+            conn = dataSource.getConnection();
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperStream, parametros, conn);
+
+            response.setContentType("application/pdf");
+            response.setHeader("Content-Disposition", "attachment; filename=\"nivel-stock.pdf\"");
+            JasperExportManager.exportReportToPdfStream(jasperPrint, response.getOutputStream());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(500);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
 }

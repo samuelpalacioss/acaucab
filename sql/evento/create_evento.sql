@@ -59,8 +59,8 @@ CREATE TABLE evento (
     nombre            VARCHAR(100) NOT NULL,
     descripción       VARCHAR(500) NOT NULL,
     dirección         VARCHAR(255) NOT NULL,
-    fecha_hora_inicio DATE NOT NULL,
-    fecha_hora_fin    DATE NOT NULL,
+    fecha_hora_inicio TIMESTAMP NOT NULL,
+    fecha_hora_fin    TIMESTAMP NOT NULL,
     precio_entrada    FLOAT(2),
     fk_tipo_evento    INTEGER NOT NULL,
     fk_lugar          INTEGER NOT NULL,
@@ -83,8 +83,8 @@ CREATE TABLE evento (
  * @param fk_invitado - Referencia al invitado
  */
 CREATE TABLE invitado_evento (
-    fecha_hora_entrada DATE,
-    fecha_hora_salida  DATE,
+    fecha_hora_entrada TIMESTAMP,
+    fecha_hora_salida  TIMESTAMP,
     fk_evento          INTEGER NOT NULL,
     fk_invitado        INTEGER NOT NULL,
     CONSTRAINT invitado_evento_pk PRIMARY KEY (fk_evento, fk_invitado),
@@ -99,10 +99,11 @@ CREATE TABLE invitado_evento (
  * @param fk_cliente_natural - Referencia al cliente natural (debe ser NULL si hay cliente jurídico)
  */
 CREATE TABLE evento_cliente (
+    id SERIAL,
     fk_evento           INTEGER NOT NULL,
     fk_cliente_juridico INTEGER,
     fk_cliente_natural  INTEGER,
-    CONSTRAINT evento_cliente_pk PRIMARY KEY (fk_evento),
+    CONSTRAINT evento_cliente_pk PRIMARY KEY (id,fk_evento),
     CONSTRAINT evento_cliente_evento_fk FOREIGN KEY (fk_evento) REFERENCES evento(id),
     CONSTRAINT evento_cliente_juridico_fk FOREIGN KEY (fk_cliente_juridico) REFERENCES cliente_juridico(id),
     CONSTRAINT evento_cliente_natural_fk FOREIGN KEY (fk_cliente_natural) REFERENCES cliente_natural(id),

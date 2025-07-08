@@ -12,6 +12,7 @@ CREATE TABLE venta (
     fk_lugar            INTEGER,                         /** Clave foránea del lugar de entrega (tipo: INTEGER) */
     fk_cliente_juridico INTEGER,                         /** Clave foránea del cliente jurídico (tipo: INTEGER) */
     fk_cliente_natural  INTEGER,                         /** Clave foránea del cliente natural (tipo: INTEGER) */
+    fk_empleado         INTEGER,                         /** Clave foránea del empleado (tipo: INTEGER) */
     fk_tienda_fisica    INTEGER,                /** Clave foránea de la tienda física (tipo: INTEGER) */
     fk_tienda_web       INTEGER,                /** Clave foránea de la tienda web (tipo: INTEGER) */
     
@@ -21,6 +22,11 @@ CREATE TABLE venta (
     /** Constraint para asegurar que ventas en tienda física no tengan dirección de entrega */
     CONSTRAINT venta_tienda_fisica_direccion CHECK (
         (fk_tienda_fisica IS NULL) OR (dirección_entrega IS NULL)
+    ),
+    
+    /** Constraint para asegurar que el empleado solo se asigne en ventas de tienda física */
+    CONSTRAINT venta_empleado_tienda_fisica_check CHECK (
+        (fk_empleado IS NULL) OR (fk_tienda_fisica IS NOT NULL)
     ),
     
     /** Constraint de arco integral: relación entre tipo de tienda y tipo de comprador */

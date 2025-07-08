@@ -48,6 +48,37 @@ export async function llamarFuncionSingle<T = any>(
 }
 
 /**
+ * Llamar una función de PostgreSQL que retorna un valor escalar (número, string, etc.)
+ * 
+ * @param nombreFuncion - Nombre de la función en PostgreSQL
+ * @param parametros - Parámetros para la función
+ */
+export async function llamarFuncionEscalar<T = any>(
+  nombreFuncion: string,
+  parametros: Record<string, any> = {}
+): Promise<T> {
+  try {
+    const resultado = await llamarFuncion<any>(nombreFuncion, parametros)
+
+    if (!resultado || resultado.length === 0) {
+      return null as T
+    }
+
+    const primerRegistro = resultado[0]
+    const claves = Object.keys(primerRegistro)
+
+    if (claves.length > 0) {
+      return primerRegistro[claves[0]] as T
+    }
+
+    return null as T
+  } catch (error: any) {
+    console.error(`Error al llamar ${nombreFuncion}:`, error)
+    throw error
+  }
+}
+
+/**
  * ACCIONES DE AUTENTICACIÓN
  */
 
@@ -314,5 +345,253 @@ export async function actualizarEstadoOrdenCompra(
     console.error('Error al actualizar estado de orden de compra:', error);
     throw new Error(`Error al actualizar estado: ${error.message}`);
   }
+}
+
+/**
+ * Obtener estadísticas de ventas por empleado usando la función fn_get_stats_tienda_empleado
+ * 
+ * @returns Array con las estadísticas de ventas por empleado
+ */
+export async function obtenerEstadisticasVentasPorEmpleado(): Promise<any[]> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_get_stats_tienda_empleado')
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener estadísticas de ventas por empleado:', error)
+    throw new Error('Error al cargar estadísticas de ventas por empleado')
+  }
+}
+
+/**
+ * Obtener información de un empleado por ID usando la función fn_get_empleado_info_by_id
+ * 
+ * @param empleadoId - ID del empleado
+ * @returns Información del empleado o null si no existe
+ */
+export async function obtenerInformacionEmpleadoPorId(empleadoId: number): Promise<any | null> {
+  try {
+    const resultado = await llamarFuncionSingle<any>('fn_get_empleado_info_by_id', {
+      p_empleado_id: empleadoId
+    })
+    return resultado
+  } catch (error: any) {
+    console.error(`Error al obtener información del empleado ${empleadoId}:`, error)
+    throw new Error('Error al cargar información del empleado')
+  }
+}
+
+/**
+ * Obtener tasa de ruptura de stock usando la función fn_calcular_tasa_ruptura_stock
+ * 
+ * @param tiendaId - ID de la tienda (opcional, null para todas las tiendas)
+ * @param tipoCalculo - 'global' o 'tienda'
+ * @returns Array con las estadísticas de tasa de ruptura
+ */
+export async function obtenerTasaRupturaStock(
+  tiendaId: number | null = null,
+  tipoCalculo: 'global' | 'tienda' = 'global'
+): Promise<any[]> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_calcular_tasa_ruptura_stock', {
+      p_tienda_id: tiendaId,
+      p_tipo_calculo: tipoCalculo
+    })
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener tasa de ruptura de stock:', error)
+    throw new Error('Error al cargar estadísticas de tasa de ruptura de stock')
+  }
+}
+
+/**
+ * Obtener tasa de ruptura global usando la función fn_tasa_ruptura_global
+ * 
+ * @param tiendaId - ID de la tienda (opcional, null para todas las tiendas)
+ * @returns Array con las estadísticas de tasa de ruptura global
+ */
+export async function obtenerTasaRupturaGlobal(
+  tiendaId: number | null = null
+): Promise<any[]> {
+  try {
+    const resultado = await llamarFuncion<any>('fn_tasa_ruptura_global', {
+      p_tienda_id: tiendaId
+    })
+    return resultado || []
+  } catch (error: any) {
+    console.error('Error al obtener tasa de ruptura global:', error)
+    throw new Error('Error al cargar estadísticas de tasa de ruptura global')
+  }
+}
+
+/**
+ * Obtener rotación de inventario usando la función fn_rotacion_inventario
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Valor numérico de la rotación de inventario
+ */
+export async function obtenerRotacionInventario(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    const resultado = await llamarFuncionEscalar<number>('fn_rotacion_inventario', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+    
+    // La función devuelve directamente el valor numérico
+    return resultado || 0
+  } catch (error: any) {
+    console.error('Error al obtener rotación de inventario:', error)
+    throw new Error('Error al cargar estadísticas de rotación de inventario')
+  }
+}
+
+/**
+ * Acción del servidor para obtener rotación de inventario (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Valor numérico de la rotación de inventario
+ */
+export async function obtenerRotacionInventarioAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server'
+  return await obtenerRotacionInventario(fechaInicio, fechaFin);
+}
+ 
+/**
+ * Obtener tasa de retención de clientes usando la función fn_retencion_clientes
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Porcentaje de retención de clientes
+ */
+export async function obtenerRetencionClientes(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    const resultado = await llamarFuncionEscalar<number>('fn_retencion_clientes', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+    
+    // La función devuelve directamente el valor numérico del porcentaje
+    return resultado || 0
+  } catch (error: any) {
+    console.error('Error al obtener retención de clientes:', error)
+    throw new Error('Error al cargar estadísticas de retención de clientes')
+  }
+}
+
+/**
+ * Acción del servidor para obtener retención de clientes (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Porcentaje de retención de clientes
+ */
+export async function obtenerRetencionClientesAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server'
+  return await obtenerRetencionClientes(fechaInicio, fechaFin);
+}
+ 
+/**
+ * Obtener estadísticas de clientes nuevos vs. recurrentes
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Objeto con el conteo de clientes nuevos y recurrentes
+ */
+export async function obtenerNuevosClientesStats(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<{ nuevos: number; recurrentes: number }> {
+  try {
+    const resultado = await llamarFuncionSingle<{ nuevos: number; recurrentes: number }>('fn_nuevos_clientes_stats', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+    
+    return resultado || { nuevos: 0, recurrentes: 0 };
+  } catch (error: any) {
+    console.error('Error al obtener estadísticas de nuevos clientes:', error)
+    throw new Error('Error al cargar estadísticas de nuevos clientes')
+  }
+}
+
+/**
+ * Acción del servidor para obtener estadísticas de clientes nuevos (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Objeto con el conteo de clientes nuevos y recurrentes
+ */
+export async function obtenerNuevosClientesStatsAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<{ nuevos: number; recurrentes: number }> {
+  'use server'
+  return await obtenerNuevosClientesStats(fechaInicio, fechaFin);
+}
+  
+/**
+ * Obtener estadísticas de ventas por estilo de cerveza
+ * 
+ * @returns Array con los estilos de cerveza y el total vendido
+ */
+export async function obtenerVentasPorEstilo(): Promise<{ estilo_cerveza: string; total_vendido: number }[]> {
+  try {
+    const resultado = await llamarFuncion<{ estilo_cerveza: string; total_vendido: number }>('fn_estilos_stats');
+    return resultado || [];
+  } catch (error: any) {
+    console.error('Error al obtener estadísticas de ventas por estilo:', error);
+    throw new Error('Error al cargar estadísticas de ventas por estilo');
+  }
+}
+
+/**
+ * Obtener el volumen total de unidades vendidas en un período.
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns El número total de unidades vendidas
+ */
+export async function obtenerVolumenDeVentas(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    const resultado = await llamarFuncionEscalar<number>('fn_volumen_ventas', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    });
+    return resultado || 0;
+  } catch (error: any) {
+    console.error('Error al obtener el volumen de ventas:', error);
+    throw new Error('Error al cargar el volumen de ventas');
+  }
+}
+
+/**
+ * Acción del servidor para obtener el volumen de ventas (llamable desde cliente).
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns El número total de unidades vendidas
+ */
+export async function obtenerVolumenDeVentasAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server';
+  return await obtenerVolumenDeVentas(fechaInicio, fechaFin);
 }
  

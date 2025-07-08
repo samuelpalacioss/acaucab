@@ -9,6 +9,7 @@ CREATE OR REPLACE FUNCTION fn_actualizar_monto_total_venta()
 RETURNS TRIGGER AS $$
 DECLARE
     v_venta_id INTEGER;
+    v_subtotal DECIMAL;
 BEGIN
     /*
      Determina el ID de la venta a actualizar.
@@ -18,14 +19,19 @@ BEGIN
     END IF;
 
     /*
-      Actualizar la venta con el nuevo monto total, incluyendo el 16% de IVA.
+      Calcula el subtotal de todos los items en la venta.
+    */
+    SELECT COALESCE(SUM(cantidad * precio_unitario), 0)
+    INTO v_subtotal
+    FROM detalle_presentacion
+    WHERE fk_venta = v_venta_id;
+    
+    /*
+      Actualizar la venta con el nuevo monto total,
+      incluyendo el 16% de IVA sobre el subtotal.
     */
     UPDATE venta
-    SET monto_total = (
-        SELECT COALESCE(SUM(cantidad * precio_unitario), 0) * 1.16
-        FROM detalle_presentacion
-        WHERE fk_venta = v_venta_id
-    )
+    SET monto_total = (v_subtotal * 1.16)
     WHERE id = v_venta_id;
 
     RETURN NULL;

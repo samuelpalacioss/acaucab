@@ -1,5 +1,5 @@
 <!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
-<jasperReport name="IncumplimientosDeHorario" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dd509127-2df5-43b1-9d97-a674ce9776c7">
+<jasperReport name="tendenciaVentas" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dd509127-2df5-43b1-9d97-a674ce9776c7">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ACAUCAB"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -12,24 +12,6 @@
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<style name="Table 2_TH" mode="Opaque" backcolor="#4B0082">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Table 2_CH" mode="Opaque" backcolor="#CCCCCC">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Table 2_TD" mode="Opaque" backcolor="#FFFFFF">
 		<box>
 			<pen lineWidth="0.5" lineColor="#000000"/>
 			<topPen lineWidth="0.5" lineColor="#000000"/>
@@ -65,15 +47,6 @@
 			<rightPen lineWidth="0.5" lineColor="#000000"/>
 		</box>
 	</style>
-	<style name="Table 1_TH" mode="Opaque" backcolor="#F0F8FF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
 	<style name="Table 1_CH" mode="Opaque" backcolor="#BFE1FF">
 		<box>
 			<pen lineWidth="0.5" lineColor="#000000"/>
@@ -83,115 +56,21 @@
 			<rightPen lineWidth="0.5" lineColor="#000000"/>
 		</box>
 	</style>
-	<style name="Table 1_TD" mode="Opaque" backcolor="#FFFFFF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<dataset name="Puntualidad" uuid="2950c535-987a-414f-b7aa-63a4046982e3">
+	<dataset name="GrafVentas" uuid="2950c535-987a-414f-b7aa-63a4046982e3">
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ACAUCAB"/>
 		<parameter name="fechaInicio" class="java.sql.Date" nestedType="java.sql.Date"/>
 		<parameter name="fechaFin" class="java.sql.Date"/>
-		<query language="SQL"><![CDATA[select c.id, c.nombre "Nombre Cargo", round(avg(e.llegadas),0) "Llegadas Tardes Promedio", round(avg(e.salidas), 0) "Salidas Tempranas Promedio", round(avg(e.incumplimientos),0) "Impuntualidades Promedio", round(avg(e.puntualidades),0) "Puntualidades Promedio"
-from cargo c
-join (select c.id codigo, c.nombre nombre, n.fk_empleado empleado,COALESCE(l.llegadas, 0) AS llegadas, COALESCE(s.salidas, 0) AS salidas,
-      COALESCE(l.llegadas, 0) + COALESCE(s.salidas, 0) AS incumplimientos,COALESCE(p.puntualidad, 0) as puntualidades
-      from cargo c
-      join nomina n on c.id= n.fk_cargo
-      left join (select c.id cod, c.nombre nc,n.fk_empleado empl,  count(*) llegadas
-                  from cargo c
-                  join nomina n on n.fk_cargo = c.id
-                  join horario_nomina hn on hn.fk_nomina_2 = n.fk_empleado and hn.fk_nomina_1 = n.id
-                  join horario h on h.id = hn.fk_horario 
-                  join registro_biometrico rb on rb.fk_empleado = n.fk_empleado
-                  where 
-                        rb.fecha_hora_entrada::date between $P{fechaInicio} and $P{fechaFin}
-                        and rb.fecha_hora_entrada::date >= n.fecha_inicio and  (n.fecha_fin is null or rb.fecha_hora_entrada::date <= n.fecha_fin)
-                        AND CASE EXTRACT(DOW FROM rb.fecha_hora_entrada)
-                              WHEN 0 THEN 'domingo'
-                              WHEN 1 THEN 'lunes'
-                              WHEN 2 THEN 'martes'
-                              WHEN 3 THEN 'miércoles'
-                              WHEN 4 THEN 'jueves'
-                              WHEN 5 THEN 'viernes'
-                              WHEN 6 THEN 'sabado'
-                        END = h.dia
-                        AND rb.fecha_hora_entrada::time > h.hora_entrada
-                  group by cod, nc, empl) l on l.cod = c.id and n.fk_empleado=l.empl
-      left join (select c.id cod, c.nombre nc,n.fk_empleado empl,  count(*) salidas
-                  from cargo c
-                  join nomina n on n.fk_cargo = c.id
-                  join horario_nomina hn on hn.fk_nomina_2 = n.fk_empleado and hn.fk_nomina_1 = n.id
-                  join horario h on h.id = hn.fk_horario 
-                  join registro_biometrico rb on rb.fk_empleado = n.fk_empleado
-                  where 
-                        rb.fecha_hora_entrada::date between $P{fechaInicio} and $P{fechaFin}
-                        and rb.fecha_hora_salida::date >= n.fecha_inicio and  (n.fecha_fin is null or rb.fecha_hora_salida::date <= n.fecha_fin)
-                        AND CASE EXTRACT(DOW FROM rb.fecha_hora_salida)
-                              WHEN 0 THEN 'domingo'
-                              WHEN 1 THEN 'lunes'
-                              WHEN 2 THEN 'martes'
-                              WHEN 3 THEN 'miércoles'
-                              WHEN 4 THEN 'jueves'
-                              WHEN 5 THEN 'viernes'
-                              WHEN 6 THEN 'sabado'
-                        END = h.dia
-                        AND rb.fecha_hora_salida::time < h.hora_salida
-                  group by cod, nc, empl) s on s.cod = c.id and n.fk_empleado=s.empl
-      left join(select c.id cod, c.nombre nc ,n.fk_empleado empl,  count(*) puntualidad
-                  from cargo c
-                  join nomina n on n.fk_cargo = c.id
-                  join horario_nomina hn on hn.fk_nomina_2 = n.fk_empleado and hn.fk_nomina_1 = n.id
-                  join horario h on h.id = hn.fk_horario 
-                  join registro_biometrico rb on rb.fk_empleado = n.fk_empleado
-                  where 
-                        rb.fecha_hora_salida::date between $P{fechaInicio} and $P{fechaFin}
-                        and rb.fecha_hora_salida::date >= n.fecha_inicio and  (n.fecha_fin is null or rb.fecha_hora_salida::date <= n.fecha_fin)
-                        AND CASE EXTRACT(DOW FROM rb.fecha_hora_salida)
-                              WHEN 0 THEN 'domingo'
-                              WHEN 1 THEN 'lunes'
-                              WHEN 2 THEN 'martes'
-                              WHEN 3 THEN 'miércoles'
-                              WHEN 4 THEN 'jueves'
-                              WHEN 5 THEN 'viernes'
-                              WHEN 6 THEN 'sabado'
-                        END = h.dia
-                        AND rb.fecha_hora_salida::time >= h.hora_salida
-                        and rb.fecha_hora_entrada::time <= h.hora_entrada
-                  group by cod, nc,empl) p on p.cod = c.id and n.fk_empleado=p.empl) e on e.codigo = c.id
-group by c.id, c.nombre
-order by "Puntualidades Promedio" desc,"Impuntualidades Promedio" asc;]]></query>
-		<field name="id" class="java.lang.Integer">
-			<property name="com.jaspersoft.studio.field.name" value="id"/>
-			<property name="com.jaspersoft.studio.field.label" value="id"/>
-			<property name="com.jaspersoft.studio.field.tree.path" value="cargo"/>
-		</field>
-		<field name="Nombre Cargo" class="java.lang.String">
-			<property name="com.jaspersoft.studio.field.name" value="Nombre Cargo"/>
-			<property name="com.jaspersoft.studio.field.label" value="Nombre Cargo"/>
-			<property name="com.jaspersoft.studio.field.tree.path" value="cargo"/>
-		</field>
-		<field name="Llegadas Tardes Promedio" class="java.math.BigDecimal">
-			<property name="com.jaspersoft.studio.field.name" value="Llegadas Tardes Promedio"/>
-			<property name="com.jaspersoft.studio.field.label" value="Llegadas Tardes Promedio"/>
-		</field>
-		<field name="Salidas Tempranas Promedio" class="java.math.BigDecimal">
-			<property name="com.jaspersoft.studio.field.name" value="Salidas Tempranas Promedio"/>
-			<property name="com.jaspersoft.studio.field.label" value="Salidas Tempranas Promedio"/>
-		</field>
-		<field name="Impuntualidades Promedio" class="java.math.BigDecimal">
-			<property name="com.jaspersoft.studio.field.name" value="Impuntualidades Promedio"/>
-			<property name="com.jaspersoft.studio.field.label" value="Impuntualidades Promedio"/>
-		</field>
-		<field name="Puntualidades Promedio" class="java.math.BigDecimal">
-			<property name="com.jaspersoft.studio.field.name" value="Puntualidades Promedio"/>
-			<property name="com.jaspersoft.studio.field.label" value="Puntualidades Promedio"/>
-		</field>
+		<query language="SQL"><![CDATA[Select DATE_TRUNC('day', sv.fecha_actualización) as "Fecha de Venta", COUNT(*) as "Total de Ventas", SUM(v.monto_total) as "Ingresos" 
+from status_venta sv
+left join venta as v ON v.id = sv.fk_venta
+left join status s ON s.id = sv.fk_status
+WHERE sv.fecha_actualización::date between $P{fechaInicio} and $P{fechaFin}
+group by "Fecha de Venta"
+order by "Fecha de Venta";]]></query>
+		<field name="Fecha de Venta" class="java.lang.String"/>
+		<field name="Total de Ventas" class="java.lang.Integer"/>
+		<field name="Ingresos" class="java.lang.Float"/>
 	</dataset>
 	<parameter name="fechaInicio" class="java.sql.Date"/>
 	<parameter name="fechaFin" class="java.sql.Date"/>
@@ -210,6 +89,9 @@ limit 1;
 		<property name="com.jaspersoft.studio.field.label" value="ID"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="tienda_fisica"/>
 	</field>
+	<field name="Fecha de Venta" class="java.lang.String"/>
+	<field name="Total de Ventas" class="java.lang.Integer"/>
+	<field name="Ingresos" class="java.lang.Float"/>
 	<background splitType="Stretch"/>
 	<title height="212" splitType="Stretch">
 		<element kind="image" uuid="6c1db6a7-24f5-4c47-8b9f-a51c3ccbb45b" x="0" y="0" width="150" height="60">
@@ -231,7 +113,7 @@ limit 1;
 			<expression><![CDATA[new java.util.Date()]]></expression>
 		</element>
 		<element kind="staticText" uuid="b6383d7c-3040-4bf1-a51a-26d5ca3ba45e" x="0" y="130" width="559" height="40" forecolor="#030303" fontSize="25.0" bold="true" hTextAlign="Center">
-			<text><![CDATA[Puntualidad por Cargo]]></text>
+			<text><![CDATA[Gráfico de Tendencia por Ventas]]></text>
 		</element>
 		<element kind="line" uuid="95c8f790-13df-48fe-ba3d-8339227aeb18" x="0" y="120" width="559" height="1"/>
 		<element kind="textField" uuid="28dd85eb-6790-4bcc-b90a-fd9d6d5b5007" x="134" y="170" width="130" height="30" fontSize="16.0" pattern="dd/MM/yyyy" linkType="None" linkTarget="Self" italic="true" hTextAlign="Right">
@@ -245,84 +127,17 @@ limit 1;
 		</element>
 	</title>
 	<detail>
-		<band height="60" splitType="Stretch">
-			<element kind="component" uuid="a8a3258f-ff16-444f-aea4-91589d9d3ae5" x="0" y="0" width="559" height="60">
-				<component kind="table">
-					<datasetRun uuid="c7f6edbe-d61b-42de-833f-2d02d7db0a5a" subDataset="Puntualidad">
-						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-						<parameter name="fechaInicio">
-							<expression><![CDATA[$P{fechaInicio}]]></expression>
-						</parameter>
-						<parameter name="fechaFin">
-							<expression><![CDATA[$P{fechaFin}]]></expression>
-						</parameter>
-					</datasetRun>
-					<column kind="single" uuid="8ad1b13a-a698-4a90-8082-24a29b46b146" width="114">
-						<columnHeader height="30" style="Table 1_CH">
-							<element kind="staticText" uuid="8f4d829b-256b-425d-b284-0272b14d9b5e" x="0" y="0" width="114" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
-								<text><![CDATA[Nombre Cargo]]></text>
-							</element>
-						</columnHeader>
-						<detailCell height="30" style="Table 1_TD">
-							<element kind="textField" uuid="52650b11-bf7d-40b0-8c8f-906ce5b9d14a" stretchType="ContainerHeight" x="0" y="0" width="114" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
-								<expression><![CDATA[$F{Nombre Cargo}]]></expression>
-							</element>
-						</detailCell>
-					</column>
-					<column kind="single" uuid="53cf5187-d343-4757-a57b-ab34de770bf3" width="114">
-						<columnHeader height="30" style="Table 1_CH">
-							<element kind="staticText" uuid="ddbf1421-3b35-4286-856c-c4d8ddaf7bf3" x="0" y="0" width="114" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
-								<text><![CDATA[Llegadas Tardes Promedio]]></text>
-							</element>
-						</columnHeader>
-						<detailCell height="30" style="Table 1_TD">
-							<element kind="textField" uuid="dd478056-ae42-4ea2-adc9-108c07aaeedf" stretchType="ContainerHeight" x="0" y="0" width="114" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
-								<expression><![CDATA[$F{Llegadas Tardes Promedio}]]></expression>
-							</element>
-						</detailCell>
-					</column>
-					<column kind="single" uuid="8356865d-974d-4ddd-bf18-15926b78076c" width="111">
-						<columnHeader height="30" style="Table 1_CH">
-							<element kind="staticText" uuid="6a8d0027-d9a9-4a2c-8553-88256d9995fa" x="0" y="0" width="111" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
-								<text><![CDATA[Salidas Tempranas Promedio]]></text>
-							</element>
-						</columnHeader>
-						<detailCell height="30" style="Table 1_TD">
-							<element kind="textField" uuid="9478b8ae-c26c-4329-bc88-ac9af19b90a2" stretchType="ContainerHeight" x="0" y="0" width="111" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
-								<expression><![CDATA[$F{Salidas Tempranas Promedio}]]></expression>
-							</element>
-						</detailCell>
-					</column>
-					<column kind="single" uuid="bd12ade1-15d3-4b03-95ea-fd4e0794fbd4" width="110">
-						<columnHeader height="30" style="Table 1_CH">
-							<element kind="staticText" uuid="014b5a73-4c67-4a8a-8303-1b98ea0743b5" x="0" y="0" width="110" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
-								<text><![CDATA[Impuntualidades Promedio]]></text>
-							</element>
-						</columnHeader>
-						<detailCell height="30" style="Table 1_TD">
-							<element kind="textField" uuid="43992076-5156-48d7-bfb5-80cedb500e7a" stretchType="ContainerHeight" x="0" y="0" width="110" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
-								<expression><![CDATA[$F{Impuntualidades Promedio}]]></expression>
-							</element>
-						</detailCell>
-					</column>
-					<column kind="single" uuid="5fe3103f-2a5d-4276-81c1-41553ee63e72" width="110">
-						<columnHeader height="30" style="Table 1_CH">
-							<element kind="staticText" uuid="d3d5cfbd-141c-4cd6-a3b4-e38a5ca16b29" x="0" y="0" width="110" height="30" hTextAlign="Center" vTextAlign="Middle" style="Table 2_CH">
-								<text><![CDATA[Puntualidades Promedio]]></text>
-							</element>
-						</columnHeader>
-						<detailCell height="30" style="Table 1_TD">
-							<element kind="textField" uuid="90d6c57b-95f4-41ea-8261-d73a81ef4960" stretchType="ContainerHeight" x="0" y="0" width="110" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle" style="Table 2_TD">
-								<expression><![CDATA[$F{Puntualidades Promedio}]]></expression>
-							</element>
-						</detailCell>
-					</column>
-				</component>
-				<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
-				<property name="com.jaspersoft.studio.table.style.table_header" value="Table 1_TH"/>
-				<property name="com.jaspersoft.studio.table.style.column_header" value="Table 1_CH"/>
-				<property name="com.jaspersoft.studio.table.style.detail" value="Table 1_TD"/>
-				<property name="com.jaspersoft.studio.components.autoresize.proportional" value="true"/>
+		<band height="228" splitType="Stretch">
+			<element kind="chart" chartType="line" uuid="8f3a8631-6c23-4341-89ab-31b21f82d33e" x="10" y="28" width="535" height="200" evaluationTime="Report">
+				<dataset kind="category">
+					<series>
+						<seriesExpression><![CDATA["Gráfico de Ventas"]]></seriesExpression>
+						<categoryExpression><![CDATA[0]]></categoryExpression>
+						<valueExpression><![CDATA[$F{Fecha de Venta} ]]></valueExpression>
+						<labelExpression><![CDATA[$F{Total de Ventas}]]></labelExpression>
+					</series>
+				</dataset>
+				<plot categoryAxisLabelColor="#000000" categoryAxisTickLabelColor="#000000" categoryAxisLineColor="#000000" valueAxisLabelColor="#000000" valueAxisTickLabelColor="#000000" valueAxisLineColor="#000000"/>
 			</element>
 		</band>
 	</detail>
