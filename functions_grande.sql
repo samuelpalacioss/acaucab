@@ -3479,3 +3479,333 @@ BEGIN
     RETURN ticket_promedio_total;
 END;
 $$; 
+
+CREATE OR REPLACE FUNCTION fn_volumen_ventas(p_fecha_inicio DATE, p_fecha_fin DATE)
+RETURNS BIGINT AS $$
+DECLARE
+    v_total_unidades_vendidas BIGINT;
+BEGIN
+    /**
+     * Tarea: Volumen de Unidades Vendidas
+     * Muestra la cantidad total de cervezas (botellas, latas, etc.) vendidas en un período.
+     */
+    SELECT
+        COALESCE(SUM(dp.cantidad * pres.unidades), 0)::BIGINT
+    INTO v_total_unidades_vendidas
+    FROM detalle_presentacion dp
+    JOIN presentacion pres ON dp.fk_presentacion = pres.id
+    JOIN venta v ON dp.fk_venta = v.id
+    JOIN pago p ON p.fk_venta = v.id
+    WHERE p.fecha_pago::date BETWEEN p_fecha_inicio AND p_fecha_fin;
+
+    RETURN v_total_unidades_vendidas;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS fn_get_presentaciones_disponibles_web(INTEGER);
+
+CREATE OR REPLACE FUNCTION fn_get_presentaciones_disponibles_web(
+    p_id_tienda_web INTEGER DEFAULT 1
+)
+RETURNS TABLE (
+    sku VARCHAR,              -- SKU de la presentación
+    nombre_cerveza VARCHAR,   -- Nombre de la cerveza 
+    presentacion VARCHAR,   -- Nombre de la presentación
+    precio DECIMAL,            -- Precio de la presentación
+    id_tipo_cerveza INTEGER,  -- ID del tipo de cerveza
+    tipo_cerveza VARCHAR,     -- Nombre del tipo de cerveza
+    stock_total INTEGER,      -- Stock total (cantidad en el inventario del almacén)
+    marca VARCHAR,            -- Marca (denominación comercial del miembro)
+    imagen VARCHAR,            -- URL de la imagen
+    presentacion_id INTEGER,
+    cerveza_id INTEGER
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        pc.sku, -- SKU de la presentación
+        c.nombre, -- Nombre de la cerveza 
+        pr.nombre, -- Nombre de la presentación
+        pc.precio::DECIMAL, -- Precio de la presentación
+        tc.id, -- ID del tipo de cerveza
+        tc.nombre, -- Nombre del tipo de cerveza
+        -- Stock total es la cantidad en el inventario del almacén
+        COALESCE(i.cantidad_almacen, 0) AS stock_total,
+        m.denominación_comercial, -- Marca (denominación comercial del miembro)
+        pc.imagen, -- URL de la imagen
+        pr.id as presentacion_id,
+        c.id as cerveza_id
+    FROM tienda_web tw
+    -- Unir almacenes de la tienda web
+    JOIN almacen a ON tw.id = a.fk_tienda_web
+    -- Unir inventario de cada almacén
+    JOIN inventario i ON a.id = i.fk_almacen
+    -- Unir presentacion_cerveza
+    JOIN presentacion_cerveza pc ON i.fk_presentacion_cerveza_1 = pc.fk_presentacion 
+    AND i.fk_presentacion_cerveza_2 = pc.fk_cerveza
+    -- Unir presentacion
+    JOIN presentacion pr ON pc.fk_presentacion = pr.id
+    -- Unir cerveza
+    JOIN cerveza c ON pc.fk_cerveza = c.id
+    -- Unir tipo_cerveza
+    JOIN tipo_cerveza tc ON c.fk_tipo_cerveza = tc.id
+    -- Unir miembro_presentacion_cerveza para obtener la marca
+    LEFT JOIN miembro_presentacion_cerveza mpc ON 
+        pc.fk_presentacion = mpc.fk_presentacion_cerveza_1 AND 
+        pc.fk_cerveza = mpc.fk_presentacion_cerveza_2
+    -- Unir miembro para obtener la denominación comercial
+    LEFT JOIN miembro m ON mpc.fk_miembro_1 = m.rif AND mpc.fk_miembro_2 = m.naturaleza_rif
+    -- Trae todas las presentaciones disponibles en la tienda web
+    WHERE 
+        tw.id = p_id_tienda_web 
+        -- Stock total debe ser mayor o igual a 1
+        AND COALESCE(i.cantidad_almacen, 0) >= 1
+    ORDER BY c.nombre; -- Ordenar por nombre_cerveza
+END;
+$$ language plpgsql;
+
+DROP FUNCTION IF EXISTS fn_get_all_eventos();
+CREATE OR REPLACE FUNCTION fn_get_all_eventos()
+RETURNS TABLE(
+  id int4,
+  nombre varchar,
+  direccion varchar,
+  tipo varchar,
+  fecha_hora_inicio timestamp,
+  fecha_hora_fin timestamp,
+  precio_entrada float4,
+  asistencia bigint,
+  entradas_vendidas bigint
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT e.id id, e.nombre nombre, e.dirección direccion, t.nombre tipo, e.fecha_hora_inicio , e.fecha_hora_fin, e.precio_entrada precio_entrada,
+    (SELECT count(*) FROM evento_cliente WHERE fk_evento=e.id) asistencia,
+    (SELECT count(*) FROM venta_evento ve WHERE ve.fk_evento_cliente_2=e.id AND NOT EXISTS (
+      SELECT * FROM detalle_evento WHERE fk_venta_evento=ve.id
+    )) entradas_vendidas
+  FROM evento e, tipo_evento t
+  WHERE t.id = e.fk_tipo_evento
+  ORDER BY fecha_hora_fin DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_get_evento_by_id(p_evento_id int)
+RETURNS TABLE (
+  id int,
+  nombre varchar,
+  descripcion varchar,
+  "tipoEvento" varchar,
+  "fechaHoraInicio" timestamp,
+  "fechaHoraFin" timestamp,
+  direccion varchar,
+  estado varchar,
+  municipio varchar,
+  parroquia varchar,
+  precio float4,
+  "tieneTickets" boolean
+)
+LANGUAGE plpgsql
+AS $$
+declare
+  v_nombre_estado varchar;
+  v_nombre_municipio varchar;
+  v_nombre_parroquia varchar;
+  v_tipo_lugar varchar;
+  v_nombre_lugar varchar;
+  v_id_pertenencia int;
+BEGIN
+    select e.fk_lugar into v_id_pertenencia
+    from evento e
+    where e.id= p_evento_id;
+    
+    WHILE v_id_pertenencia IS NOT NULL LOOP
+    SELECT l.tipo, l.nombre, l.fk_lugar
+    INTO v_tipo_lugar, v_nombre_lugar, v_id_pertenencia
+    FROM lugar l
+    WHERE l.id = v_id_pertenencia;
+
+    IF v_tipo_lugar = 'Estado' THEN
+      v_nombre_estado := v_nombre_lugar;
+    ELSIF v_tipo_lugar = 'Municipio' THEN
+      v_nombre_municipio := v_nombre_lugar;
+    ELSE
+      v_nombre_parroquia := v_nombre_lugar;
+    END IF;
+  END LOOP;
+
+    RETURN QUERY
+    SELECT
+        e.id id,
+        e.nombre nombre,
+        e.descripción descripcion,
+        te.nombre "tipoEvento",
+        e.fecha_hora_inicio "fechaHoraInicio" ,
+        e.fecha_hora_fin "fechaHoraFin" ,
+        e.dirección direccion,
+        v_nombre_estado estado,
+        v_nombre_municipio municipio,
+        v_nombre_parroquia parroquia,
+        e.precio_entrada precio,
+        case
+        when e.precio_entrada is null then false
+        when e.precio_entrada =0 then false
+        when e.precio_entrada >0 then true
+        else false
+        end as "tieneTickets"
+    FROM
+        evento e, tipo_evento te
+    
+    WHERE e.id = p_evento_id and e.fk_tipo_evento=te.id;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS fn_get_presentacion_by_sku_tienda_web(VARCHAR, INTEGER);
+
+CREATE OR REPLACE FUNCTION fn_get_presentacion_by_sku_tienda_web(
+    p_sku VARCHAR,
+    p_id_tienda_web INTEGER DEFAULT 1
+)
+RETURNS TABLE (
+    sku VARCHAR,
+    nombre_cerveza VARCHAR,
+    presentacion VARCHAR,
+    precio DECIMAL,
+    id_tipo_cerveza INTEGER,
+    tipo_cerveza VARCHAR,
+    stock_total BIGINT,
+    marca VARCHAR,
+    imagen VARCHAR,
+    presentacion_id INTEGER,
+    cerveza_id INTEGER
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        pc.sku,
+        c.nombre,
+        pr.nombre,
+        pc.precio::DECIMAL,
+        tc.id,
+        tc.nombre,
+        SUM(COALESCE(i.cantidad_almacen, 0)),
+        m.denominación_comercial,
+        pc.imagen,
+        pr.id,
+        c.id
+    FROM presentacion_cerveza pc
+    JOIN presentacion pr ON pc.fk_presentacion = pr.id
+    JOIN cerveza c ON pc.fk_cerveza = c.id
+    JOIN tipo_cerveza tc ON c.fk_tipo_cerveza = tc.id
+    LEFT JOIN miembro_presentacion_cerveza mpc ON 
+        pc.fk_presentacion = mpc.fk_presentacion_cerveza_1 AND 
+        pc.fk_cerveza = mpc.fk_presentacion_cerveza_2
+    LEFT JOIN miembro m ON mpc.fk_miembro_1 = m.rif AND mpc.fk_miembro_2 = m.naturaleza_rif
+    JOIN inventario i ON 
+        pc.fk_presentacion = i.fk_presentacion_cerveza_1 AND 
+        pc.fk_cerveza = i.fk_presentacion_cerveza_2
+    JOIN almacen a ON i.fk_almacen = a.id
+    WHERE pc.sku = p_sku AND a.fk_tienda_web = p_id_tienda_web
+    GROUP BY 
+        pc.sku,
+        c.nombre,
+        pr.nombre,
+        pc.precio,
+        tc.id,
+        tc.nombre,
+        m.denominación_comercial,
+        pc.imagen,
+        pr.id,
+        c.id
+    HAVING SUM(COALESCE(i.cantidad_almacen, 0)) >= 1;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS fn_get_cliente_by_usuario_id(INTEGER);
+
+CREATE OR REPLACE FUNCTION fn_get_cliente_by_usuario_id(p_usuario_id INTEGER)
+RETURNS TABLE (
+    id_usuario INTEGER,
+    id_cliente INTEGER,
+    nombre_completo VARCHAR,
+    razon_social VARCHAR,
+    denominacion_comercial VARCHAR,
+    email VARCHAR,
+    telefono VARCHAR,
+    rol_nombre VARCHAR,
+    id_rol INTEGER,
+    tipo_cliente VARCHAR,
+    identificacion VARCHAR,
+    direccion VARCHAR,
+    direccion_fiscal VARCHAR
+) AS $$
+DECLARE
+    v_cliente_natural_id INT;
+    v_cliente_juridico_id INT;
+BEGIN
+    -- Find the client associated with the user
+    SELECT fk_cliente_natural, fk_cliente_juridico
+    INTO v_cliente_natural_id, v_cliente_juridico_id
+    FROM cliente_usuario
+    WHERE fk_usuario = p_usuario_id;
+
+    IF v_cliente_natural_id IS NOT NULL THEN
+        -- It's a natural client
+        RETURN QUERY
+        SELECT
+            u.id as id_usuario,
+            cn.id as id_cliente,
+            (cn.primer_nombre || ' ' || cn.primer_apellido)::VARCHAR as nombre_completo,
+            NULL::VARCHAR as razon_social,
+            NULL::VARCHAR as denominacion_comercial,
+            c.dirección_correo::VARCHAR as email,
+            (t.codigo_área || '-' || t.número)::VARCHAR as telefono,
+            r.nombre::VARCHAR as rol_nombre,
+            r.id as id_rol,
+            'natural'::VARCHAR as tipo_cliente,
+            (cn.nacionalidad || '-' || cn.ci)::VARCHAR as identificacion,
+            cn.dirección,
+            NULL::VARCHAR as direccion_fiscal
+        FROM cliente_natural cn
+        JOIN cliente_usuario cu ON cn.id = cu.fk_cliente_natural
+        JOIN usuario u ON cu.fk_usuario = u.id
+        JOIN correo c ON u.fk_correo = c.id
+        JOIN rol r ON u.fk_rol = r.id
+        LEFT JOIN telefono t ON cn.id = t.fk_cliente_natural
+        WHERE u.id = p_usuario_id
+        LIMIT 1;
+
+    ELSIF v_cliente_juridico_id IS NOT NULL THEN
+        -- It's a juridical client
+        RETURN QUERY
+        SELECT
+            u.id as id_usuario,
+            cj.id as id_cliente,
+            pc.primer_nombre || ' ' || pc.primer_apellido AS nombre_completo,
+            cj.razón_social,
+            cj.denominación_comercial,
+            c.dirección_correo::VARCHAR as email,
+            (t.codigo_área || '-' || t.número)::VARCHAR as telefono,
+            r.nombre::VARCHAR as rol_nombre,
+            r.id as id_rol,
+            'juridico'::VARCHAR as tipo_cliente,
+            (cj.naturaleza_rif || '-' || cj.rif)::VARCHAR as identificacion,
+            cj.dirección,
+            cj.dirección_fiscal
+        FROM cliente_juridico cj
+        JOIN cliente_usuario cu ON cj.id = cu.fk_cliente_juridico
+        JOIN usuario u ON cu.fk_usuario = u.id
+        JOIN correo c ON u.fk_correo = c.id
+        JOIN rol r ON u.fk_rol = r.id
+        LEFT JOIN telefono t ON cj.id = t.fk_cliente_juridico
+        LEFT JOIN persona_contacto pc on cj.id = pc.fk_cliente_juridico
+        WHERE u.id = p_usuario_id
+        LIMIT 1;
+    END IF;
+END;
+$$ LANGUAGE plpgsql; 
