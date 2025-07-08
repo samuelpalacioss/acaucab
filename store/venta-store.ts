@@ -9,6 +9,9 @@ import {
 import { registrarPagos } from '@/api/registrar-pagos';
 import { finalizarDetallesVenta } from '@/api/finalizar-detalles-venta';
 import { CompletarVenta } from '@/api/completar-venta';
+import { registrarPagosVenta } from '@/api/registrar-pagos-venta';
+import { finalizarDetallesVentaEvento } from '@/api/finalizar-detalles-venta-evento';
+import { CompletarVentaEvento } from '@/api/completar-venta-evento';
 
 
 /**
@@ -82,7 +85,8 @@ interface VentaStore {
 
   /** Función principal para crear la venta */
   crearVentaCompleta: (totalVenta: number) => Promise<boolean>;
-  
+  crearVentaEventoCompleta: (totalVenta: number) => Promise<boolean>;
+  crearVentaEntradaCompleta: (totalVenta: number) => Promise<boolean>;
   /** Resetear store */
   resetStore: () => void;
 }
@@ -211,9 +215,116 @@ export const useVentaStore = create<VentaStore>()(
       return true;
 
     } catch (error) {
-      console.error('Error creando venta completa:', error);
       set({ 
-        error: 'Error al crear la venta. Intente nuevamente.',
+        error: String(error),
+        isCreatingVenta: false 
+      });
+      return false;
+    }
+  },
+
+  /**
+   * Función principal para crear una venta completa
+   * Recibe el total calculado desde el componente Autopago
+   */
+  crearVentaEventoCompleta: async (totalVenta: number) => {
+    const { cliente, carrito, metodosPago } = get();
+    
+    if (!cliente || carrito.length === 0 || metodosPago.length === 0) {
+      set({ error: 'Datos incompletos para crear la venta' });
+      return false;
+    }
+
+    set({ isCreatingVenta: true, error: null });
+
+    try {
+      /** 1. Crear la venta principal usando fn_create_venta */
+      const ventaData: VentaData = {
+        monto_total: totalVenta,
+        fk_usuario: cliente.id_usuario,
+        fk_cliente_juridico: cliente.tipo_cliente === 'juridico' ? cliente.id_cliente : undefined,
+        fk_cliente_natural: cliente.tipo_cliente === 'natural' ? cliente.id_cliente : undefined,
+        fk_tienda_fisica: 1, // Tienda física DEFAULT
+      };
+
+      /** TODO: Llamar a la función SQL fn_create_venta */
+      // const ventaId = await createVenta(ventaData);
+      const ventaId = get().ventaId ?? Math.floor(Math.random() * 1000) + 1; // Usar ID existente o simular
+      if (!get().ventaId) {
+        set({ ventaId });
+      }
+
+      /** 2. Actualizar los detalles de la venta con los precios finales. */
+      // Esto activará el trigger para actualizar el monto_total de la venta.
+      const detallesFinalizados = await finalizarDetallesVentaEvento(ventaId, carrito);
+      if (!detallesFinalizados) {
+          throw new Error('No se pudieron actualizar los detalles de la venta.');
+      }
+
+      /** 3. Crear los pagos usando la función registrarPagos */
+      const exitoPagos = await registrarPagosVenta(metodosPago, ventaId);
+
+      if (!exitoPagos) {
+        // Si falla el registro de pagos, idealmente se debería hacer rollback de la venta y los detalles.
+        // Por ahora, solo lanzamos un error.
+        throw new Error('No se pudieron registrar los pagos.');
+      }
+
+      /** 4. Actualizar el status de la venta a 'Finalizada' */
+      const statusActualizado = await CompletarVentaEvento(ventaId);
+      if (!statusActualizado) {
+        // La venta se creó, pero el status no se pudo actualizar.
+      }
+
+      set({ isCreatingVenta: false });
+      return true;
+
+    } catch (error) {
+      set({ 
+        error: String(error),
+        isCreatingVenta: false 
+      });
+      return false;
+    }
+  },
+
+  crearVentaEntradaCompleta: async (totalVenta: number) => {
+    const { cliente, metodosPago } = get();
+    
+    if (!cliente ||metodosPago.length === 0) {
+      set({ error: 'Datos incompletos para crear la venta' });
+      return false;
+    }
+
+    set({ isCreatingVenta: true, error: null });
+
+    try {
+      console.log("entro");
+      /** TODO: Llamar a la función SQL fn_create_venta */
+      // const ventaId = await createVenta(ventaData);
+      const ventaId = get().ventaId ?? Math.floor(Math.random() * 1000) + 1; // Usar ID existente o simular
+      if (!get().ventaId) {
+        set({ ventaId });
+      }
+      /** 3. Crear los pagos usando la función registrarPagos */
+      const exitoPagos = await registrarPagosVenta(metodosPago, ventaId);
+
+      if (!exitoPagos) {
+        throw new Error('No se pudieron registrar los pagos. registrarPagosVenta retornó false.');
+      }
+      console.log("Pagos registrados exitosamente:", exitoPagos);
+      /** 4. Actualizar el status de la venta a 'Finalizada' */
+      const statusActualizado = await CompletarVentaEvento(ventaId);
+      if (!statusActualizado) {
+        throw new Error('La venta se creó, pero el status no se pudo actualizar. CompletarVentaEvento retornó false.');
+      }
+      console.log(" Venta de evento completada exitosamente:", ventaId);
+      set({ isCreatingVenta: false });
+      return true;
+
+    } catch (error) {
+      set({ 
+        error: String(error),
         isCreatingVenta: false 
       });
       return false;

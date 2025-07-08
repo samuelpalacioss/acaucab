@@ -3,50 +3,30 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import CheckoutEvento from "@/components/eventos/checkout-evento"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import PaymentView from "@/components/cajero/payment-view"
 import PaymentMethodSummary from "@/components/cajero/payment-method-summary"
 import { getClienteByDoc } from "@/api/get-cliente-by-doc"
-import type { CarritoItemType, DocType, TarjetaDetails, PaymentMethod } from "@/lib/schemas"
+import type { DocType, TarjetaDetails, PaymentMethod } from "@/lib/schemas"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader, X, ArrowLeft } from "lucide-react"
+import { Loader, X, ArrowLeft, Ticket, Calendar, MapPin, Clock, User } from "lucide-react"
 import { useVentaStore, type EfectivoDetails as StoreEfectivoDetails } from "@/store/venta-store"
 import { getCardType } from "@/lib/utils"
 import { inicializarTasas } from "@/lib/utils"
 import { useTasaStore } from "@/store/tasa-store"
 import { registrarVentaEventoEnProceso } from "@/api/registrar-venta-evento-en-proceso";
-import { registrarDetallesVentaEventoEnProceso } from "@/api/registrar-detalles-venta-evento-en-proceso";
-import { crearMetodoPago } from "@/api/crear-metodo-pago";
 import { getPuntos } from "@/api/get-puntos"
 import { llamarFuncion } from "@/lib/server-actions"
 import Link from "next/link"
-import type { EventProvider, EventProduct } from "@/components/eventos/event-detail"
-import { useUserStore } from "@/store/user-store"
+import { crearMetodoPago } from "@/api/crear-metodo-pago"
 
-// UI extension for event products if extra fields are needed
-interface UIEventProduct extends EventProduct {
-  proveedor?: string
-  proveedorId1?: number
-  proveedorId2?: string
-  stock_disponible?: number
-  nombre_cerveza?: string
-  quantity?: number
-  // ...add any other UI fields as needed
-}
-
-// Extiende el tipo del carrito para eventos
-interface CarritoItemEventoType extends CarritoItemType {
-  proveedorId1?: number;
-  proveedorId2?: string;
-  evento_id?: number;
-}
-
-// Steps enum for better type safety
-enum Step {
+// Steps enum for ticket sales
+enum TicketStep {
   WELCOME = "welcome",
   ID_INPUT = "id_input",
-  CLIENT_WELCOME = "client_welcome",
-  PRODUCT_SELECTION = "product_selection",
+  TICKET_SUMMARY = "ticket_summary",
   PAYMENT = "payment",
   PAYMENT_SUMMARY = "payment_summary",
 }
@@ -61,65 +41,22 @@ function isEfectivoDetails(details: any): details is StoreEfectivoDetails {
   )
 }
 
-/** Función mejorada para debuggear el store de venta en puntos clave */
-const logVentaStore = (action?: string) => {
-  const state = useVentaStore.getState()
-  console.group(`🛒 VENTA EVENTO ${action ? `- ${action}` : ""}`)
-  console.log(
-    "👤 Cliente:",
-    state.cliente?.nombre_completo || state.cliente?.denominacion_comercial || "No seleccionado",
-  )
-  console.log("🆔 ID Cliente:", state.cliente?.id_cliente || "N/A")
-  console.log("📄 Documento:", `${state.docType}-${state.documento}`)
-  console.log("🛍️ Items en carrito:", state.carrito.length)
-  state.carrito.forEach((item, index) => {
-    console.log(`   ${index + 1}. ${item.nombre_cerveza} x${item.quantity} - $${item.precio}`)
-  })
-  console.log("💳 Métodos de pago:", state.metodosPago.length)
-  state.metodosPago.forEach((pago, index) => {
-    if (pago.method === "efectivo" && isEfectivoDetails(pago.details)) {
-      const breakdownString = Object.entries(pago.details.breakdown || {})
-        .map(([value, count]) => `${value}: x${count}`)
-        .join(", ")
-      console.log(
-        `   ${index + 1}. ${pago.method}: ${pago.details.amountInCurrency} ${
-          pago.details.currency
-        } (Desglose: ${breakdownString || "N/A"})`,
-      )
-    } else {
-      console.log(`   ${index + 1}. ${pago.method}:`, pago.details)
-    }
-  })
-  console.log("🔢 Venta ID:", state.ventaId)
-  console.log("⏳ Creando venta:", state.isCreatingVenta)
-  console.log("❌ Error:", state.error)
-  console.groupEnd()
-}
-
-export default function VentaEnEvento() {
+export default function VentaEntradas() {
   const params = useParams()
   const eventId = params?.id as string
-
-  // Obtener usuario autenticado
-  const { usuario } = useUserStore()
 
   /** Estado del store de venta */
   const {
     cliente,
     docType,
     documento,
-    carrito,
     metodosPago,
     setCliente,
     setDocType,
     setDocumento,
     setMetodosPago,
     setVentaId,
-    agregarAlCarrito,
-    actualizarCantidad,
-    eliminarDelCarrito,
-    limpiarCarrito,
-    crearVentaEventoCompleta,
+    crearVentaEntradaCompleta,
     resetStore,
     isCreatingVenta,
     error: storeError,
@@ -127,12 +64,9 @@ export default function VentaEnEvento() {
   } = useVentaStore()
 
   /** Estado local del componente */
-  const [currentStep, setCurrentStep] = useState<Step>(Step.WELCOME)
+  const [currentStep, setCurrentStep] = useState<TicketStep>(TicketStep.WELCOME)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [providers, setProviders] = useState<EventProvider[]>([])
-  const [productosEvento, setProductosEvento] = useState<UIEventProduct[]>([])
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const [puntosDisponibles, setPuntosDisponibles] = useState(0)
   const [eventInfo, setEventInfo] = useState<any>(null)
@@ -142,7 +76,7 @@ export default function VentaEnEvento() {
 
   /** Cargar y sondear tasas de cambio */
   useEffect(() => {
-    console.log("🚀 Obteniendo tasas de cambio iniciales...")
+    console.log("🎫 Obteniendo tasas de cambio iniciales...")
     inicializarTasas()
     const intervalId = setInterval(
       () => {
@@ -161,7 +95,7 @@ export default function VentaEnEvento() {
     return monto / tasa.monto_equivalencia
   }
 
-  /** Cargar información del evento y productos al montar el componente */
+  /** Cargar información del evento al montar el componente */
   useEffect(() => {
     async function fetchEventData() {
       if (!eventId) return
@@ -172,71 +106,14 @@ export default function VentaEnEvento() {
         if (eventData && eventData.length > 0) {
           setEventInfo(eventData[0])
         }
-
-        // Cargar proveedores y productos del evento
-        const providersData = await llamarFuncion("fn_get_evento_proveedores", { p_evento_id: Number(eventId) })
-        setProviders(providersData || [])
-
-        // Mapear productos con información del proveedor
-        let mappedProducts: UIEventProduct[] = []
-        providersData?.forEach((provider: EventProvider) => {
-          provider.productos?.forEach((product: EventProduct) => {
-            mappedProducts.push({
-              id1: product.id1,
-              id2: product.id2,
-              sku: product.sku,
-              nombre: product.nombre,
-              precio: product.precio,
-              cantidad: product.cantidad,
-              // UI/cart fields:
-              nombre_cerveza: product.nombre,
-              proveedor: provider.nombre,
-              proveedorId1: provider.id1,
-              proveedorId2: provider.id2,
-              stock_disponible: product.cantidad,
-              quantity: 1,
-              // ...add other UI/cart fields as needed
-            } as UIEventProduct)
-          })
-        })
-        // Si el usuario autenticado es miembro/proveedor, filtrar productos por rif y naturaleza_rif
-        if (usuario?.miembro) {
-          mappedProducts = mappedProducts.filter(
-            (prod) =>
-              prod.proveedorId1 === usuario.miembro?.rif &&
-              prod.proveedorId2 === usuario.miembro?.naturaleza_rif
-          )
-        }
-        setProductosEvento(mappedProducts)
       } catch (error) {
         console.error("Failed to fetch event data:", error)
         setError("Error al cargar los datos del evento")
       }
     }
 
-    logVentaStore("VENTA EVENTO INICIADA - ESTADO INICIAL")
     fetchEventData()
   }, [eventId])
-
-  // Carga los productos cuando se muestra la bienvenida al cliente y luego avanza
-  useEffect(() => {
-    if (currentStep === Step.CLIENT_WELCOME) {
-      const loadProductsAndProceed = async () => {
-        setIsLoadingProducts(true)
-        try {
-          // Los productos ya están cargados, solo simular delay
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-        } catch (error) {
-          console.error("Failed to process products:", error)
-        } finally {
-          setIsLoadingProducts(false)
-          setCurrentStep(Step.PRODUCT_SELECTION)
-        }
-      }
-
-      loadProductsAndProceed()
-    }
-  }, [currentStep])
 
   const handleProceedToPayment = async () => {
     if (!cliente?.id_cliente) {
@@ -248,34 +125,34 @@ export default function VentaEnEvento() {
     try {
       let currentVentaId = ventaId
       if (!currentVentaId) {
-        // Determinar tipo_cliente para la función SQL
+        // Usar función de venta evento
         const tipoCliente = cliente.tipo_cliente === 'natural' ? 'Natural' : 'Juridico';
         const newVentaId = await registrarVentaEventoEnProceso(Number(eventId), cliente.id_cliente, tipoCliente)
         if (newVentaId) {
           setVentaId(newVentaId)
           currentVentaId = newVentaId
         } else {
-          throw new Error("No se pudo iniciar la venta de evento. Por favor, intente de nuevo.")
+          throw new Error("No se pudo iniciar la venta. Por favor, intente de nuevo.")
         }
       }
       if (currentVentaId) {
-        await registrarDetallesVentaEventoEnProceso(currentVentaId, carrito)
-        logVentaStore("VENTA EVENTO INICIADA Y DETALLES REGISTRADOS")
-        setCurrentStep(Step.PAYMENT)
+        // Para tickets, no necesitamos registrar detalles de productos
+        console.log("🎫 Venta de ticket iniciada con ID:", currentVentaId)
+        setCurrentStep(TicketStep.PAYMENT)
       }
     } catch (err: any) {
-      setError(err.message || "Ocurrió un error al iniciar la venta de evento.")
+      setError(err.message || "Ocurrió un error al iniciar la venta.")
       console.error(err)
     } finally {
       setIsLoading(false)
     }
   }
 
-  /** Calcular totales usando datos del store */
-  const subtotal = carrito.reduce((sum, product) => sum + product.precio * product.quantity, 0)
-  const iva = subtotal * 0.16
-  const total = subtotal + iva
-  const subtotalUSD = convertirADolar(subtotal)
+  /** Calcular totales para el ticket */
+  const ticketPrice = eventInfo?.precio || 0
+  const iva = ticketPrice * 0.16
+  const total = ticketPrice + iva
+  const ticketPriceUSD = convertirADolar(ticketPrice)
   const ivaUSD = convertirADolar(iva)
   const totalUSD = convertirADolar(total)
 
@@ -293,77 +170,6 @@ export default function VentaEnEvento() {
 
   const remainingTotal = total - totalPaid
 
-  /** Funciones del carrito usando el store */
-  const handleUpdateQuantity = (sku: string, newQuantity: number) => {
-    console.log("🔄 handleUpdateQuantity called with:", { sku, newQuantity })
-    console.log("🔄 Current carrito:", carrito)
-    console.log(
-      "🔄 Products available:",
-      productosEvento.map((p) => ({ sku: p.sku, name: p.nombre_cerveza })),
-    )
-
-    if (newQuantity <= 0) {
-      eliminarDelCarrito(sku)
-      logVentaStore("PRODUCTO ELIMINADO")
-    } else {
-      const existingItem = carrito.find((item) => item.sku === sku)
-      if (existingItem) {
-        // Validar stock disponible antes de actualizar cantidad
-        const productInfo = productosEvento.find((p) => p.sku === sku)
-        const stockDisponible = productInfo?.stock_disponible ?? productInfo?.cantidad ?? 0;
-        if (newQuantity > stockDisponible) {
-          alert("No puedes agregar más de la cantidad disponible para este producto.");
-          return;
-        }
-        console.log("🔄 Updating existing cart item")
-        actualizarCantidad(sku, newQuantity)
-        logVentaStore("CANTIDAD ACTUALIZADA")
-      } else {
-        const productToAdd = productosEvento.find((p) => p.sku === sku)
-        console.log("🔄 Product to add:", productToAdd)
-        if (productToAdd) {
-          // Validar stock disponible antes de agregar
-          const stockDisponible = productToAdd.stock_disponible ?? productToAdd.cantidad ?? 0
-          if (newQuantity > stockDisponible) {
-            alert("No puedes agregar más de la cantidad disponible para este producto.")
-            return
-          }
-          // Map UIEventProduct to CarritoItemType y asegurar campos de proveedor y evento
-          agregarAlCarrito({
-            sku: productToAdd.sku,
-            nombre_cerveza: productToAdd.nombre_cerveza || productToAdd.nombre,
-            presentacion: (productToAdd as any).presentacion || "Botella",
-            precio: productToAdd.precio,
-            presentacion_id: (productToAdd as any).presentacion_id ?? productToAdd.id1,
-            cerveza_id: (productToAdd as any).cerveza_id ??  productToAdd.id2,
-            id_tipo_cerveza: (productToAdd as any).id_tipo_cerveza ?? 0,
-            tipo_cerveza: (productToAdd as any).tipo_cerveza || "Evento",
-            stock_total: (productToAdd as any).stock_total ?? productToAdd.cantidad ?? 0,
-            marca: (productToAdd as any).marca || "",
-            imagen: (productToAdd as any).imagen || null,
-            quantity: newQuantity,
-            proveedorId1: (productToAdd as any).proveedorId1 ?? null,
-            proveedorId2: (productToAdd as any).proveedorId2 ?? null,
-            evento_id: Number(eventId),
-          } as CarritoItemEventoType)
-          logVentaStore("PRODUCTO AGREGADO")
-        } else {
-          console.log("❌ Product not found in products list!")
-        }
-      }
-    }
-  }
-
-  const handleRemoveItem = (sku: string) => {
-    eliminarDelCarrito(sku)
-    logVentaStore("ITEM REMOVIDO DEL CARRITO")
-  }
-
-  const handleClearCart = () => {
-    limpiarCarrito()
-    logVentaStore("CARRITO LIMPIADO")
-  }
-
   async function handleDocumentoSubmit() {
     if (documento.length === 0) return
     setIsLoading(true)
@@ -378,9 +184,8 @@ export default function VentaEnEvento() {
             setPuntosDisponibles(puntos)
           }
         }
-        
-        logVentaStore("CLIENTE AUTENTICADO EN EVENTO")
-        setCurrentStep(Step.CLIENT_WELCOME)
+        console.log("🎫 Cliente autenticado para venta de tickets")
+        setCurrentStep(TicketStep.TICKET_SUMMARY)
       } else {
         setError("Cliente no encontrado. Por favor, verifique los datos.")
       }
@@ -395,25 +200,39 @@ export default function VentaEnEvento() {
   // Render different screens based on current step
   const renderStep = () => {
     switch (currentStep) {
-      case Step.WELCOME:
+      case TicketStep.WELCOME:
         return (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-4">Venta en Evento</h1>
+              <Ticket className="h-16 w-16 text-blue-600 mx-auto mb-4" />
+              <h1 className="text-4xl font-bold mb-4">Venta de Entradas</h1>
               {eventInfo && (
                 <div className="text-lg text-muted-foreground">
                   <p className="font-semibold">{eventInfo.nombre}</p>
                   <p>{new Date(eventInfo.fechaHoraInicio).toLocaleDateString()}</p>
+                  {eventInfo.tieneTickets && (
+                    <p className="text-2xl font-bold text-green-600 mt-2">Bs. {eventInfo.precio?.toFixed(2)}</p>
+                  )}
                 </div>
               )}
             </div>
-            <Button size="lg" onClick={() => setCurrentStep(Step.ID_INPUT)}>
-              Empezar Venta
-            </Button>
+            {eventInfo?.tieneTickets ? (
+              <Button size="lg" onClick={() => setCurrentStep(TicketStep.ID_INPUT)}>
+                <Ticket className="h-5 w-5 mr-2" />
+                Vender Entrada
+              </Button>
+            ) : (
+              <div className="text-center">
+                <p className="text-red-600 mb-4">Este evento no tiene entradas disponibles para la venta</p>
+                <Button variant="outline" asChild>
+                  <Link href={`/dashboard/eventos/${eventId}`}>Volver al Evento</Link>
+                </Button>
+              </div>
+            )}
           </div>
         )
 
-      case Step.ID_INPUT:
+      case TicketStep.ID_INPUT:
         return (
           <div className="flex flex-col items-center">
             <div className="mb-4">
@@ -423,7 +242,11 @@ export default function VentaEnEvento() {
                 </Link>
               </Button>
             </div>
-            <h2 className="text-2xl font-semibold mb-4">Ingrese Documento del Cliente</h2>
+            <div className="text-center mb-6">
+              <Ticket className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold mb-2">Venta de Entrada</h2>
+              <p className="text-muted-foreground">Ingrese el documento del cliente</p>
+            </div>
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <div className="w-full max-w-md flex items-center gap-2 mb-4">
               <Select value={docType} onValueChange={(value: DocType) => setDocType(value)}>
@@ -488,45 +311,158 @@ export default function VentaEnEvento() {
           </div>
         )
 
-      case Step.CLIENT_WELCOME: {
+      case TicketStep.TICKET_SUMMARY: {
         const clientName =
           cliente?.tipo_cliente === "natural" ? cliente.nombre_completo : cliente?.denominacion_comercial
+
         return (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-            <h1 className="text-4xl font-bold mb-4">Hola, {clientName}!</h1>
-            <p className="text-lg text-muted-foreground mb-8">Preparando los productos del evento para ti.</p>
-            <Loader className="animate-spin" />
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-6">
+              <User className="h-12 w-12 text-green-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold mb-2">¡Hola, {clientName}!</h2>
+              <p className="text-muted-foreground">Confirma la compra de tu entrada</p>
+            </div>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Ticket className="h-5 w-5" />
+                  Resumen de Entrada
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Event Info */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="font-semibold text-blue-900 mb-2">{eventInfo?.nombre}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-700">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {eventInfo?.fechaHoraInicio
+                          ? new Date(eventInfo.fechaHoraInicio).toLocaleDateString()
+                          : "Fecha no disponible"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      <span>
+                        {eventInfo?.fechaHoraInicio
+                          ? new Date(eventInfo.fechaHoraInicio).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "Hora no disponible"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 md:col-span-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{eventInfo?.direccion || "Ubicación no disponible"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ticket Details */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Cantidad de entradas:</span>
+                    <Badge variant="outline" className="text-lg px-3 py-1">
+                      1 entrada
+                    </Badge>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Precio de entrada:</span>
+                      <div className="text-right">
+                        <div>Bs. {ticketPrice.toFixed(2)}</div>
+                        {ticketPriceUSD && (
+                          <div className="text-sm text-muted-foreground">${ticketPriceUSD.toFixed(2)}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>IVA (16%):</span>
+                      <div className="text-right">
+                        <div>Bs. {iva.toFixed(2)}</div>
+                        {ivaUSD && <div className="text-sm text-muted-foreground">${ivaUSD.toFixed(2)}</div>}
+                      </div>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-lg">
+                      <span>Total a pagar:</span>
+                      <div className="text-right">
+                        <div>Bs. {total.toFixed(2)}</div>
+                        {totalUSD && (
+                          <div className="text-sm text-muted-foreground font-normal">${totalUSD.toFixed(2)}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customer Info */}
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="font-medium mb-2">Información del Cliente</h4>
+                  <div className="text-sm text-gray-600">
+                    <p>
+                      <strong>Nombre:</strong> {clientName}
+                    </p>
+                    <p>
+                      <strong>Documento:</strong> {docType}-{documento}
+                    </p>
+                    {cliente?.tipo_cliente === "natural" && cliente?.telefono && (
+                      <p>
+                        <strong>Teléfono:</strong> {cliente.telefono}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={() => setCurrentStep(TicketStep.ID_INPUT)} className="flex-1">
+                Volver
+              </Button>
+              <Button onClick={handleProceedToPayment} disabled={isLoading} className="flex-1">
+                {isLoading ? (
+                  <>
+                    <Loader className="h-4 w-4 mr-2 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <Ticket className="h-4 w-4 mr-2" />
+                    Proceder al Pago
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         )
       }
 
-      case Step.PRODUCT_SELECTION:
-        if (isLoadingProducts) {
-          return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-              <h2 className="text-2xl font-semibold mb-4">Cargando productos del evento...</h2>
-              <Loader className="animate-spin" />
-            </div>
-          )
-        }
-        return (
-          <CheckoutEvento
-            onCheckout={handleProceedToPayment}
-            cart={carrito}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemoveItem={handleRemoveItem}
-            onClearCart={handleClearCart}
-            providers={providers}
-            productosEvento={productosEvento}
-            convertirADolar={convertirADolar}
-            eventInfo={eventInfo}
-          />
-        )
-
-      case Step.PAYMENT:
+      case TicketStep.PAYMENT:
         return (
           <PaymentView
-            items={carrito}
+            items={[
+              {
+                sku: "TICKET-001",
+                nombre_cerveza: `Entrada - ${eventInfo?.nombre || "Evento"}`,
+                precio: total,
+                quantity: 1,
+                presentacion: "Digital",
+                presentacion_id: 0,
+                cerveza_id: 0,
+                id_tipo_cerveza: 0,
+                tipo_cerveza: "Entrada",
+                stock_total: 0,
+                marca: "",
+                imagen: null,
+              },
+            ]}
             total={remainingTotal > 0 ? remainingTotal : total}
             originalTotal={total}
             amountPaid={totalPaid}
@@ -541,8 +477,10 @@ export default function VentaEnEvento() {
                 if (!cliente || !cliente.id_cliente || !cliente.tipo_cliente) {
                   throw new Error("Información del cliente no disponible. Por favor, reinicie el proceso.")
                 }
-                const currentVentaId = ventaId;
-                if (!currentVentaId) throw new Error("No hay venta de evento en proceso.");
+                const p_id_cliente = cliente.id_cliente
+                const p_tipo_cliente = cliente.tipo_cliente
+
+                // Solo registrar la venta principal, sin detalles
                 if (method === "efectivo") {
                   const efectivoDetails = details as StoreEfectivoDetails
                   const result = await crearMetodoPago(
@@ -553,8 +491,8 @@ export default function VentaEnEvento() {
                         currency: efectivoDetails.currency,
                       },
                     },
-                    cliente.id_cliente,
-                    cliente.tipo_cliente
+                    p_id_cliente,
+                    p_tipo_cliente,
                   )
                   if (!Array.isArray(result) || result.length === 0) {
                     throw new Error("No se pudieron crear los métodos de pago para el efectivo.")
@@ -580,9 +518,9 @@ export default function VentaEnEvento() {
                     }
                   }
                   setMetodosPago([...metodosPago, ...newPayments])
-                  logVentaStore(`PAGO EN EFECTIVO AGREGADO (EVENTO)`)
+                  console.log("🎫 Pago en efectivo agregado para ticket")
                 } else {
-                  // Lógica para otros métodos de pago (igual que autopago)
+                  // Lógica para otros métodos de pago
                   let metodoPagoParams: any = null
                   const formatExpiryDateForDB = (expiryDate: string): string => {
                     if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
@@ -594,6 +532,7 @@ export default function VentaEnEvento() {
                     const lastDay = date.getDate()
                     return `${fullYear}-${month.padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`
                   }
+
                   switch (method) {
                     case "tarjetaCredito": {
                       const cardDetails = details as TarjetaDetails
@@ -639,12 +578,9 @@ export default function VentaEnEvento() {
                     default:
                       throw new Error(`Método de pago desconocido: ${method}`)
                   }
+
                   if (metodoPagoParams) {
-                    const result = await crearMetodoPago(
-                      metodoPagoParams,
-                      cliente.id_cliente,
-                      cliente.tipo_cliente
-                    )
+                    const result = await crearMetodoPago(metodoPagoParams, p_id_cliente, p_tipo_cliente)
                     if (typeof result !== "number") {
                       throw new Error("No se pudo crear el método de pago en la base de datos.")
                     }
@@ -653,10 +589,10 @@ export default function VentaEnEvento() {
                       details: { ...details, metodo_pago_id: result },
                     }
                     setMetodosPago([...metodosPago, newPayment])
-                    logVentaStore(`PAGO AGREGADO - ${method.toUpperCase()} (EVENTO)`)
+                    console.log(`🎫 Pago agregado - ${method.toUpperCase()} para ticket`)
                   }
                 }
-                setCurrentStep(Step.PAYMENT_SUMMARY)
+                setCurrentStep(TicketStep.PAYMENT_SUMMARY)
               } catch (err: any) {
                 setError(err.message || "Error al procesar el método de pago.")
                 console.error(err)
@@ -664,50 +600,57 @@ export default function VentaEnEvento() {
                 setIsProcessingPayment(false)
               }
             }}
-            onCancel={() => setCurrentStep(Step.PRODUCT_SELECTION)}
-            onViewSummary={() => setCurrentStep(Step.PAYMENT_SUMMARY)}
+            onCancel={() => setCurrentStep(TicketStep.TICKET_SUMMARY)}
+            onViewSummary={() => setCurrentStep(TicketStep.PAYMENT_SUMMARY)}
           />
         )
 
-      case Step.PAYMENT_SUMMARY:
+      case TicketStep.PAYMENT_SUMMARY:
         return (
           <PaymentMethodSummary
             payments={metodosPago}
-            items={carrito}
+            items={[
+              {
+                sku: "TICKET-001",
+                nombre_cerveza: `Entrada - ${eventInfo?.nombre || "Evento"}`,
+                precio: total,
+                quantity: 1,
+                presentacion: "Digital",
+                presentacion_id: 0,
+                cerveza_id: 0,
+                id_tipo_cerveza: 0,
+                tipo_cerveza: "Entrada",
+                stock_total: 0,
+                marca: "",
+                imagen: null,
+              },
+            ]}
             total={total}
             convertirADolar={convertirADolar}
             onConfirm={async () => {
-              console.log("Creando venta de evento con:", metodosPago)
-              logVentaStore("INICIANDO CREACIÓN DE VENTA EVENTO")
-              if (ventaId == null) {
-                setError("No hay venta de evento en proceso.");
-                return;
-              }
-              // Llamar a crearVentaEventoCompleta con el total de la venta
-              const success = await crearVentaEventoCompleta(total)
+              console.log("🎫 Creando venta de ticket con:", metodosPago)
+              // Solo registrar la venta principal, sin detalles
+              const success = await crearVentaEntradaCompleta(total)
               if (success) {
-                console.log("✅ Venta de evento creada exitosamente")
-                logVentaStore("VENTA EVENTO CREADA EXITOSAMENTE")
-                setCurrentStep(Step.WELCOME)
+                console.log("✅ Venta de ticket creada exitosamente")
+                setCurrentStep(TicketStep.WELCOME)
                 resetStore()
-                logVentaStore("STORE RESETEADO")
               } else {
-                console.error("❌ Error al crear la venta de evento")
-                logVentaStore("ERROR AL CREAR VENTA EVENTO")
-                setError(storeError || "Error al procesar la venta")
+                setError(storeError)
+                console.error("❌ Error al crear la venta de ticket:", storeError)
               }
             }}
-            onBack={() => setCurrentStep(Step.PAYMENT)}
+            onBack={() => setCurrentStep(TicketStep.PAYMENT)}
             onDeletePayment={(paymentIndex) => {
               const paymentToDelete = metodosPago[paymentIndex]
               const updatedPayments = metodosPago.filter((_, index) => index !== paymentIndex)
               setMetodosPago(updatedPayments)
-              logVentaStore(`PAGO ELIMINADO - ${paymentToDelete?.method?.toUpperCase()} (EVENTO)`)
+              console.log(`🎫 Pago eliminado - ${paymentToDelete?.method?.toUpperCase()}`)
             }}
           />
         )
     }
   }
 
-  return <div className="max-w-7xl mx-auto px-4 py-8">{renderStep()}</div>
+  return <div className="max-w-7xl mx-auto px-4 py-8">{renderStep()} {error && <div className="text-red-600 mt-4 text-center">{error}</div>}</div>
 }

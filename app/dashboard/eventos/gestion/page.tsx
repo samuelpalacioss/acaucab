@@ -15,8 +15,6 @@ export default async function EventosPage() {
   }
 
   return (
-    <ProtectedRoute requiredPermissions={["leer_evento"]} redirectTo="/unauthorized">
       <EventsPage eventos={eventosData} tiposEvento={tiposData} />
-    </ProtectedRoute>
   );
 }

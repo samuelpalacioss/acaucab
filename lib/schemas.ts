@@ -166,3 +166,9 @@ export const tasaSchema = z.object({
 });
 
 export type TasaType = z.infer<typeof tasaSchema>;
+
+export type CarritoItemEventoType = CarritoItemType & {
+  proveedorId1?: number;
+  proveedorId2?: string;
+  evento_id?: number;
+};

@@ -266,7 +266,7 @@ export default function EventDetailPage() {
 
   const handleSellTickets = () => {
     // Placeholder para funcionalidad de venta de tickets
-    window.location.href = `/dashboard/eventos/${eventId}/venta-tickets`
+    window.location.href = `/dashboard/eventos/${eventId}/venta-entradas`
   }
 
   const handleSellAtEvent = () => {
