@@ -6,6 +6,7 @@ import { LoginUsuario, LoginResponse } from '@/models/login'
 import { InventoryData } from '@/models/inventory'
 import { OrdenesReposicionData } from '@/models/orden-reposicion'
 import { OrdenesCompraData, OrdenCompra } from '@/models/orden-compra'
+import { TotalGeneradoTienda, SalesGrowthData } from '@/models/stats'
 
 
 /**
@@ -543,6 +544,29 @@ export async function obtenerNuevosClientesStatsAction(
 }
   
 /**
+ * Obtener el ticket promedio de las ventas completadas.
+ * @returns El valor del ticket promedio.
+ */
+export async function obtenerTicketPromedio(): Promise<number> {
+  try {
+    const resultado = await llamarFuncionEscalar<number>('fn_get_ticket_promedio');
+    return resultado || 0;
+  } catch (error: any) {
+    console.error('Error al obtener el ticket promedio:', error);
+    throw new Error('Error al cargar el ticket promedio');
+  }
+}
+
+/**
+ * Acción del servidor para obtener el ticket promedio (llamable desde cliente).
+ * @returns El valor del ticket promedio.
+ */
+export async function obtenerTicketPromedioAction(): Promise<number> {
+  'use server';
+  return await obtenerTicketPromedio();
+}
+ 
+/**
  * Obtener estadísticas de ventas por estilo de cerveza
  * 
  * @returns Array con los estilos de cerveza y el total vendido
@@ -595,3 +619,57 @@ export async function obtenerVolumenDeVentasAction(
   return await obtenerVolumenDeVentas(fechaInicio, fechaFin);
 }
  
+/**
+ * Obtener el total generado por cada tienda (física y web)
+ * 
+ * @returns Array con el total generado por tienda
+ */
+export async function obtenerTotalGeneradoPorTienda(): Promise<TotalGeneradoTienda[]> {
+  try {
+    const resultado = await llamarFuncion<TotalGeneradoTienda>('fn_get_total_generado_tienda');
+    return resultado || [];
+  } catch (error: any) {
+    console.error('Error al obtener el total generado por tienda:', error);
+    throw new Error('Error al cargar el total generado por tienda');
+  }
+}
+ 
+/**
+ * Obtener estadísticas de crecimiento de ventas.
+ *
+ * @param fecha_referencia - La fecha para la comparación (YYYY-MM-DD).
+ * @param tipo_comparacion - 'mensual' o 'anual'.
+ * @returns Array con los datos de crecimiento de ventas.
+ */
+export async function obtenerCrecimientoVentas(
+  fecha_referencia: string,
+  tipo_comparacion: 'mensual' | 'anual'
+): Promise<SalesGrowthData[]> {
+  try {
+    const resultado = await llamarFuncion<SalesGrowthData>('fn_get_crecimiento_ventas', {
+      fecha_referencia: fecha_referencia,
+      tipo_comparacion: tipo_comparacion
+    });
+    return resultado || [];
+  } catch (error: any) {
+    console.error('Error al obtener el crecimiento de ventas:', error);
+    throw new Error('Error al cargar las estadísticas de crecimiento de ventas');
+  }
+}
+
+/**
+ * Acción del servidor para obtener crecimiento de ventas (llamable desde cliente)
+ *
+ * @param fecha_referencia - La fecha para la comparación (YYYY-MM-DD).
+ * @param tipo_comparacion - 'mensual' o 'anual'.
+ * @returns Array con los datos de crecimiento de ventas.
+ */
+export async function obtenerCrecimientoVentasAction(
+    fecha_referencia: string,
+    tipo_comparacion: 'mensual' | 'anual'
+  ): Promise<SalesGrowthData[]> {
+    'use server';
+    return await obtenerCrecimientoVentas(fecha_referencia, tipo_comparacion);
+  }
+ 
+
