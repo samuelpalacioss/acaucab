@@ -1,14 +1,16 @@
 import { 
   obtenerEstadisticasVentasPorEmpleado,
-  obtenerVentasPorEstilo
+  obtenerVentasPorEstilo,
+  obtenerVolumenDeVentas
 } from "@/lib/server-actions";
 import { EmpleadoStatsDashboard } from "@/components/empleado-stats-dashboard";
 import { CustomerRetentionStats } from "@/components/customer-retention-stats";
 import { NewCustomersStats } from "@/components/new-customers-stats";
 import { BeerStyleStats } from "@/components/beer-style-stats";
+import { SalesVolumeStats } from "@/components/sales-volume-stats";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, BarChart3, Users, TrendingUp, UserPlus, Beer } from "lucide-react";
+import { AlertCircle, BarChart3, Users, TrendingUp, UserPlus, Beer, Package } from "lucide-react";
 import { EmpleadoStat } from "@/models/empleado-stats";
 
 /**
@@ -18,17 +20,28 @@ import { EmpleadoStat } from "@/models/empleado-stats";
 export default async function EstadisticasFinancierasPage() {
   let stats: EmpleadoStat[] = [];
   let beerStyleStats: { estilo_cerveza: string; total_vendido: number }[] = [];
+  let salesVolume: number = 0;
   let error: string | null = null;
 
+  // Configurar período por defecto (último mes)
+  const fechaFin = new Date();
+  const fechaInicio = new Date();
+  fechaInicio.setMonth(fechaInicio.getMonth() - 1);
+  
+  const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
+  const fechaFinStr = fechaFin.toISOString().split('T')[0];
+
   try {
-    // Obtener estadísticas de empleados y estilos de cerveza en paralelo
-    const [empleadoStats, styleStats] = await Promise.all([
+    // Obtener todas las estadísticas en paralelo
+    const [empleadoStats, styleStats, volumeData] = await Promise.all([
       obtenerEstadisticasVentasPorEmpleado(),
-      obtenerVentasPorEstilo()
+      obtenerVentasPorEstilo(),
+      obtenerVolumenDeVentas(fechaInicioStr, fechaFinStr)
     ]);
     
     stats = empleadoStats;
     beerStyleStats = styleStats;
+    salesVolume = volumeData;
   } catch (err: any) {
     console.error("Error al cargar estadísticas:", err);
     error = err.message || "Error al cargar las estadísticas";
@@ -66,7 +79,7 @@ export default async function EstadisticasFinancierasPage() {
 
       {/** Tabs para dividir las secciones */}
       <Tabs defaultValue="empleados" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="empleados" className="flex items-center space-x-2">
             <Users className="w-4 h-4" />
             <span>Rendimiento Empleados</span>
@@ -82,6 +95,10 @@ export default async function EstadisticasFinancierasPage() {
           <TabsTrigger value="estilos" className="flex items-center space-x-2">
             <Beer className="w-4 h-4" />
             <span>Ventas por Estilo</span>
+          </TabsTrigger>
+          <TabsTrigger value="volumen" className="flex items-center space-x-2">
+            <Package className="w-4 h-4" />
+            <span>Volumen de Ventas</span>
           </TabsTrigger>
         </TabsList>
 
@@ -151,6 +168,27 @@ export default async function EstadisticasFinancierasPage() {
           </div>
           
           <BeerStyleStats data={beerStyleStats} isLoading={false} />
+        </TabsContent>
+
+        {/** Sección de volumen de ventas */}
+        <TabsContent value="volumen" className="space-y-6">
+          <div className="mb-6">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="p-2 bg-teal-500 rounded-lg">
+                <Package className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Volumen de Unidades Vendidas</h2>
+                <p className="text-gray-600">Cantidad total de cervezas (botellas, latas, etc.) vendidas.</p>
+              </div>
+            </div>
+          </div>
+          
+          <SalesVolumeStats 
+            initialSalesVolume={salesVolume}
+            initialStartDate={fechaInicioStr}
+            initialEndDate={fechaFinStr}
+          />
         </TabsContent>
       </Tabs>
     </div>

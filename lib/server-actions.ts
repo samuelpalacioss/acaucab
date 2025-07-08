@@ -559,4 +559,42 @@ export async function obtenerVentasPorEstilo(): Promise<{ estilo_cerveza: string
     throw new Error('Error al cargar estadísticas de ventas por estilo');
   }
 }
+
+/**
+ * Obtener el volumen total de unidades vendidas en un período.
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns El número total de unidades vendidas
+ */
+export async function obtenerVolumenDeVentas(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  try {
+    const resultado = await llamarFuncionEscalar<number>('fn_volumen_ventas', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    });
+    return resultado || 0;
+  } catch (error: any) {
+    console.error('Error al obtener el volumen de ventas:', error);
+    throw new Error('Error al cargar el volumen de ventas');
+  }
+}
+
+/**
+ * Acción del servidor para obtener el volumen de ventas (llamable desde cliente).
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns El número total de unidades vendidas
+ */
+export async function obtenerVolumenDeVentasAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<number> {
+  'use server';
+  return await obtenerVolumenDeVentas(fechaInicio, fechaFin);
+}
  
