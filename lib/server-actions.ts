@@ -506,3 +506,57 @@ export async function obtenerRetencionClientesAction(
   return await obtenerRetencionClientes(fechaInicio, fechaFin);
 }
  
+/**
+ * Obtener estadísticas de clientes nuevos vs. recurrentes
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Objeto con el conteo de clientes nuevos y recurrentes
+ */
+export async function obtenerNuevosClientesStats(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<{ nuevos: number; recurrentes: number }> {
+  try {
+    const resultado = await llamarFuncionSingle<{ nuevos: number; recurrentes: number }>('fn_nuevos_clientes_stats', {
+      p_fecha_inicio: fechaInicio,
+      p_fecha_fin: fechaFin
+    })
+    
+    return resultado || { nuevos: 0, recurrentes: 0 };
+  } catch (error: any) {
+    console.error('Error al obtener estadísticas de nuevos clientes:', error)
+    throw new Error('Error al cargar estadísticas de nuevos clientes')
+  }
+}
+
+/**
+ * Acción del servidor para obtener estadísticas de clientes nuevos (llamable desde cliente)
+ * 
+ * @param fechaInicio - Fecha de inicio del período
+ * @param fechaFin - Fecha de fin del período
+ * @returns Objeto con el conteo de clientes nuevos y recurrentes
+ */
+export async function obtenerNuevosClientesStatsAction(
+  fechaInicio: string,
+  fechaFin: string
+): Promise<{ nuevos: number; recurrentes: number }> {
+  'use server'
+  return await obtenerNuevosClientesStats(fechaInicio, fechaFin);
+}
+  
+/**
+ * Obtener estadísticas de ventas por estilo de cerveza
+ * 
+ * @returns Array con los estilos de cerveza y el total vendido
+ */
+export async function obtenerVentasPorEstilo(): Promise<{ estilo_cerveza: string; total_vendido: number }[]> {
+  try {
+    const resultado = await llamarFuncion<{ estilo_cerveza: string; total_vendido: number }>('fn_estilos_stats');
+    return resultado || [];
+  } catch (error: any) {
+    console.error('Error al obtener estadísticas de ventas por estilo:', error);
+    throw new Error('Error al cargar estadísticas de ventas por estilo');
+  }
+}
+ 

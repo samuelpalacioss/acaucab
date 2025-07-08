@@ -6,18 +6,10 @@ DECLARE
     v_tasa_retencion       NUMERIC;
 BEGIN
     /**
-     * Tarea: Tasa de Retención de Clientes
-     * Mide el porcentaje de clientes que realizan más de una compra en un período determinado.
-     *
      * Fórmula utilizada:
      * Tasa de Retención = (Clientes que compraron más de una vez / Total de clientes únicos) * 100
      */
 
-    /**
-     * Pasos 1 y 2: Se realizan en una única consulta para mayor eficiencia.
-     * Se identifican compras, se unifican clientes, se cuentan las compras por cliente,
-     * y se calcula el total de clientes y clientes recurrentes.
-     */
     WITH ventas_con_cliente AS (
         SELECT DISTINCT
             v.id AS venta_id,
