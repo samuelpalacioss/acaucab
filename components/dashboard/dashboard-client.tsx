@@ -20,7 +20,18 @@ export default function DashboardClient() {
   // Estado para manejar el rango de fechas seleccionado
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const { tieneAccesoDashboard, tienePermiso } = usePermissions();
-  const { nombreUsuario } = useUser();
+  const { nombreUsuario, permisos, usuario } = useUser();
+
+  // Log user permissions when dashboard opens
+  console.log("=== DASHBOARD USER PERMISSIONS ===");
+  console.log("User:", nombreUsuario);
+  console.log("User ID:", usuario?.id);
+  console.log("Role:", usuario?.rol);
+  console.log("Email:", usuario?.email);
+  console.log("Permissions array:", permisos);
+  console.log("Total permissions:", permisos.length);
+  console.log("Permissions list:", permisos.join(", "));
+  console.log("===================================");
 
   if (!tieneAccesoDashboard()) {
     return <UnauthorizedPage />;
