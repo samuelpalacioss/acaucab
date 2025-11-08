@@ -199,7 +199,7 @@ export default function CatalogoCervezas() {
               <div className="space-y-5">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-1">$</span>
+                    <span className="text-sm text-gray-500 mr-1">Bs</span>
                     <Input
                       type="number"
                       value={priceRange[0]}
@@ -209,7 +209,7 @@ export default function CatalogoCervezas() {
                   </div>
                   <span className="text-sm text-gray-500">to</span>
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-1">$</span>
+                    <span className="text-sm text-gray-500 mr-1">Bs</span>
                     <Input
                       type="number"
                       value={priceRange[1]}
@@ -282,7 +282,7 @@ export default function CatalogoCervezas() {
                 </svg>
               </div>
               <Select value={sortOrder} onValueChange={setSortOrder}>
-                <SelectTrigger className="w-[220px]">
+                <SelectTrigger className="w-[240px]">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500">Ordenar por:</span>
                     <SelectValue placeholder="Seleccionar" />

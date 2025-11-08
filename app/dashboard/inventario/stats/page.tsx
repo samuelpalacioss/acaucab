@@ -10,6 +10,10 @@ import { AlertCircle, Package, TrendingDown, RotateCcw, BarChart3 } from "lucide
  * Página de estadísticas de inventario (Server Component)
  * Muestra estadísticas relacionadas con el inventario: ruptura de stock y rotación de inventario
  */
+
+// Force dynamic rendering since this page uses cookies
+export const dynamic = 'force-dynamic';
+
 export default async function EstadisticasInventarioPage() {
   let stockRuptureData: any[] = [];
   let inventoryTurnoverValue: number = 0;

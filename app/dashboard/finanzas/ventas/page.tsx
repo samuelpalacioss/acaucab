@@ -14,6 +14,10 @@ import ProtectedRoute from "@/components/auth/protected-route";
  * procesarlos, validarlos y transformarlos antes de pasarlos
  * al componente cliente.
  */
+
+// Force dynamic rendering since this page uses cookies
+export const dynamic = 'force-dynamic';
+
 export default async function VentasPage() {
   /**
    * Llamada a la función PostgreSQL para obtener las ventas

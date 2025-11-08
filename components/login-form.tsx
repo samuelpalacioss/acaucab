@@ -16,6 +16,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { loginSchema, loginType } from "@/lib/schemas";
 import { login } from "@/lib/server-actions";
 import ErrorModal from "@/components/error-modal";
@@ -166,6 +167,12 @@ export default function LoginForm() {
                 <Button disabled={isPending} type="submit" className="w-full">
                   {isPending ? "Iniciando sesión..." : "Acceder"}
                 </Button>
+                <p className="text-center text-sm text-gray-600">
+                  No tienes cuenta?{" "}
+                  <Link href="/registro" className="text-teal-600 hover:text-teal-700 font-semibold">
+                    Regístrate
+                  </Link>
+                </p>
               </div>
             </form>
           </Form>

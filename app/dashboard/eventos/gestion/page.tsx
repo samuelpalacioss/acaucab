@@ -3,6 +3,9 @@ import ProtectedRoute from "@/components/auth/protected-route";
 import { llamarFuncion } from "@/lib/server-actions";
 import { Evento, TipoEvento } from "@/models/evento";
 
+// Force dynamic rendering since this page uses cookies
+export const dynamic = 'force-dynamic';
+
 export default async function EventosPage() {
   let eventosData: Evento[] = [];
   let tiposData: TipoEvento[] = [];

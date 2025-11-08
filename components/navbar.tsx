@@ -20,7 +20,7 @@ import { useVentaStore } from "@/store/venta-store";
 
 const navLinks = [
   { href: "/eventos", label: "Eventos" },
-  { href: "/diario-de-cerveza", label: "DiarioDeCerveza" },
+  // { href: "/diario-de-cerveza", label: "DiarioDeCerveza" },
   { href: "/productos", label: "Productos" },
 ];
 

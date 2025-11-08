@@ -25,6 +25,10 @@ import ProtectedRoute from "@/components/auth/protected-route";
  * Página de estadísticas financieras (Server Component)
  * Muestra diversas métricas de rendimiento del negocio.
  */
+
+// Force dynamic rendering since this page uses cookies
+export const dynamic = 'force-dynamic';
+
 export default async function EstadisticasFinancierasPage() {
   let stats: EmpleadoStat[] = [];
   let beerStyleStats: { estilo_cerveza: string; total_vendido: number }[] = [];

@@ -9,10 +9,10 @@ export default function Hero() {
       <div className="mx-auto max-w-screen-2xl px-4 md:px-6 lg:px-8 flex items-center">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 lg:gap-24 items-center">
           <div className="space-y-6">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-black">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-black">
               Eleva tus sentidos
             </h1>
-            <p className="text-xl md:text-2xl text-gray-800 max-w-[650px]">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-800 max-w-[650px]">
               Creamos experiencias memorables con cerveza artesanal y eventos únicos. De Caracas
               para el mundo.
             </p>
@@ -25,7 +25,7 @@ export default function Hero() {
               </Link>
             </div>
           </div>
-          <div className="relative h-[420px] w-full">
+          <div className="relative h-[300px] sm:h-[350px] md:h-[420px] w-full">
             <Image
               src="/placeholder.svg?height=500&width=500"
               alt="Cervezas ACAUCAB"

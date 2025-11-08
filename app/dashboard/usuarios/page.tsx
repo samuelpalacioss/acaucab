@@ -10,6 +10,10 @@ import { User } from "@/models/users";
  * como autenticación, permisos y fetch de datos de usuarios antes
  * de pasar la información al componente cliente.
  */
+
+// Force dynamic rendering since this page uses cookies
+export const dynamic = 'force-dynamic';
+
 export default async function UsuariosPage() {
   /** 
    * Obtener usuarios desde la base de datos usando la función PostgreSQL
