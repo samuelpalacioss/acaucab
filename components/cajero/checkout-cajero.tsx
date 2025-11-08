@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import ProductList from "./product-list";
 import CategoryFilter from "./category-filter";
 import Cart from "./cart";
-import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { getPresentacionesDisponibles } from "@/lib/api/presentaciones";
 import { CarritoItemType, PresentacionType } from "@/lib/schemas";
 
 // Utility function to get unique categories

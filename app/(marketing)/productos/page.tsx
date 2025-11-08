@@ -15,7 +15,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
-import { getPresentacionesDisponiblesWeb } from "@/api/get-presentaciones-disponibles-web";
+import { getPresentacionesDisponiblesWeb } from "@/lib/api/presentaciones";
 import { Loader } from "lucide-react";
 import { useTasaStore } from "@/store/tasa-store";
 

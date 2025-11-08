@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { getUltimaTasaByMoneda } from "@/api/get-ultima-tasa-by-moneda";
+import { getUltimaTasaByMoneda } from "@/lib/api/tasas";
 import { useTasaStore } from "@/store/tasa-store";
 
 export function cn(...inputs: ClassValue[]) {

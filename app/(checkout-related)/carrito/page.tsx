@@ -7,9 +7,8 @@ import { OrderSummary } from "@/components/carrito-compras/order-summary";
 import { useRouter } from "next/navigation";
 import { useTasaStore } from "@/store/tasa-store";
 import { useUser } from "@/store/user-store";
-import { registrarVentaEnProceso } from "@/api/registrar-venta-en-proceso";
-import { registrarDetallesVentaEnProceso } from "@/api/registrar-detalles-venta-en-proceso";
-import { getClienteByUsuarioId } from "@/api/get-cliente-by-usuario-id";
+import { registrarVentaEnProceso, registrarDetallesVentaEnProceso } from "@/lib/api/ventas";
+import { getClienteByUsuarioId } from "@/lib/api/clientes";
 import { toast } from "@/hooks/use-toast";
 
 const logCartState = (action: string) => {

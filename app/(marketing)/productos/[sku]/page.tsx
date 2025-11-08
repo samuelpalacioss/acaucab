@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Loader, Minus, Plus } from "lucide-react";
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
-import { getPresentacionBySkuTiendaWeb } from "@/api/get-presentacion-by-sku_tienda_web";
+import { getPresentacionBySkuTiendaWeb } from "@/lib/api/presentaciones";
 import { useVentaStore } from "@/store/venta-store";
 import { PresentacionType } from "@/lib/schemas";
 import { useTasaStore } from "@/store/tasa-store";

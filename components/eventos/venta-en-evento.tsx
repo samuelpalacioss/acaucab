@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import CheckoutEvento from "@/components/eventos/checkout-evento"
 import PaymentView from "@/components/cajero/payment-view"
 import PaymentMethodSummary from "@/components/cajero/payment-method-summary"
-import { getClienteByDoc } from "@/api/get-cliente-by-doc"
+import { getClienteByDoc } from "@/lib/api/clientes"
 import type { CarritoItemType, DocType, TarjetaDetails, PaymentMethod } from "@/lib/schemas"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader, X, ArrowLeft } from "lucide-react"
@@ -14,10 +14,9 @@ import { useVentaStore, type EfectivoDetails as StoreEfectivoDetails } from "@/s
 import { getCardType } from "@/lib/utils"
 import { inicializarTasas } from "@/lib/utils"
 import { useTasaStore } from "@/store/tasa-store"
-import { registrarVentaEventoEnProceso } from "@/api/registrar-venta-evento-en-proceso";
-import { registrarDetallesVentaEventoEnProceso } from "@/api/registrar-detalles-venta-evento-en-proceso";
-import { crearMetodoPago } from "@/api/crear-metodo-pago";
-import { getPuntos } from "@/api/get-puntos"
+import { registrarVentaEventoEnProceso, registrarDetallesVentaEventoEnProceso } from "@/lib/api/ventas";
+import { crearMetodoPago } from "@/lib/api/metodos-pago";
+import { getPuntos } from "@/lib/api/usuarios"
 import { llamarFuncion } from "@/lib/server-actions"
 import Link from "next/link"
 import type { EventProvider, EventProduct } from "@/components/eventos/event-detail"

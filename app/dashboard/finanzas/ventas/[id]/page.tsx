@@ -1,4 +1,4 @@
-import { getVentaById } from "@/api/get-venta-by-id";
+import { getVentaById } from "@/lib/api/ventas";
 import VentaDetalleClient from "@/components/ventas/venta-detalle-client";
 import { notFound } from "next/navigation";
 /**

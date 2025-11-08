@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import PaymentView from "@/components/cajero/payment-view"
 import PaymentMethodSummary from "@/components/cajero/payment-method-summary"
-import { getClienteByDoc } from "@/api/get-cliente-by-doc"
+import { getClienteByDoc } from "@/lib/api/clientes"
 import type { DocType, TarjetaDetails, PaymentMethod } from "@/lib/schemas"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader, X, ArrowLeft, Ticket, Calendar, MapPin, Clock, User } from "lucide-react"
@@ -16,11 +16,11 @@ import { useVentaStore, type EfectivoDetails as StoreEfectivoDetails } from "@/s
 import { getCardType } from "@/lib/utils"
 import { inicializarTasas } from "@/lib/utils"
 import { useTasaStore } from "@/store/tasa-store"
-import { registrarVentaEventoEnProceso } from "@/api/registrar-venta-evento-en-proceso";
-import { getPuntos } from "@/api/get-puntos"
+import { registrarVentaEventoEnProceso } from "@/lib/api/ventas";
+import { getPuntos } from "@/lib/api/usuarios"
 import { llamarFuncion } from "@/lib/server-actions"
 import Link from "next/link"
-import { crearMetodoPago } from "@/api/crear-metodo-pago"
+import { crearMetodoPago } from "@/lib/api/metodos-pago"
 
 // Steps enum for ticket sales
 enum TicketStep {

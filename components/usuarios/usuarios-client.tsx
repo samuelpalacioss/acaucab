@@ -14,7 +14,7 @@ import { Search, Plus, Settings, Edit, Eye, UserCheck, UserX } from "lucide-reac
 import Link from "next/link";
 import { User, UsuariosClientProps } from "@/models/users";
 import { llamarFuncion } from "@/lib/server-actions";
-import { deleteUser } from "@/api/delete-user";
+import { deleteUser } from "@/lib/api/usuarios";
 import { toast } from "sonner";
 import ErrorModal from "@/components/error-modal";
 import ProtectedRoute from "@/components/auth/protected-route";

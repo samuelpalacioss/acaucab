@@ -7,7 +7,7 @@ import CheckoutCajero from "./cajero/checkout-cajero";
 import PaymentView from "./cajero/payment-view";
 
 import PaymentMethodSummary from "./cajero/payment-method-summary";
-import { getClienteByDoc } from "@/api/get-cliente-by-doc";
+import { getClienteByDoc } from "@/lib/api/clientes";
 import {
   CarritoItemType,
   DocType,
@@ -26,15 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader, X } from "lucide-react";
-import { getPresentacionesDisponibles } from "@/api/get-presentaciones-disponibles";
+import { getPresentacionesDisponibles } from "@/lib/api/presentaciones";
 import { useVentaStore, EfectivoDetails as StoreEfectivoDetails } from "@/store/venta-store";
 import { getCardType, convertir } from "@/lib/utils";
 import { inicializarTasas } from "@/lib/utils";
 import { useTasaStore } from "@/store/tasa-store";
-import { registrarVentaEnProceso } from "@/api/registrar-venta-en-proceso";
-import { registrarDetallesVentaEnProceso } from "@/api/registrar-detalles-venta-en-proceso";
-import { crearMetodoPago } from "@/api/crear-metodo-pago";
-import { getPuntos } from "@/api/get-puntos";
+import { registrarVentaEnProceso, registrarDetallesVentaEnProceso } from "@/lib/api/ventas";
+import { crearMetodoPago } from "@/lib/api/metodos-pago";
+import { getPuntos } from "@/lib/api/usuarios";
 
 // Steps enum for better type safety
 enum Step {

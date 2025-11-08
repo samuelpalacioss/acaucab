@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getUltimasTasas } from '../api/get-ultimas-tasas';
+import { getUltimasTasas } from '../lib/api/tasas';
 import { TasaType } from '@/lib/schemas';
 
 interface TasaState {

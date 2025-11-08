@@ -6,12 +6,12 @@ import {
   DocType,
   PaymentMethod,
 } from '@/lib/schemas';
-import { registrarPagos } from '@/api/registrar-pagos';
-import { finalizarDetallesVenta } from '@/api/finalizar-detalles-venta';
-import { CompletarVenta } from '@/api/completar-venta';
-import { registrarPagosVenta } from '@/api/registrar-pagos-venta';
-import { finalizarDetallesVentaEvento } from '@/api/finalizar-detalles-venta-evento';
-import { CompletarVentaEvento } from '@/api/completar-venta-evento';
+import { registrarPagos } from '@/lib/api/ventas';
+import { finalizarDetallesVenta } from '@/lib/api/ventas';
+import { CompletarVenta } from '@/lib/api/ventas';
+import { registrarPagosVenta } from '@/lib/api/ventas';
+import { finalizarDetallesVentaEvento } from '@/lib/api/ventas';
+import { CompletarVentaEvento } from '@/lib/api/ventas';
 
 
 /**

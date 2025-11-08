@@ -25,10 +25,10 @@ import { useUser } from "@/store/user-store";
 import { useTasaStore } from "@/store/tasa-store";
 import { SHIPPING_COST } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
-import { getPuntos } from "@/api/get-puntos";
-import { getMetodosDePago, MetodoPagoCliente } from "@/api/get-cliente-metodos-pago";
-import { getClienteByUsuarioId } from "@/api/get-cliente-by-usuario-id";
-import { crearMetodoPago } from "@/api/crear-metodo-pago";
+import { getPuntos } from "@/lib/api/usuarios";
+import { getMetodosDePago, MetodoPagoCliente } from "@/lib/api/metodos-pago";
+import { getClienteByUsuarioId } from "@/lib/api/clientes";
+import { crearMetodoPago } from "@/lib/api/metodos-pago";
 import { getCardType } from "@/lib/utils";
 import {
   Dialog,
@@ -38,10 +38,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { isPuntosDetails, isTarjetaDetails, PuntosDetails, TarjetaDetails } from "@/lib/schemas";
-import { finalizarDetallesVenta } from "@/api/finalizar-detalles-venta";
-import { registrarPagos } from "@/api/registrar-pagos";
-import { CompletarVenta } from "@/api/completar-venta";
-import { DespacharVenta } from "@/api/despachar-venta";
+import { finalizarDetallesVenta, registrarPagos, CompletarVenta, DespacharVenta } from "@/lib/api/ventas";
 import { getBancoNombre } from "@/components/ui/banco-selector";
 import { useRouter } from "next/navigation";
 

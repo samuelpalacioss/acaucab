@@ -1,4 +1,18 @@
-import { llamarFuncionSingle } from "@/lib/server-actions";
+'use server';
+
+import { llamarFuncion, llamarFuncionSingle } from "@/lib/server-actions";
+
+export interface MetodoPagoCliente {
+  id: number;
+  fk_metodo_pago: number;
+  fk_cliente_natural: number | null;
+  fk_cliente_juridico: number | null;
+  tipo_cliente: string;
+  tipo_pago: "tarjeta_credito" | "tarjeta_debito";
+  numero_tarjeta: number;
+  banco: string;
+  fecha_vencimiento: string; // Dates are returned as strings
+}
 
 type EfectivoDetailsWithBreakdown = {
   breakdown: { [value: string]: number };
@@ -26,10 +40,42 @@ type MetodoPagoParams =
   | { tipo: 'cheque'; details: ChequeParams };
 
 /**
+ * Obtiene los métodos de pago de un cliente por su ID de usuario.
+ * @param usuarioId - El ID del usuario.
+ * @returns MetodoPagoCliente[] | null - Array de métodos de pago o null si hay error.
+ */
+export async function getMetodosDePago(
+  usuarioId: number
+): Promise<MetodoPagoCliente[] | null> {
+  try {
+    const data = await llamarFuncion(
+      "fn_get_cliente_metodo_pago_by_usuario_id",
+      {
+        p_usuario_id: usuarioId,
+      }
+    );
+
+    if (!data) {
+      console.log("El usuario no tiene métodos de pago de tarjeta guardados.");
+      return [];
+    }
+
+    console.log("Metodos de pago del usuario (solo tarjetas):", data);
+    return data as MetodoPagoCliente[];
+  } catch (error) {
+    console.error("Error fetching payment methods:", error);
+    // Note: toast is a client-side hook, so we don't use it in server actions
+    return null;
+  }
+}
+
+/**
  * Crea un nuevo método de pago en la base de datos.
  * Llama a la función de base de datos apropiada según el tipo de método de pago.
  * @param params - Un objeto que contiene el tipo de método de pago y los detalles necesarios.
- * @returns number | null - El ID del método de pago recién creado o null si hay un error.
+ * @param p_id_cliente - El ID del cliente.
+ * @param p_tipo_cliente - El tipo de cliente ('Natural' o 'Juridico').
+ * @returns number[] | number | null - El ID del método de pago recién creado o null si hay un error.
  */
 export async function crearMetodoPago(
   params: MetodoPagoParams,
@@ -139,4 +185,18 @@ export async function crearMetodoPago(
     const message = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
     throw new Error(`Ocurrió un error al intentar crear el método de pago: ${message}`);
   }
-} 
+}
+
+/**
+ * Crea un método de pago para una venta de evento.
+ * TODO: Implementar la lógica real para crear método de pago para venta de evento.
+ * @param params - Parámetros del método de pago.
+ * @param ventaId - El ID de la venta de evento.
+ * @returns number | number[] | null - El ID del método de pago creado o null.
+ */
+export async function crearMetodoPagoEvento(params: any, ventaId: number): Promise<number | number[] | null> {
+  // TODO: Lógica real para crear método de pago para venta de evento
+  // Ejemplo: llamarFuncion('fn_create_metodo_pago_evento', { ...params, p_venta_id: ventaId })
+  return null;
+}
+

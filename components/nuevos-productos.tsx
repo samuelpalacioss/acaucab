@@ -1,7 +1,7 @@
 "use client";
 
 import { ProductCard } from "@/components/product-card";
-import { getPresentacionesDisponiblesWeb } from "@/api/get-presentaciones-disponibles-web";
+import { getPresentacionesDisponiblesWeb } from "@/lib/api/presentaciones";
 import { PresentacionType } from "@/lib/schemas";
 import Link from "next/link";
 import { useEffect, useState } from "react";

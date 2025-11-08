@@ -1,4 +1,4 @@
-import { getVentaById } from "@/api/get-venta-by-id";
+import { getVentaById } from "@/lib/api/ventas";
 import CheckoutSuccess from "@/components/checkout/checkout-success";
 import { notFound } from "next/navigation";
 
