@@ -252,6 +252,9 @@ export const usePermissions = () => {
     // Ventas
     puedeIniciarVentas: () => tienePermiso('crear_venta'),
     puedeVerVentas: () => tienePermiso('leer_venta'),
+    puedeVerHistorialVentas: () => tienePermiso('leer_venta'),
+    // Pagos
+    puedeProcesarPagos: () => tieneAlgunPermiso(['crear_pago', 'editar_pago']),
     //eventos
     puedeVerEventos: () => tienePermiso('leer_evento'),
     puedeCrearEventos: () => tienePermiso('crear_evento'),

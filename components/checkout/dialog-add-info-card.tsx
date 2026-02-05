@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CreditCard, Plus, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import PaymentForm, { PaymentFormData } from "./payment-form";
+import PaymentForm, { PaymentFormData, paymentFormSchema } from "./payment-form";
 import { toast } from "@/hooks/use-toast";
 
 interface DialogAddInfoCardProps {
@@ -21,6 +23,21 @@ interface DialogAddInfoCardProps {
 export default function DialogAddInfoCard({ onSubmit }: DialogAddInfoCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+   // Local form instance for this dialog,
+   // uses the same schema and defaults as the main checkout page
+  const paymentForm = useForm<PaymentFormData>({
+    resolver: zodResolver(paymentFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      nombreTitular: "",
+      numeroTarjeta: "",
+      fechaExpiracion: "",
+      codigoSeguridad: "",
+      tipoTarjeta: "credito",
+      banco: "",
+    },
+  });
 
   const handleFormSubmit = async (data: PaymentFormData) => {
     setIsSubmitting(true);
@@ -65,6 +82,7 @@ export default function DialogAddInfoCard({ onSubmit }: DialogAddInfoCardProps) 
         </DialogHeader>
 
         <PaymentForm
+          form={paymentForm}
           showHeader={true}
           onSubmit={handleFormSubmit}
           isSubmitting={isSubmitting}

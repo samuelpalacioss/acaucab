@@ -23,8 +23,8 @@ export function crearClienteNavegador() {
  * Se utiliza para cargar datos en componentes del servidor
  * Acceso de solo lectura con la sesión del usuario autenticado
  */
-export function crearClienteServerComponent() {
-  const cookieStore = cookies()
+export async function crearClienteServerComponent() {
+  const cookieStore = await cookies()
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -40,8 +40,8 @@ export function crearClienteServerComponent() {
  * Se utiliza para operaciones de escritura (insert, update, delete)
  * en funciones del servidor y API routes
  */
-export function crearClienteServerAction() {
-  const cookieStore = cookies()
+export async function crearClienteServerAction() {
+  const cookieStore = await cookies()
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {

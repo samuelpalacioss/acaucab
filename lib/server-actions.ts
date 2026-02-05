@@ -24,7 +24,7 @@ export async function llamarFuncion<T = any>(
   nombreFuncion: string,
   parametros: Record<string, any> = {}
 ): Promise<T[]> {
-  const supabase = crearClienteServerAction()
+  const supabase = await crearClienteServerAction()
 
   try {
     const { data, error } = await supabase.rpc(nombreFuncion, parametros)
@@ -65,7 +65,7 @@ export async function llamarFuncionEscalar<T = any>(
   nombreFuncion: string,
   parametros: Record<string, any> = {}
 ): Promise<T> {
-  const supabase = crearClienteServerAction()
+  const supabase = await crearClienteServerAction()
 
   try {
     const { data, error } = await supabase.rpc(nombreFuncion, parametros)
